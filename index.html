@@ -27,23 +27,31 @@
         .task-item:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.15); transform: translateY(-2px); }
         .task-name { font-weight: bold; color: #333; margin-bottom: 5px; }
         .planning-section { background: white; border-radius: 12px; padding: 25px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
-        .planning-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .nav-buttons { display: flex; gap: 10px; }
+        .planning-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
+        .nav-buttons { display: flex; gap: 10px; flex-wrap: wrap; }
         button { background: #667eea; color: white; border: none; padding: 10px 15px; border-radius: 6px; cursor: pointer; transition: all 0.3s; }
         button:hover { background: #764ba2; transform: translateY(-2px); }
         .nav-mode-btn { background: #e0e0e0; color: #333; }
         .nav-mode-btn.active { background: #667eea; color: white; }
         .calendar-view { display: none; }
         .calendar-view.active { display: block; }
-        .timeline { position: relative; height: 80px; background: #f9f9f9; border: 1px solid #e0e0e0; border-radius: 6px; margin: 10px 0; }
-        .task-bar { position: absolute; height: 35px; border-radius: 4px; display: flex; align-items: center; padding: 0 8px; color: white; font-size: 0.85em; font-weight: bold; top: 22px; cursor: move; }
+        .day-container { margin: 20px 0; }
+        .day-header { background: #667eea; color: white; padding: 12px; border-radius: 6px 6px 0 0; font-weight: bold; }
+        .timeline { position: relative; height: 60px; background: #f9f9f9; border: 1px solid #e0e0e0; border-bottom: none; display: flex; align-items: center; padding: 5px; }
+        .timeline:last-child { border-bottom: 1px solid #e0e0e0; border-radius: 0 0 6px 6px; }
+        .timeline-label { width: 60px; font-weight: bold; font-size: 0.9em; padding-right: 10px; border-right: 1px solid #ddd; }
+        .task-bar { position: relative; height: 40px; border-radius: 4px; display: flex; align-items: center; padding: 0 8px; color: white; font-size: 0.85em; font-weight: bold; cursor: move; margin: 0 5px; user-select: none; border: 2px solid transparent; transition: all 0.2s; }
+        .task-bar:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
         .task-bar.a-faire { background: #2196F3; }
         .task-bar.en-cours { background: #FFC107; color: #333; }
         .task-bar.en-retard { background: #F44336; }
         .task-bar.termine { background: #4CAF50; opacity: 0.6; }
+        .task-bar.dragging { opacity: 0.7; border: 2px solid #fff; }
+        .task-bar.resize-handle { cursor: ew-resize; }
+        .resize-handle::after { content: ''; position: absolute; right: 0; top: 0; bottom: 0; width: 8px; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.5)); cursor: ew-resize; }
         .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); align-items: center; justify-content: center; }
         .modal.active { display: flex; }
-        .modal-content { background: white; padding: 30px; border-radius: 12px; width: 90%; max-width: 500px; box-shadow: 0 15px 40px rgba(0,0,0,0.3); }
+        .modal-content { background: white; padding: 30px; border-radius: 12px; width: 90%; max-width: 500px; box-shadow: 0 15px 40px rgba(0,0,0,0.3); max-height: 90vh; overflow-y: auto; }
         .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
         .close-btn { background: none; color: #999; font-size: 1.5em; cursor: pointer; border: none; padding: 0; }
         .form-group { margin-bottom: 15px; }
@@ -138,18 +146,16 @@
                     </select>
                 </div>
                 <div class="form-group">
-                    <label>Date de Début *</label>
-                    <input type="datetime-local" id="taskStartDate" required>
+                    <label>Date & Heure de Début *</label>
+                    <input type="datetime-local" id="taskStartDate" required onchange="calculateDuration()">
                 </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>Date de Fin</label>
-                        <input type="datetime-local" id="taskEndDate">
-                    </div>
-                    <div class="form-group">
-                        <label>Durée (h)</label>
-                        <input type="number" id="taskDuration" min="0" step="0.5">
-                    </div>
+                <div class="form-group">
+                    <label>Date & Heure de Fin</label>
+                    <input type="datetime-local" id="taskEndDate" onchange="calculateDuration()">
+                </div>
+                <div class="form-group">
+                    <label>Durée (heures)</label>
+                    <input type="number" id="taskDuration" min="0" step="0.5" onchange="calculateEndDate()">
                 </div>
                 <div class="form-buttons">
                     <button type="button" class="btn-cancel" onclick="closeTaskModal()">Annuler</button>
@@ -165,6 +171,8 @@
         let currentEditId = null;
         let currentMode = 'day';
         let currentDate = new Date();
+        let draggedTask = null;
+        let resizeTask = null;
 
         function saveData() {
             localStorage.setItem('chantier-tasks', JSON.stringify(tasks));
@@ -173,6 +181,31 @@
         function loadData() {
             const saved = localStorage.getItem('chantier-tasks');
             tasks = saved ? JSON.parse(saved) : [];
+        }
+
+        function calculateDuration() {
+            const startDate = document.getElementById('taskStartDate').value;
+            const endDate = document.getElementById('taskEndDate').value;
+            const durationInput = document.getElementById('taskDuration');
+
+            if (startDate && endDate) {
+                const start = new Date(startDate);
+                const end = new Date(endDate);
+                const diff = (end - start) / (1000 * 60 * 60);
+                durationInput.value = Math.max(0, diff.toFixed(1));
+            }
+        }
+
+        function calculateEndDate() {
+            const startDate = document.getElementById('taskStartDate').value;
+            const duration = parseFloat(document.getElementById('taskDuration').value);
+            const endDateInput = document.getElementById('taskEndDate');
+
+            if (startDate && duration) {
+                const start = new Date(startDate);
+                const end = new Date(start.getTime() + duration * 60 * 60 * 1000);
+                endDateInput.value = end.toISOString().slice(0, 16);
+            }
         }
 
         function openTaskModal(taskId = null) {
@@ -272,21 +305,31 @@
             const dateStr = currentDate.toLocaleDateString('fr-FR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
             const dayTasks = tasks.filter(t => new Date(t.startDate).toDateString() === currentDate.toDateString());
             
-            let html = `<h3>${dateStr}</h3>`;
-            for (let h = 8; h < 18; h++) {
-                html += `<div style="margin:15px 0;"><strong>${h}:00</strong></div>`;
-                html += `<div class="timeline" id="timeline-${h}"></div>`;
+            let html = `<div class="day-container"><div class="day-header">${dateStr}</div>`;
+            
+            for (let h = 8; h <= 18; h++) {
+                html += `<div class="timeline"><div class="timeline-label">${h}:00</div><div class="timeline-tasks" id="timeline-${h}" style="flex: 1; display: flex; gap: 5px;"></div></div>`;
             }
+            html += '</div>';
+            
             dayContent.innerHTML = html;
+            
             dayTasks.forEach(task => {
                 const hour = new Date(task.startDate).getHours();
                 const timeline = document.getElementById(`timeline-${hour}`);
                 if (timeline) {
                     const bar = document.createElement('div');
-                    bar.className = `task-bar ${task.status}`;
+                    bar.className = `task-bar ${task.status} resize-handle`;
                     bar.textContent = task.name;
-                    bar.style.width = (task.duration || 1) * 50 + 'px';
-                    bar.onclick = () => openTaskModal(task.id);
+                    bar.style.width = ((task.duration || 1) * 60) + 'px';
+                    bar.style.minWidth = '80px';
+                    bar.draggable = true;
+                    bar.id = `task-${task.id}`;
+                    
+                    bar.addEventListener('dragstart', (e) => startDrag(e, task.id));
+                    bar.addEventListener('dragend', (e) => endDrag(e, task.id));
+                    bar.addEventListener('mousedown', (e) => handleMouseDown(e, task.id, bar, hour));
+                    
                     timeline.appendChild(bar);
                 }
             });
@@ -297,29 +340,43 @@
             const startDate = new Date(currentDate);
             startDate.setDate(currentDate.getDate() - currentDate.getDay() + 1);
 
-            let html = '<div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 10px;">';
+            let html = '';
             for (let i = 0; i < 7; i++) {
                 const d = new Date(startDate);
                 d.setDate(d.getDate() + i);
                 const dateStr = d.toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric' });
-                html += `<div><h4>${dateStr}</h4><div class="timeline" id="week-${i}"></div></div>`;
+                
+                const dayTasks = tasks.filter(t => new Date(t.startDate).toDateString() === d.toDateString());
+                
+                html += `<div class="day-container">
+                    <div class="day-header">${dateStr}</div>`;
+                
+                for (let h = 8; h <= 18; h++) {
+                    html += `<div class="timeline" style="margin: 2px 0;"><div class="timeline-label" style="font-size: 0.8em;">${h}</div><div class="timeline-tasks" id="week-${i}-${h}" style="flex: 1; display: flex; gap: 3px;"></div></div>`;
+                }
+                html += '</div>';
             }
-            html += '</div>';
             weekContent.innerHTML = html;
 
             tasks.forEach(task => {
                 const taskDate = new Date(task.startDate);
+                const taskHour = taskDate.getHours();
+                
                 for (let i = 0; i < 7; i++) {
                     const d = new Date(startDate);
                     d.setDate(d.getDate() + i);
                     if (taskDate.toDateString() === d.toDateString()) {
-                        const timeline = document.getElementById(`week-${i}`);
+                        const timeline = document.getElementById(`week-${i}-${taskHour}`);
                         if (timeline) {
                             const bar = document.createElement('div');
                             bar.className = `task-bar ${task.status}`;
                             bar.textContent = task.name;
-                            bar.style.width = (task.duration || 1) * 30 + 'px';
-                            bar.onclick = () => openTaskModal(task.id);
+                            bar.style.width = ((task.duration || 1) * 40) + 'px';
+                            bar.style.minWidth = '60px';
+                            bar.draggable = true;
+                            bar.id = `task-${task.id}`;
+                            bar.addEventListener('dragstart', (e) => startDrag(e, task.id));
+                            bar.addEventListener('dragend', (e) => endDrag(e, task.id));
                             timeline.appendChild(bar);
                         }
                     }
@@ -339,21 +396,77 @@
             const days = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
             days.forEach(d => html += `<div style="font-weight: bold; text-align: center; padding: 8px; background: #f0f0f0;">${d}</div>`);
 
-            for (let i = startDate; i > 0; i--) html += '<div style="padding: 8px; background: #f9f9f9; color: #ccc;"></div>';
+            for (let i = startDate; i > 0; i--) html += '<div style="padding: 8px; background: #f9f9f9; color: #ccc; border-radius: 6px;"></div>';
 
             for (let day = 1; day <= lastDay.getDate(); day++) {
                 const d = new Date(year, month, day);
                 const dayTasks = tasks.filter(t => new Date(t.startDate).toDateString() === d.toDateString());
-                html += `<div style="padding: 8px; border: 1px solid #e0e0e0; border-radius: 4px; min-height: 80px;"><strong>${day}</strong>`;
-                dayTasks.slice(0, 2).forEach(t => html += `<div style="font-size: 0.8em; background: #e3f2fd; padding: 2px; margin: 2px 0; border-radius: 2px; cursor: pointer;" onclick="openTaskModal('${t.id}')">${t.name.slice(0, 10)}</div>`);
+                html += `<div style="padding: 8px; border: 1px solid #e0e0e0; border-radius: 4px; min-height: 80px; cursor: pointer;" onclick="currentDate = new Date(${d.getTime()}); switchMode('day');"><strong>${day}</strong>`;
+                dayTasks.slice(0, 2).forEach(t => html += `<div style="font-size: 0.75em; background: #e3f2fd; padding: 2px; margin: 2px 0; border-radius: 2px;">${t.name.slice(0, 12)}</div>`);
+                if (dayTasks.length > 2) html += `<div style="font-size: 0.75em; color: #666;">+${dayTasks.length - 2} autre(s)</div>`;
                 html += '</div>';
             }
 
-            for (let i = 1; i <= 42 - lastDay.getDate() - startDate; i++) html += '<div style="padding: 8px; background: #f9f9f9;"></div>';
+            for (let i = 1; i <= 42 - lastDay.getDate() - startDate; i++) html += '<div style="padding: 8px; background: #f9f9f9; border-radius: 6px;"></div>';
 
             html += '</div>';
             monthContent.innerHTML = html;
         }
+
+        function startDrag(e, taskId) {
+            draggedTask = { id: taskId, startX: e.clientX };
+            e.dataTransfer.effectAllowed = 'move';
+        }
+
+        function endDrag(e, taskId) {
+            if (!draggedTask) return;
+            draggedTask = null;
+        }
+
+        function handleMouseDown(e, taskId, element, currentHour) {
+            if (e.button !== 0) return; // Left click only
+            
+            const rect = element.getBoundingClientRect();
+            const rightEdge = rect.right - e.clientX;
+            
+            // Si on clique près du bord droit, c'est un resize
+            if (rightEdge < 15) {
+                resizeTask = { id: taskId, startX: e.clientX, element: element };
+                e.preventDefault();
+            }
+        }
+
+        document.addEventListener('mousemove', (e) => {
+            if (resizeTask) {
+                const task = tasks.find(t => t.id === resizeTask.id);
+                if (!task) return;
+
+                const deltaX = e.clientX - resizeTask.startX;
+                const newWidth = resizeTask.element.offsetWidth + deltaX;
+                const newDuration = Math.max(0.5, newWidth / 60); // 60px = 1h
+                
+                task.duration = parseFloat(newDuration.toFixed(1));
+                
+                // Recalculate end date
+                if (task.startDate) {
+                    const start = new Date(task.startDate);
+                    const end = new Date(start.getTime() + task.duration * 60 * 60 * 1000);
+                    task.endDate = end.toISOString().slice(0, 16);
+                }
+                
+                resizeTask.element.style.width = newWidth + 'px';
+                resizeTask.startX = e.clientX;
+                
+                saveData();
+            }
+        });
+
+        document.addEventListener('mouseup', () => {
+            if (resizeTask) {
+                resizeTask = null;
+                updateAllViews();
+            }
+        });
 
         function switchMode(mode) {
             currentMode = mode;
