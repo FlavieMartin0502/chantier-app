@@ -22,7 +22,6 @@
         }
         header h1 { font-size: 2em; }
         
-        .header-buttons { display: flex; gap: 10px; }
         .btn-new { 
             background: white; 
             color: #667eea; 
@@ -88,6 +87,11 @@
         .task-list-item strong { display: block; margin-bottom: 3px; }
         .task-list-item-info { font-size: 0.85em; color: #999; }
 
+        .task-list-item.subtask {
+            margin-left: 15px;
+            border-left-color: #999;
+        }
+
         /* ===== PLANNING ===== */
         .planning-section {
             background: white;
@@ -123,25 +127,6 @@
         }
 
         .nav-btn:hover { background: #5568d3; }
-
-        .view-buttons {
-            display: flex;
-            gap: 5px;
-        }
-
-        .view-btn {
-            padding: 8px 15px;
-            background: #e0e0e0;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: 0.2s;
-        }
-
-        .view-btn.active {
-            background: #667eea;
-            color: white;
-        }
 
         .current-period {
             font-weight: bold;
@@ -205,10 +190,6 @@
             font-size: 1.1em;
         }
 
-        .calendar-day-other-month .calendar-day-num {
-            color: #999;
-        }
-
         /* ===== TÂCHES SUR LE PLANNING ===== */
         .calendar-task {
             padding: 8px;
@@ -227,39 +208,13 @@
             transform: translateY(-2px);
         }
 
-        .calendar-task.a-faire {
-            background: #E3F2FD;
-            color: #1565C0;
-            border-left-color: #2196F3;
-        }
+        .calendar-task.a-faire { background: #E3F2FD; color: #1565C0; border-left-color: #2196F3; }
+        .calendar-task.en-cours { background: #FFF8E1; color: #F57F17; border-left-color: #FFC107; }
+        .calendar-task.en-retard { background: #FFEBEE; color: #C62828; border-left-color: #F44336; }
+        .calendar-task.termine { background: #E8F5E9; color: #2E7D32; border-left-color: #4CAF50; }
 
-        .calendar-task.en-cours {
-            background: #FFF8E1;
-            color: #F57F17;
-            border-left-color: #FFC107;
-        }
-
-        .calendar-task.en-retard {
-            background: #FFEBEE;
-            color: #C62828;
-            border-left-color: #F44336;
-        }
-
-        .calendar-task.termine {
-            background: #E8F5E9;
-            color: #2E7D32;
-            border-left-color: #4CAF50;
-        }
-
-        .calendar-task-name {
-            font-weight: bold;
-            margin-bottom: 2px;
-        }
-
-        .calendar-task-info {
-            font-size: 0.8em;
-            opacity: 0.8;
-        }
+        .calendar-task-name { font-weight: bold; margin-bottom: 2px; }
+        .calendar-task-info { font-size: 0.8em; opacity: 0.8; }
 
         /* ===== MODAL ===== */
         .modal {
@@ -282,7 +237,7 @@
             padding: 30px;
             border-radius: 10px;
             width: 90%;
-            max-width: 600px;
+            max-width: 700px;
             box-shadow: 0 4px 20px rgba(0,0,0,0.3);
             max-height: 90vh;
             overflow-y: auto;
@@ -326,6 +281,78 @@
             gap: 10px;
         }
 
+        .subtasks-section {
+            background: #f9f9f9;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border: 2px solid #eee;
+        }
+
+        .subtasks-section h3 {
+            color: #333;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .btn-add-subtask {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.2s;
+        }
+
+        .btn-add-subtask:hover { background: #5568d3; }
+
+        .subtask-item {
+            background: white;
+            padding: 12px;
+            border-left: 3px solid #667eea;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .subtask-info {
+            flex: 1;
+        }
+
+        .subtask-name { font-weight: bold; color: #333; }
+        .subtask-dates { font-size: 0.85em; color: #999; }
+
+        .btn-subtask-edit {
+            background: #2196F3;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 5px;
+            transition: 0.2s;
+        }
+
+        .btn-subtask-edit:hover { background: #0b7dda; }
+
+        .btn-subtask-delete {
+            background: #f44336;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .btn-subtask-delete:hover { background: #da190b; }
+
         .form-actions {
             display: flex;
             gap: 10px;
@@ -356,10 +383,7 @@
     <div class="container">
         <header>
             <h1>📋 Chantier</h1>
-            <div class="header-buttons">
-                <button class="btn-new" onclick="openModal('task')">+ Tâche</button>
-                <button class="btn-new" onclick="openModal('subtask')">+ Sous-tâche</button>
-            </div>
+            <button class="btn-new" onclick="openTaskModal()">+ Nouvelle Tâche</button>
         </header>
 
         <div class="main-content">
@@ -405,32 +429,25 @@
         </div>
     </div>
 
-    <!-- MODAL TÂCHE/SOUS-TÂCHE -->
+    <!-- MODAL TÂCHE -->
     <div id="taskModal" class="modal">
         <div class="modal-content">
-            <span class="modal-close" onclick="closeModal()">&times;</span>
+            <span class="modal-close" onclick="closeTaskModal()">&times;</span>
             <h2 id="modal-title">Nouvelle Tâche</h2>
 
             <div class="form-group">
                 <label>Nom *</label>
-                <input type="text" id="itemName" placeholder="Ex: Peindre le mur">
+                <input type="text" id="taskName" placeholder="Ex: Peindre le mur">
             </div>
 
             <div class="form-group">
                 <label>Description</label>
-                <textarea id="itemDesc" placeholder="Détails..."></textarea>
-            </div>
-
-            <div class="form-group" id="parent-group" style="display: none;">
-                <label>Tâche principale *</label>
-                <select id="parentTask">
-                    <option value="">-- Sélectionner une tâche --</option>
-                </select>
+                <textarea id="taskDesc" placeholder="Détails..."></textarea>
             </div>
 
             <div class="form-group">
                 <label>Statut</label>
-                <select id="itemStatus">
+                <select id="taskStatus">
                     <option value="a-faire">🔵 À faire</option>
                     <option value="en-cours">🟡 En cours</option>
                     <option value="en-retard">🔴 En retard</option>
@@ -441,34 +458,98 @@
             <div class="form-row">
                 <div class="form-group">
                     <label>Date début *</label>
-                    <input type="date" id="itemStart" onchange="calculateDuration()">
+                    <input type="date" id="taskStart" onchange="updateTaskDuration()">
                 </div>
                 <div class="form-group">
                     <label>Heure début *</label>
-                    <input type="time" id="itemStartTime" value="08:30" onchange="calculateDuration()">
+                    <input type="time" id="taskStartTime" value="08:30" onchange="updateTaskDuration()">
                 </div>
             </div>
 
             <div class="form-row">
                 <div class="form-group">
                     <label>Date fin *</label>
-                    <input type="date" id="itemEnd" onchange="calculateDuration()">
+                    <input type="date" id="taskEnd" onchange="updateTaskDuration()">
                 </div>
                 <div class="form-group">
                     <label>Heure fin *</label>
-                    <input type="time" id="itemEndTime" value="18:00" onchange="calculateDuration()">
+                    <input type="time" id="taskEndTime" value="18:00" onchange="updateTaskDuration()">
                 </div>
             </div>
 
             <div class="form-group">
                 <label>Durée (heures) - Auto-calculée</label>
-                <input type="number" id="itemDuration" readonly step="0.5" placeholder="0">
+                <input type="number" id="taskDuration" readonly step="0.5" placeholder="0">
+            </div>
+
+            <!-- SOUS-TÂCHES -->
+            <div class="subtasks-section">
+                <h3>
+                    Sous-tâches
+                    <button class="btn-add-subtask" onclick="openSubtaskModal()">+ Ajouter</button>
+                </h3>
+                <div id="subtasks-list"></div>
             </div>
 
             <div class="form-actions">
-                <button class="btn btn-save" onclick="saveItem()">Enregistrer</button>
-                <button class="btn btn-cancel" onclick="closeModal()">Annuler</button>
-                <button class="btn btn-delete" id="btn-delete" onclick="deleteItem()" style="display: none;">Supprimer</button>
+                <button class="btn btn-save" onclick="saveTask()">Enregistrer</button>
+                <button class="btn btn-cancel" onclick="closeTaskModal()">Annuler</button>
+                <button class="btn btn-delete" id="btn-delete-task" onclick="deleteTask()" style="display: none;">Supprimer</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL SOUS-TÂCHE -->
+    <div id="subtaskModal" class="modal">
+        <div class="modal-content">
+            <span class="modal-close" onclick="closeSubtaskModal()">&times;</span>
+            <h2>Sous-tâche</h2>
+
+            <div class="form-group">
+                <label>Nom *</label>
+                <input type="text" id="subtaskName" placeholder="Ex: Préparer le matériel">
+            </div>
+
+            <div class="form-group">
+                <label>Statut</label>
+                <select id="subtaskStatus">
+                    <option value="a-faire">🔵 À faire</option>
+                    <option value="en-cours">🟡 En cours</option>
+                    <option value="en-retard">🔴 En retard</option>
+                    <option value="termine">🟢 Terminé</option>
+                </select>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Date début *</label>
+                    <input type="date" id="subtaskStart" onchange="updateSubtaskDuration()">
+                </div>
+                <div class="form-group">
+                    <label>Heure début *</label>
+                    <input type="time" id="subtaskStartTime" value="08:30" onchange="updateSubtaskDuration()">
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Date fin *</label>
+                    <input type="date" id="subtaskEnd" onchange="updateSubtaskDuration()">
+                </div>
+                <div class="form-group">
+                    <label>Heure fin *</label>
+                    <input type="time" id="subtaskEndTime" value="18:00" onchange="updateSubtaskDuration()">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Durée (heures)</label>
+                <input type="number" id="subtaskDuration" readonly step="0.5" placeholder="0">
+            </div>
+
+            <div class="form-actions">
+                <button class="btn btn-save" onclick="saveSubtask()">Ajouter</button>
+                <button class="btn btn-cancel" onclick="closeSubtaskModal()">Annuler</button>
             </div>
         </div>
     </div>
@@ -477,8 +558,8 @@
         let tasks = [];
         let subtasks = [];
         let currentDate = new Date();
-        let editingId = null;
-        let editingType = null;
+        let editingTaskId = null;
+        let editingSubtaskId = null;
         let draggedItem = null;
 
         // === LOCALSTORAGE ===
@@ -501,167 +582,223 @@
             const start = new Date(`${startDate}T${startTime}`);
             const end = new Date(`${endDate}T${endTime}`);
 
-            if (isNaN(start) || isNaN(end)) return 0;
+            if (isNaN(start) || isNaN(end) || end < start) return 0;
 
             const diffMs = end - start;
             const diffHours = diffMs / (1000 * 60 * 60);
 
-            return Math.max(0, Math.round(diffHours * 2) / 2);
+            return Math.round(diffHours * 2) / 2;
         }
 
-        function calculateDuration() {
+        function updateTaskDuration() {
             const duration = calculateDurationInHours(
-                document.getElementById('itemStart').value,
-                document.getElementById('itemStartTime').value,
-                document.getElementById('itemEnd').value,
-                document.getElementById('itemEndTime').value
+                document.getElementById('taskStart').value,
+                document.getElementById('taskStartTime').value,
+                document.getElementById('taskEnd').value,
+                document.getElementById('taskEndTime').value
             );
-            document.getElementById('itemDuration').value = duration;
+            document.getElementById('taskDuration').value = duration;
         }
 
-        // === MODAL ===
-        function openModal(type, id = null) {
-            editingType = type;
-            editingId = id;
+        function updateSubtaskDuration() {
+            const duration = calculateDurationInHours(
+                document.getElementById('subtaskStart').value,
+                document.getElementById('subtaskStartTime').value,
+                document.getElementById('subtaskEnd').value,
+                document.getElementById('subtaskEndTime').value
+            );
+            document.getElementById('subtaskDuration').value = duration;
+        }
 
-            const modal = document.getElementById('taskModal');
-            const parentGroup = document.getElementById('parent-group');
+        // === MODAL TÂCHE ===
+        function openTaskModal(taskId = null) {
+            editingTaskId = taskId;
 
-            if (type === 'subtask') {
-                document.getElementById('modal-title').textContent = 'Nouvelle Sous-tâche';
-                parentGroup.style.display = 'block';
-                populateParentTasks();
-                document.getElementById('btn-delete').style.display = 'none';
-
-                if (id) {
-                    document.getElementById('modal-title').textContent = 'Modifier Sous-tâche';
-                    document.getElementById('btn-delete').style.display = 'block';
-                    const subtask = subtasks.find(s => s.id === id);
-                    fillForm(subtask);
-                    document.getElementById('parentTask').value = subtask.parentId;
-                } else {
-                    resetForm();
-                }
+            if (taskId) {
+                document.getElementById('modal-title').textContent = 'Modifier Tâche';
+                document.getElementById('btn-delete-task').style.display = 'block';
+                const task = tasks.find(t => t.id === taskId);
+                fillTaskForm(task);
             } else {
-                document.getElementById('modal-title').textContent = id ? 'Modifier Tâche' : 'Nouvelle Tâche';
-                parentGroup.style.display = 'none';
-                document.getElementById('btn-delete').style.display = id ? 'block' : 'none';
-
-                if (id) {
-                    const task = tasks.find(t => t.id === id);
-                    fillForm(task);
-                } else {
-                    resetForm();
-                }
+                document.getElementById('modal-title').textContent = 'Nouvelle Tâche';
+                document.getElementById('btn-delete-task').style.display = 'none';
+                resetTaskForm();
             }
 
-            modal.classList.add('active');
+            renderSubtasksList();
+            document.getElementById('taskModal').classList.add('active');
         }
 
-        function resetForm() {
-            const today = new Date().toISOString().split('T')[0];
-            document.getElementById('itemName').value = '';
-            document.getElementById('itemDesc').value = '';
-            document.getElementById('itemStatus').value = 'a-faire';
-            document.getElementById('itemStart').value = today;
-            document.getElementById('itemStartTime').value = '08:30';
-            document.getElementById('itemEnd').value = today;
-            document.getElementById('itemEndTime').value = '18:00';
-            calculateDuration();
-        }
-
-        function fillForm(item) {
-            document.getElementById('itemName').value = item.name;
-            document.getElementById('itemDesc').value = item.description || '';
-            document.getElementById('itemStatus').value = item.status;
-            document.getElementById('itemStart').value = item.start;
-            document.getElementById('itemStartTime').value = item.startTime;
-            document.getElementById('itemEnd').value = item.end;
-            document.getElementById('itemEndTime').value = item.endTime;
-            calculateDuration();
-        }
-
-        function closeModal() {
+        function closeTaskModal() {
             document.getElementById('taskModal').classList.remove('active');
-            editingId = null;
-            editingType = null;
+            editingTaskId = null;
         }
 
-        function populateParentTasks() {
-            const select = document.getElementById('parentTask');
-            select.innerHTML = '<option value="">-- Sélectionner une tâche --</option>';
-            tasks.forEach(task => {
-                const option = document.createElement('option');
-                option.value = task.id;
-                option.textContent = task.name;
-                select.appendChild(option);
-            });
+        function resetTaskForm() {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('taskName').value = '';
+            document.getElementById('taskDesc').value = '';
+            document.getElementById('taskStatus').value = 'a-faire';
+            document.getElementById('taskStart').value = today;
+            document.getElementById('taskStartTime').value = '08:30';
+            document.getElementById('taskEnd').value = today;
+            document.getElementById('taskEndTime').value = '18:00';
+            updateTaskDuration();
         }
 
-        function saveItem() {
-            const name = document.getElementById('itemName').value.trim();
+        function fillTaskForm(task) {
+            document.getElementById('taskName').value = task.name;
+            document.getElementById('taskDesc').value = task.description || '';
+            document.getElementById('taskStatus').value = task.status;
+            document.getElementById('taskStart').value = task.start;
+            document.getElementById('taskStartTime').value = task.startTime;
+            document.getElementById('taskEnd').value = task.end;
+            document.getElementById('taskEndTime').value = task.endTime;
+            updateTaskDuration();
+        }
+
+        function saveTask() {
+            const name = document.getElementById('taskName').value.trim();
             if (!name) {
                 alert('Le nom est obligatoire');
                 return;
             }
 
-            const itemData = {
+            const taskData = {
                 name,
-                description: document.getElementById('itemDesc').value,
-                status: document.getElementById('itemStatus').value,
-                start: document.getElementById('itemStart').value,
-                startTime: document.getElementById('itemStartTime').value,
-                end: document.getElementById('itemEnd').value,
-                endTime: document.getElementById('itemEndTime').value,
-                duration: parseFloat(document.getElementById('itemDuration').value) || 0
+                description: document.getElementById('taskDesc').value,
+                status: document.getElementById('taskStatus').value,
+                start: document.getElementById('taskStart').value,
+                startTime: document.getElementById('taskStartTime').value,
+                end: document.getElementById('taskEnd').value,
+                endTime: document.getElementById('taskEndTime').value,
+                duration: parseFloat(document.getElementById('taskDuration').value) || 0
             };
 
-            if (editingType === 'subtask') {
-                const parentId = document.getElementById('parentTask').value;
-                if (!parentId) {
-                    alert('Sélectionnez une tâche principale');
-                    return;
-                }
-
-                if (editingId) {
-                    const subtask = subtasks.find(s => s.id === editingId);
-                    Object.assign(subtask, { ...itemData, parentId: parseInt(parentId) });
-                } else {
-                    subtasks.push({
-                        id: Date.now(),
-                        parentId: parseInt(parentId),
-                        ...itemData
-                    });
-                }
+            if (editingTaskId) {
+                const task = tasks.find(t => t.id === editingTaskId);
+                Object.assign(task, taskData);
             } else {
-                if (editingId) {
-                    const task = tasks.find(t => t.id === editingId);
-                    Object.assign(task, itemData);
-                } else {
-                    tasks.push({
-                        id: Date.now(),
-                        ...itemData
-                    });
-                }
+                tasks.push({
+                    id: Date.now(),
+                    ...taskData
+                });
             }
 
             saveTasks();
-            closeModal();
+            closeTaskModal();
             render();
         }
 
-        function deleteItem() {
-            if (!confirm('Êtes-vous sûr ?')) return;
+        function deleteTask() {
+            if (!confirm('Supprimer cette tâche et ses sous-tâches ?')) return;
 
-            if (editingType === 'subtask') {
-                subtasks = subtasks.filter(s => s.id !== editingId);
+            tasks = tasks.filter(t => t.id !== editingTaskId);
+            subtasks = subtasks.filter(s => s.parentId !== editingTaskId);
+
+            saveTasks();
+            closeTaskModal();
+            render();
+        }
+
+        // === MODAL SOUS-TÂCHE ===
+        function openSubtaskModal(subtaskId = null) {
+            editingSubtaskId = subtaskId;
+            const today = new Date().toISOString().split('T')[0];
+
+            if (subtaskId) {
+                const subtask = subtasks.find(s => s.id === subtaskId);
+                document.getElementById('subtaskName').value = subtask.name;
+                document.getElementById('subtaskStatus').value = subtask.status;
+                document.getElementById('subtaskStart').value = subtask.start;
+                document.getElementById('subtaskStartTime').value = subtask.startTime;
+                document.getElementById('subtaskEnd').value = subtask.end;
+                document.getElementById('subtaskEndTime').value = subtask.endTime;
+                updateSubtaskDuration();
             } else {
-                tasks = tasks.filter(t => t.id !== editingId);
+                document.getElementById('subtaskName').value = '';
+                document.getElementById('subtaskStatus').value = 'a-faire';
+                document.getElementById('subtaskStart').value = today;
+                document.getElementById('subtaskStartTime').value = '08:30';
+                document.getElementById('subtaskEnd').value = today;
+                document.getElementById('subtaskEndTime').value = '18:00';
+                updateSubtaskDuration();
+            }
+
+            document.getElementById('subtaskModal').classList.add('active');
+        }
+
+        function closeSubtaskModal() {
+            document.getElementById('subtaskModal').classList.remove('active');
+            editingSubtaskId = null;
+        }
+
+        function saveSubtask() {
+            const name = document.getElementById('subtaskName').value.trim();
+            if (!name) {
+                alert('Le nom est obligatoire');
+                return;
+            }
+
+            const subtaskData = {
+                name,
+                status: document.getElementById('subtaskStatus').value,
+                start: document.getElementById('subtaskStart').value,
+                startTime: document.getElementById('subtaskStartTime').value,
+                end: document.getElementById('subtaskEnd').value,
+                endTime: document.getElementById('subtaskEndTime').value,
+                duration: parseFloat(document.getElementById('subtaskDuration').value) || 0,
+                parentId: editingTaskId
+            };
+
+            if (editingSubtaskId) {
+                const subtask = subtasks.find(s => s.id === editingSubtaskId);
+                Object.assign(subtask, subtaskData);
+            } else {
+                subtasks.push({
+                    id: Date.now(),
+                    ...subtaskData
+                });
             }
 
             saveTasks();
-            closeModal();
-            render();
+            closeSubtaskModal();
+            renderSubtasksList();
+        }
+
+        function deleteSubtask(subtaskId) {
+            if (!confirm('Supprimer cette sous-tâche ?')) return;
+            subtasks = subtasks.filter(s => s.id !== subtaskId);
+            saveTasks();
+            renderSubtasksList();
+        }
+
+        function renderSubtasksList() {
+            const container = document.getElementById('subtasks-list');
+            const taskSubtasks = subtasks.filter(s => s.parentId === editingTaskId);
+
+            if (taskSubtasks.length === 0) {
+                container.innerHTML = '<p style="color: #999; font-style: italic;">Aucune sous-tâche</p>';
+                return;
+            }
+
+            let html = '';
+            taskSubtasks.forEach(subtask => {
+                html += `
+                    <div class="subtask-item">
+                        <div class="subtask-info">
+                            <div class="subtask-name">${subtask.name}</div>
+                            <div class="subtask-dates">${subtask.start} ${subtask.startTime} → ${subtask.end} ${subtask.endTime} (${subtask.duration}h)</div>
+                        </div>
+                        <div>
+                            <button class="btn-subtask-edit" onclick="openSubtaskModal(${subtask.id})">✏️ Modifier</button>
+                            <button class="btn-subtask-delete" onclick="deleteSubtask(${subtask.id})">🗑️ Supprimer</button>
+                        </div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
         }
 
         // === DRAG & DROP ===
@@ -715,7 +852,7 @@
                 // Tâches principales
                 tasksForStatus.forEach(task => {
                     html += `
-                        <div class="task-list-item" onclick="openModal('task', ${task.id})">
+                        <div class="task-list-item" onclick="openTaskModal(${task.id})">
                             <strong>${task.name}</strong>
                             <div class="task-list-item-info">📅 ${task.start}</div>
                             <div class="task-list-item-info">⏱️ ${task.duration}h</div>
@@ -728,7 +865,7 @@
                     const parentTask = tasks.find(t => t.id === subtask.parentId);
                     const parentName = parentTask ? parentTask.name : 'Orpheline';
                     html += `
-                        <div class="task-list-item" onclick="openModal('subtask', ${subtask.id})" style="margin-left: 10px; border-left-color: #999;">
+                        <div class="task-list-item subtask" onclick="openTaskModal(${subtask.parentId})">
                             <strong>↳ ${subtask.name}</strong>
                             <div class="task-list-item-info">📋 ${parentName}</div>
                             <div class="task-list-item-info">📅 ${subtask.start}</div>
@@ -737,7 +874,7 @@
                     `;
                 });
 
-                container.innerHTML = html;
+                container.innerHTML = html || '<p style="color: #999; font-size: 0.9em;">Aucune tâche</p>';
             });
         }
 
@@ -746,16 +883,13 @@
             const year = currentDate.getFullYear();
             const month = currentDate.getMonth();
 
-            // Header
             const monthName = new Date(year, month).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
             document.getElementById('current-period').textContent = monthName.charAt(0).toUpperCase() + monthName.slice(1);
 
-            // Days header
             const days = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
             const header = document.getElementById('calendar-header');
             header.innerHTML = days.map(d => `<div class="calendar-day-header">${d}</div>`).join('');
 
-            // Calendar grid
             const firstDay = new Date(year, month, 1);
             const startDate = new Date(firstDay);
             startDate.setDate(startDate.getDate() - (firstDay.getDay() || 7) + 1);
@@ -784,10 +918,15 @@
 
                 dayItems.forEach(item => {
                     const parentName = item.type === 'subtask' ? ` (${tasks.find(t => t.id === item.parentId)?.name || '?'})` : '';
+                    const clickHandler = item.type === 'task' 
+                        ? `onclick="openTaskModal(${item.id}); event.stopPropagation();"` 
+                        : `onclick="openTaskModal(${item.parentId}); event.stopPropagation();"`;
+
                     html += `
-                        <div class="calendar-task ${item.status}" draggable="true" ondragstart="startDrag(${item.id}, '${item.type}')" ondrop="event.stopPropagation()" onclick="openModal('${item.type}', ${item.id}); event.stopPropagation();">
+                        <div class="calendar-task ${item.status}" draggable="true" ondragstart="startDrag(${item.id}, '${item.type}')" ondrop="event.stopPropagation()" ${clickHandler}>
                             <div class="calendar-task-name">${item.name}</div>
                             ${item.type === 'subtask' ? `<div class="calendar-task-info">${parentName}</div>` : ''}
+                            <div class="calendar-task-info">${item.startTime} → ${item.endTime}</div>
                             <div class="calendar-task-info">${item.duration}h</div>
                         </div>
                     `;
@@ -821,7 +960,11 @@
             render();
 
             document.getElementById('taskModal').addEventListener('click', (e) => {
-                if (e.target.id === 'taskModal') closeModal();
+                if (e.target.id === 'taskModal') closeTaskModal();
+            });
+
+            document.getElementById('subtaskModal').addEventListener('click', (e) => {
+                if (e.target.id === 'subtaskModal') closeSubtaskModal();
             });
         });
     </script>
