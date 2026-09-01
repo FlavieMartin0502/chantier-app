@@ -21,6 +21,8 @@
             box-shadow: 0 4px 15px rgba(0,0,0,0.2);
         }
         header h1 { font-size: 2em; }
+        
+        .header-buttons { display: flex; gap: 10px; }
         .btn-new { 
             background: white; 
             color: #667eea; 
@@ -44,15 +46,16 @@
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
         
-        .todo-section h2, .planning-section h2 { margin-bottom: 15px; color: #333; font-size: 1.4em; }
+        .section-title { margin-bottom: 15px; color: #333; font-size: 1.4em; }
         
         .status-group { margin-bottom: 20px; }
         .status-column { 
             border: 2px solid #ddd; 
             border-radius: 6px; 
             padding: 12px; 
-            min-height: 100px;
+            min-height: 80px;
             background: #fafafa;
+            margin-bottom: 10px;
         }
         .status-column h3 { 
             font-size: 0.95em; 
@@ -85,9 +88,19 @@
             transition: 0.2s;
         }
         .task-item:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
-        .task-item.dragging { opacity: 0.5; }
         .task-item-name { font-weight: bold; margin-bottom: 3px; }
-        .task-item-info { font-size: 0.85em; color: #999; }
+        .task-item-info { font-size: 0.85em; color: #999; line-height: 1.4; }
+        
+        .subtask-item {
+            background: #f9f9f9;
+            padding: 8px;
+            margin: 5px 0 5px 15px;
+            border-left: 3px solid #999;
+            border-radius: 3px;
+            font-size: 0.9em;
+            cursor: move;
+        }
+        .subtask-item-name { font-weight: bold; color: #666; }
         
         .planning-section { position: relative; }
         .planning-controls { 
@@ -95,6 +108,7 @@
             gap: 10px; 
             margin-bottom: 15px; 
             align-items: center;
+            flex-wrap: wrap;
         }
         .planning-controls button { 
             padding: 8px 15px; 
@@ -134,16 +148,18 @@
             font-weight: bold; 
             color: #667eea;
             padding: 10px;
+            font-size: 0.9em;
         }
         
         .calendar-day { 
             background: white; 
             padding: 10px; 
             border-radius: 6px; 
-            min-height: 100px;
+            min-height: 120px;
             border: 2px solid #ddd;
             cursor: pointer;
             transition: 0.2s;
+            overflow-y: auto;
         }
         .calendar-day:hover { border-color: #667eea; background: #f5f5f5; }
         .calendar-day.other-month { opacity: 0.3; }
@@ -153,18 +169,22 @@
             font-weight: bold; 
             margin-bottom: 8px; 
             color: #333;
+            font-size: 0.9em;
         }
         
         .calendar-task { 
             font-size: 0.75em; 
-            padding: 3px; 
+            padding: 4px; 
             margin: 2px 0; 
-            border-radius: 2px;
+            border-radius: 3px;
             cursor: grab;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
         .calendar-task:active { cursor: grabbing; }
         .calendar-task.a-faire { background: #2196F3; color: white; }
-        .calendar-task.en-cours { background: #FFC107; color: white; }
+        .calendar-task.en-cours { background: #FFC107; color: #333; }
         .calendar-task.en-retard { background: #F44336; color: white; }
         .calendar-task.termine { background: #4CAF50; color: white; }
         
@@ -185,7 +205,7 @@
             padding: 30px; 
             border-radius: 10px; 
             width: 90%; 
-            max-width: 500px;
+            max-width: 600px;
             box-shadow: 0 4px 20px rgba(0,0,0,0.3);
             max-height: 90vh;
             overflow-y: auto;
@@ -198,6 +218,7 @@
             cursor: pointer;
         }
         .modal-close:hover { color: #000; }
+        
         .form-group { margin-bottom: 15px; }
         .form-group label { display: block; margin-bottom: 5px; font-weight: bold; }
         .form-group input, .form-group select, .form-group textarea { 
@@ -207,12 +228,15 @@
             border-radius: 5px;
             font-family: Arial, sans-serif;
         }
+        
         .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        
         .form-actions { 
             display: flex; 
             gap: 10px; 
             margin-top: 20px;
         }
+        
         .btn { 
             flex: 1; 
             padding: 10px; 
@@ -228,19 +252,61 @@
         .btn-cancel:hover { background: #da190b; }
         .btn-delete { background: #ff9800; color: white; }
         .btn-delete:hover { background: #e68900; }
+        
+        .subtask-section { 
+            margin-top: 20px; 
+            padding-top: 20px; 
+            border-top: 2px solid #ddd;
+        }
+        
+        .subtasks-list { margin-top: 10px; }
+        
+        .subtask-entry {
+            background: #f9f9f9;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 8px;
+            border-left: 3px solid #667eea;
+        }
+        
+        .subtask-entry input {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 5px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            font-family: Arial, sans-serif;
+        }
+        
+        .btn-small {
+            padding: 6px 12px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 0.9em;
+        }
+        
+        .btn-small:hover { background: #5568d3; }
+        .btn-small-delete { background: #f44336; }
+        .btn-small-delete:hover { background: #da190b; }
     </style>
 </head>
 <body>
     <div class="container">
         <header>
             <h1>📋 Chantier - Planning de Tâches</h1>
-            <button class="btn-new" onclick="openModal()">+ Nouvelle Tâche</button>
+            <div class="header-buttons">
+                <button class="btn-new" onclick="openModal()">+ Tâche</button>
+                <button class="btn-new" onclick="openSubtaskModal()">+ Sous-tâche</button>
+            </div>
         </header>
 
         <div class="main-grid">
             <!-- TO-DO LIST -->
             <div class="todo-section">
-                <h2>📝 À faire</h2>
+                <h2 class="section-title">📝 À faire</h2>
                 <div class="status-group">
                     <div class="status-column a-faire">
                         <h3>🔵 À faire</h3>
@@ -263,13 +329,13 @@
 
             <!-- PLANNING -->
             <div class="planning-section">
-                <h2>📅 Planning</h2>
+                <h2 class="section-title">📅 Planning</h2>
                 <div class="planning-controls">
-                    <button onclick="previousDate()">← Précédent</button>
+                    <button onclick="previousDate()" class="nav-btn">← Précédent</button>
                     <button onclick="setView('day')" class="active">Jour</button>
                     <button onclick="setView('week')">Semaine</button>
                     <button onclick="setView('month')">Mois</button>
-                    <button onclick="nextDate()">Suivant →</button>
+                    <button onclick="nextDate()" class="nav-btn">Suivant →</button>
                     <span class="current-date" id="current-date"></span>
                 </div>
                 <div id="planning-view"></div>
@@ -277,48 +343,59 @@
         </div>
     </div>
 
-    <!-- MODAL -->
+    <!-- MODAL TÂCHE -->
     <div id="taskModal" class="modal">
         <div class="modal-content">
             <span class="modal-close" onclick="closeModal()">&times;</span>
             <h2 id="modal-title">Nouvelle Tâche</h2>
+            
             <div class="form-group">
                 <label>Nom de la tâche *</label>
                 <input type="text" id="taskName" placeholder="Ex: Peindre le mur">
             </div>
+            
             <div class="form-group">
                 <label>Description</label>
                 <textarea id="taskDesc" placeholder="Détails..."></textarea>
             </div>
+            
             <div class="form-group">
                 <label>Statut</label>
-                <select id="taskStatus" onchange="updateDuration()">
+                <select id="taskStatus">
                     <option value="a-faire">🔵 À faire</option>
                     <option value="en-cours">🟡 En cours</option>
                     <option value="en-retard">🔴 En retard</option>
                     <option value="termine">🟢 Terminé</option>
                 </select>
             </div>
-            <div class="form-group">
-                <label>Date de début *</label>
-                <input type="date" id="taskStart" onchange="updateDuration()">
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Date de début *</label>
+                    <input type="date" id="taskStart" onchange="updateTaskDuration()">
+                </div>
+                <div class="form-group">
+                    <label>Heure début (8h30-18h00) *</label>
+                    <input type="time" id="taskStartTime" value="08:30" onchange="updateTaskDuration()">
+                </div>
             </div>
-            <div class="form-group">
-                <label>Heure de début (8h30 à 18h00) *</label>
-                <input type="time" id="taskStartTime" onchange="updateDuration()" value="08:30">
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Date de fin *</label>
+                    <input type="date" id="taskEnd" onchange="updateTaskDuration()">
+                </div>
+                <div class="form-group">
+                    <label>Heure fin (8h30-18h00) *</label>
+                    <input type="time" id="taskEndTime" value="18:00" onchange="updateTaskDuration()">
+                </div>
             </div>
+            
             <div class="form-group">
-                <label>Date de fin *</label>
-                <input type="date" id="taskEnd" onchange="updateDuration()">
+                <label>Durée totale (heures) - Auto-calculée</label>
+                <input type="number" id="taskDuration" readonly step="0.5" placeholder="0">
             </div>
-            <div class="form-group">
-                <label>Heure de fin (8h30 à 18h00) *</label>
-                <input type="time" id="taskEndTime" onchange="updateDuration()" value="18:00">
-            </div>
-            <div class="form-group">
-                <label>Durée (heures) - Auto calculée</label>
-                <input type="number" id="taskDuration" readonly step="0.5">
-            </div>
+            
             <div class="form-actions">
                 <button class="btn btn-save" onclick="saveTask()">Enregistrer</button>
                 <button class="btn btn-cancel" onclick="closeModal()">Annuler</button>
@@ -327,37 +404,110 @@
         </div>
     </div>
 
+    <!-- MODAL SOUS-TÂCHE -->
+    <div id="subtaskModal" class="modal">
+        <div class="modal-content">
+            <span class="modal-close" onclick="closeSubtaskModal()">&times;</span>
+            <h2>Nouvelle Sous-tâche</h2>
+            
+            <div class="form-group">
+                <label>Tâche principale *</label>
+                <select id="subtaskParent">
+                    <option value="">-- Sélectionner une tâche --</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label>Nom de la sous-tâche *</label>
+                <input type="text" id="subtaskName" placeholder="Ex: Préparer les matériaux">
+            </div>
+            
+            <div class="form-group">
+                <label>Description</label>
+                <textarea id="subtaskDesc" placeholder="Détails..."></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label>Statut</label>
+                <select id="subtaskStatus">
+                    <option value="a-faire">🔵 À faire</option>
+                    <option value="en-cours">🟡 En cours</option>
+                    <option value="en-retard">🔴 En retard</option>
+                    <option value="termine">🟢 Terminé</option>
+                </select>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Date de début *</label>
+                    <input type="date" id="subtaskStart" onchange="updateSubtaskDuration()">
+                </div>
+                <div class="form-group">
+                    <label>Heure début *</label>
+                    <input type="time" id="subtaskStartTime" value="08:30" onchange="updateSubtaskDuration()">
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Date de fin *</label>
+                    <input type="date" id="subtaskEnd" onchange="updateSubtaskDuration()">
+                </div>
+                <div class="form-group">
+                    <label>Heure fin *</label>
+                    <input type="time" id="subtaskEndTime" value="18:00" onchange="updateSubtaskDuration()">
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label>Durée (heures) - Auto-calculée</label>
+                <input type="number" id="subtaskDuration" readonly step="0.5" placeholder="0">
+            </div>
+            
+            <div class="form-actions">
+                <button class="btn btn-save" onclick="saveSubtask()">Enregistrer</button>
+                <button class="btn btn-cancel" onclick="closeSubtaskModal()">Annuler</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         let tasks = [];
+        let subtasks = [];
         let currentView = 'month';
         let currentDate = new Date();
         let editingTaskId = null;
-        let draggedTask = null;
+        let draggedItem = null;
 
         // === LOCALSTORAGE ===
         function saveTasks() {
             localStorage.setItem('tasks', JSON.stringify(tasks));
+            localStorage.setItem('subtasks', JSON.stringify(subtasks));
         }
 
         function loadTasks() {
-            const saved = localStorage.getItem('tasks');
-            tasks = saved ? JSON.parse(saved) : [];
+            const savedTasks = localStorage.getItem('tasks');
+            const savedSubtasks = localStorage.getItem('subtasks');
+            tasks = savedTasks ? JSON.parse(savedTasks) : [];
+            subtasks = savedSubtasks ? JSON.parse(savedSubtasks) : [];
         }
 
         // === CALCUL DE DURÉE EN HEURES ===
         function calculateDurationInHours(startDate, startTime, endDate, endTime) {
+            if (!startDate || !startTime || !endDate || !endTime) return 0;
+            
             const start = new Date(`${startDate}T${startTime}`);
             const end = new Date(`${endDate}T${endTime}`);
             
-            if (!start || !end || isNaN(start) || isNaN(end)) return 0;
+            if (isNaN(start) || isNaN(end)) return 0;
             
             const diffMs = end - start;
             const diffHours = diffMs / (1000 * 60 * 60);
             
-            return Math.max(0, Math.round(diffHours * 10) / 10); // Arrondir à 0.5
+            return Math.max(0, Math.round(diffHours * 2) / 2); // Arrondir à 0.5h
         }
 
-        // === MODAL ===
+        // === MODAL TÂCHE ===
         function openModal(taskId = null) {
             const modal = document.getElementById('taskModal');
             editingTaskId = taskId;
@@ -370,10 +520,10 @@
                 document.getElementById('taskDesc').value = task.description;
                 document.getElementById('taskStatus').value = task.status;
                 document.getElementById('taskStart').value = task.start;
-                document.getElementById('taskStartTime').value = task.startTime || '08:30';
+                document.getElementById('taskStartTime').value = task.startTime;
                 document.getElementById('taskEnd').value = task.end;
-                document.getElementById('taskEndTime').value = task.endTime || '18:00';
-                updateDuration();
+                document.getElementById('taskEndTime').value = task.endTime;
+                updateTaskDuration();
             } else {
                 document.getElementById('modal-title').textContent = 'Nouvelle Tâche';
                 document.getElementById('btn-delete').style.display = 'none';
@@ -385,7 +535,7 @@
                 document.getElementById('taskStartTime').value = '08:30';
                 document.getElementById('taskEnd').value = today;
                 document.getElementById('taskEndTime').value = '18:00';
-                updateDuration();
+                updateTaskDuration();
             }
             modal.classList.add('active');
         }
@@ -395,7 +545,7 @@
             editingTaskId = null;
         }
 
-        function updateDuration() {
+        function updateTaskDuration() {
             const start = document.getElementById('taskStart').value;
             const startTime = document.getElementById('taskStartTime').value;
             const end = document.getElementById('taskEnd').value;
@@ -420,7 +570,7 @@
                 startTime: document.getElementById('taskStartTime').value,
                 end: document.getElementById('taskEnd').value,
                 endTime: document.getElementById('taskEndTime').value,
-                duration: parseFloat(document.getElementById('taskDuration').value)
+                duration: parseFloat(document.getElementById('taskDuration').value) || 0
             };
 
             if (editingTaskId) {
@@ -439,7 +589,7 @@
         }
 
         function deleteTask() {
-            if (confirm('Êtes-vous sûr ?')) {
+            if (confirm('Êtes-vous sûr ? Les sous-tâches resteront orphelines.')) {
                 tasks = tasks.filter(t => t.id !== editingTaskId);
                 saveTasks();
                 closeModal();
@@ -447,9 +597,81 @@
             }
         }
 
+        // === MODAL SOUS-TÂCHE ===
+        function openSubtaskModal() {
+            document.getElementById('subtaskModal').classList.add('active');
+            populateParentTasks();
+            document.getElementById('subtaskName').value = '';
+            document.getElementById('subtaskDesc').value = '';
+            document.getElementById('subtaskStatus').value = 'a-faire';
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('subtaskStart').value = today;
+            document.getElementById('subtaskStartTime').value = '08:30';
+            document.getElementById('subtaskEnd').value = today;
+            document.getElementById('subtaskEndTime').value = '18:00';
+            updateSubtaskDuration();
+        }
+
+        function closeSubtaskModal() {
+            document.getElementById('subtaskModal').classList.remove('active');
+        }
+
+        function populateParentTasks() {
+            const select = document.getElementById('subtaskParent');
+            select.innerHTML = '<option value="">-- Sélectionner une tâche --</option>';
+            tasks.forEach(task => {
+                const option = document.createElement('option');
+                option.value = task.id;
+                option.textContent = task.name;
+                select.appendChild(option);
+            });
+        }
+
+        function updateSubtaskDuration() {
+            const start = document.getElementById('subtaskStart').value;
+            const startTime = document.getElementById('subtaskStartTime').value;
+            const end = document.getElementById('subtaskEnd').value;
+            const endTime = document.getElementById('subtaskEndTime').value;
+            
+            const duration = calculateDurationInHours(start, startTime, end, endTime);
+            document.getElementById('subtaskDuration').value = duration;
+        }
+
+        function saveSubtask() {
+            const parentId = document.getElementById('subtaskParent').value;
+            const name = document.getElementById('subtaskName').value.trim();
+            
+            if (!parentId) {
+                alert('Sélectionnez une tâche principale');
+                return;
+            }
+            if (!name) {
+                alert('Le nom de la sous-tâche est obligatoire');
+                return;
+            }
+
+            const subtaskData = {
+                id: Date.now(),
+                parentId: parseInt(parentId),
+                name,
+                description: document.getElementById('subtaskDesc').value,
+                status: document.getElementById('subtaskStatus').value,
+                start: document.getElementById('subtaskStart').value,
+                startTime: document.getElementById('subtaskStartTime').value,
+                end: document.getElementById('subtaskEnd').value,
+                endTime: document.getElementById('subtaskEndTime').value,
+                duration: parseFloat(document.getElementById('subtaskDuration').value) || 0
+            };
+
+            subtasks.push(subtaskData);
+            saveTasks();
+            closeSubtaskModal();
+            render();
+        }
+
         // === DRAG & DROP ===
-        function startDrag(taskId) {
-            draggedTask = taskId;
+        function startDrag(id, type) {
+            draggedItem = { id, type };
         }
 
         function allowDrop(e) {
@@ -457,35 +679,46 @@
         }
 
         function dropOnStatus(status) {
-            if (draggedTask) {
-                const task = tasks.find(t => t.id === draggedTask);
-                if (task) {
-                    task.status = status;
-                    saveTasks();
-                    render();
-                }
-                draggedTask = null;
+            if (!draggedItem) return;
+            
+            if (draggedItem.type === 'task') {
+                const task = tasks.find(t => t.id === draggedItem.id);
+                if (task) task.status = status;
+            } else {
+                const subtask = subtasks.find(s => s.id === draggedItem.id);
+                if (subtask) subtask.status = status;
             }
+            
+            saveTasks();
+            render();
+            draggedItem = null;
         }
 
         function dropOnDate(dateStr) {
-            if (draggedTask) {
-                const task = tasks.find(t => t.id === draggedTask);
-                if (task) {
-                    const oldStart = new Date(task.start);
-                    const newStart = new Date(dateStr);
-                    const diffDays = Math.floor((newStart - oldStart) / (1000 * 60 * 60 * 24));
-                    
-                    const newEnd = new Date(task.end);
-                    newEnd.setDate(newEnd.getDate() + diffDays);
-                    
-                    task.start = dateStr;
-                    task.end = newEnd.toISOString().split('T')[0];
-                    saveTasks();
-                    render();
-                }
-                draggedTask = null;
+            if (!draggedItem) return;
+            
+            let item;
+            if (draggedItem.type === 'task') {
+                item = tasks.find(t => t.id === draggedItem.id);
+            } else {
+                item = subtasks.find(s => s.id === draggedItem.id);
             }
+            
+            if (item) {
+                const oldStart = new Date(item.start);
+                const newStart = new Date(dateStr);
+                const diffDays = Math.floor((newStart - oldStart) / (1000 * 60 * 60 * 24));
+                
+                const newEnd = new Date(item.end);
+                newEnd.setDate(newEnd.getDate() + diffDays);
+                
+                item.start = dateStr;
+                item.end = newEnd.toISOString().split('T')[0];
+                
+                saveTasks();
+                render();
+            }
+            draggedItem = null;
         }
 
         // === RENDER TODO ===
@@ -496,13 +729,25 @@
                 const container = document.getElementById(`status-${status}`);
                 const tasksForStatus = tasks.filter(t => t.status === status);
                 
-                container.innerHTML = tasksForStatus.map(task => `
-                    <div class="task-item" draggable="true" onmousedown="startDrag(${task.id})" ondragstart="startDrag(${task.id})" ondrop="dropOnStatus('${status}')" ondragover="allowDrop(event)" onclick="openModal(${task.id})">
-                        <div class="task-item-name">${task.name}</div>
-                        <div class="task-item-info">📅 ${task.start} ${task.startTime} → ${task.end} ${task.endTime}</div>
-                        <div class="task-item-info">⏱️ ${task.duration}h</div>
-                    </div>
-                `).join('');
+                container.innerHTML = tasksForStatus.map(task => {
+                    const taskSubtasks = subtasks.filter(s => s.parentId === task.id);
+                    const subtasksHtml = taskSubtasks.map(st => `
+                        <div class="subtask-item" draggable="true" ondragstart="startDrag(${st.id}, 'subtask')" onclick="openModal(${task.id}); event.stopPropagation();">
+                            <div class="subtask-item-name">${st.name}</div>
+                            <div class="task-item-info">📅 ${st.start} ${st.startTime} → ${st.end} ${st.endTime}</div>
+                            <div class="task-item-info">⏱️ ${st.duration}h</div>
+                        </div>
+                    `).join('');
+                    
+                    return `
+                        <div class="task-item" draggable="true" ondragstart="startDrag(${task.id}, 'task')" ondrop="dropOnStatus('${status}')" ondragover="allowDrop(event)" onclick="openModal(${task.id})">
+                            <div class="task-item-name">${task.name}</div>
+                            <div class="task-item-info">📅 ${task.start} ${task.startTime} → ${task.end} ${task.endTime}</div>
+                            <div class="task-item-info">⏱️ ${task.duration}h</div>
+                            ${subtasksHtml}
+                        </div>
+                    `;
+                }).join('');
             });
         }
 
@@ -521,26 +766,39 @@
             updateCurrentDate();
         }
 
+        function getAllItems() {
+            const allItems = [];
+            tasks.forEach(t => {
+                allItems.push({ ...t, type: 'task' });
+            });
+            subtasks.forEach(s => {
+                allItems.push({ ...s, type: 'subtask' });
+            });
+            return allItems;
+        }
+
         function renderDayView() {
             const dayStart = new Date(currentDate);
             dayStart.setHours(0, 0, 0, 0);
             const dayEnd = new Date(dayStart);
             dayEnd.setDate(dayEnd.getDate() + 1);
 
-            const dayTasks = tasks.filter(t => {
-                const start = new Date(`${t.start}T${t.startTime}`);
-                const end = new Date(`${t.end}T${t.endTime}`);
+            const allItems = getAllItems();
+            const dayItems = allItems.filter(item => {
+                const start = new Date(`${item.start}T${item.startTime}`);
+                const end = new Date(`${item.end}T${item.endTime}`);
                 return start <= dayEnd && end >= dayStart;
             });
 
-            let html = `<div class="calendar-day" style="min-height: 300px; padding: 15px; border-radius: 8px;" ondrop="dropOnDate('${dayStart.toISOString().split('T')[0]}')" ondragover="allowDrop(event)">`;
+            let html = `<div class="calendar-day" style="min-height: 400px; padding: 15px; border-radius: 8px;" ondrop="dropOnDate('${dayStart.toISOString().split('T')[0]}')" ondragover="allowDrop(event)">`;
             html += `<div class="calendar-day-num" style="font-size: 1.2em; margin-bottom: 15px;">${dayStart.toLocaleDateString('fr-FR', {weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'})}</div>`;
             
-            dayTasks.forEach(task => {
+            dayItems.forEach(item => {
+                const parentName = item.type === 'subtask' ? ` (${tasks.find(t => t.id === item.parentId)?.name || 'Orpheline'})` : '';
                 html += `
-                    <div class="calendar-task ${task.status}" draggable="true" ondragstart="startDrag(${task.id})" ondrop="event.stopPropagation()" onclick="openModal(${task.id}); event.stopPropagation();">
-                        <strong>${task.name}</strong><br/>
-                        ${task.startTime} → ${task.endTime} (${task.duration}h)
+                    <div class="calendar-task ${item.status}" draggable="true" ondragstart="startDrag(${item.id}, '${item.type}')" ondrop="event.stopPropagation()" onclick="openModal(${item.type === 'task' ? item.id : 'undefined'}); event.stopPropagation();" style="cursor: pointer;">
+                        <strong>${item.name}</strong>${parentName}<br/>
+                        ${item.startTime} → ${item.endTime} (${item.duration}h)
                     </div>
                 `;
             });
@@ -563,27 +821,32 @@
             }
 
             // Days
+            const allItems = getAllItems();
             for (let i = 0; i < 7; i++) {
                 const day = new Date(weekStart);
                 day.setDate(day.getDate() + i);
                 const dateStr = day.toISOString().split('T')[0];
                 
-                const dayTasks = tasks.filter(t => {
-                    const start = new Date(`${t.start}T${t.startTime}`);
-                    const end = new Date(`${t.end}T${t.endTime}`);
+                const dayItems = allItems.filter(item => {
+                    const start = new Date(`${item.start}T${item.startTime}`);
+                    const end = new Date(`${item.end}T${item.endTime}`);
                     return start <= day && end >= day;
                 });
 
                 html += `<div class="calendar-day" ondrop="dropOnDate('${dateStr}')" ondragover="allowDrop(event)">
                     <div class="calendar-day-num">${day.getDate()}</div>`;
                 
-                dayTasks.forEach(task => {
+                dayItems.slice(0, 4).forEach(item => {
                     html += `
-                        <div class="calendar-task ${task.status}" draggable="true" ondragstart="startDrag(${task.id})" ondrop="event.stopPropagation()" onclick="openModal(${task.id}); event.stopPropagation();">
-                            ${task.name.slice(0, 12)}<br/>${task.duration}h
+                        <div class="calendar-task ${item.status}" draggable="true" ondragstart="startDrag(${item.id}, '${item.type}')" ondrop="event.stopPropagation()" style="cursor: pointer; font-size: 0.7em;">
+                            ${item.name.slice(0, 12)}<br/>${item.duration}h
                         </div>
                     `;
                 });
+
+                if (dayItems.length > 4) {
+                    html += `<div class="calendar-task" style="background: #999; font-size: 0.7em;">+${dayItems.length - 4}</div>`;
+                }
 
                 html += '</div>';
             }
@@ -596,7 +859,6 @@
             const year = currentDate.getFullYear();
             const month = currentDate.getMonth();
             const firstDay = new Date(year, month, 1);
-            const lastDay = new Date(year, month + 1, 0);
             const startDate = new Date(firstDay);
             startDate.setDate(startDate.getDate() - firstDay.getDay());
 
@@ -609,31 +871,32 @@
             });
 
             // Days
+            const allItems = getAllItems();
             let date = new Date(startDate);
             for (let i = 0; i < 42; i++) {
                 const dateStr = date.toISOString().split('T')[0];
                 const isOtherMonth = date.getMonth() !== month;
                 const isToday = new Date().toDateString() === date.toDateString();
                 
-                const dayTasks = tasks.filter(t => {
-                    const start = new Date(`${t.start}T${t.startTime}`);
-                    const end = new Date(`${t.end}T${t.endTime}`);
+                const dayItems = allItems.filter(item => {
+                    const start = new Date(`${item.start}T${item.startTime}`);
+                    const end = new Date(`${item.end}T${item.endTime}`);
                     return start <= date && end >= date;
                 });
 
                 html += `<div class="calendar-day ${isOtherMonth ? 'other-month' : ''} ${isToday ? 'today' : ''}" ondrop="dropOnDate('${dateStr}')" ondragover="allowDrop(event)">
                     <div class="calendar-day-num">${date.getDate()}</div>`;
                 
-                dayTasks.slice(0, 3).forEach(task => {
+                dayItems.slice(0, 3).forEach(item => {
                     html += `
-                        <div class="calendar-task ${task.status}" draggable="true" ondragstart="startDrag(${task.id})" ondrop="event.stopPropagation()" onclick="openModal(${task.id}); event.stopPropagation();" style="font-size: 0.7em;">
-                            ${task.name.slice(0, 10)}<br/>${task.duration}h
+                        <div class="calendar-task ${item.status}" draggable="true" ondragstart="startDrag(${item.id}, '${item.type}')" ondrop="event.stopPropagation()" style="font-size: 0.7em;">
+                            ${item.name.slice(0, 10)}<br/>${item.duration}h
                         </div>
                     `;
                 });
 
-                if (dayTasks.length > 3) {
-                    html += `<div class="calendar-task" style="background: #999; font-size: 0.7em;">+${dayTasks.length - 3}</div>`;
+                if (dayItems.length > 3) {
+                    html += `<div class="calendar-task" style="background: #999; font-size: 0.7em;">+${dayItems.length - 3}</div>`;
                 }
 
                 html += '</div>';
@@ -663,7 +926,7 @@
         function setView(view) {
             currentView = view;
             document.querySelectorAll('.planning-controls button').forEach((b, i) => {
-                if (i === 0 || i === 4) return; // Skip nav buttons
+                if (i === 0 || i === 4) return;
                 b.classList.remove('active');
             });
             event.target.classList.add('active');
@@ -696,6 +959,10 @@
             
             document.getElementById('taskModal').addEventListener('click', (e) => {
                 if (e.target.id === 'taskModal') closeModal();
+            });
+            
+            document.getElementById('subtaskModal').addEventListener('click', (e) => {
+                if (e.target.id === 'subtaskModal') closeSubtaskModal();
             });
         });
     </script>
