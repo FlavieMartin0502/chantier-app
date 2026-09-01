@@ -97,6 +97,11 @@
             background: #e8f5e9;
         }
 
+        .status-column.a-facturer {
+            border-top-color: #FF9800;
+            background: #fff3e0;
+        }
+
         .column-header {
             display: flex;
             justify-content: space-between;
@@ -133,6 +138,10 @@
 
         .status-column.termine .column-count {
             color: #4CAF50;
+        }
+
+        .status-column.a-facturer .column-count {
+            color: #FF9800;
         }
 
         .tasks-list {
@@ -174,6 +183,10 @@
             border-left-color: #4CAF50;
         }
 
+        .task-card.a-facturer {
+            border-left-color: #FF9800;
+        }
+
         .task-title {
             font-weight: 600;
             color: #333;
@@ -201,6 +214,23 @@
             padding: 2px 8px;
             border-radius: 12px;
             font-size: 0.8em;
+        }
+
+        .subtask-card {
+            background: #f0f0f0;
+            border-left: 3px solid #667eea;
+            padding: 10px;
+            margin-top: 8px;
+            border-radius: 4px;
+            font-size: 0.9em;
+            margin-left: 8px;
+        }
+
+        .subtask-parent {
+            font-weight: 500;
+            color: #667eea;
+            font-size: 0.8em;
+            margin-bottom: 4px;
         }
 
         /* ========== PLANNING SECTION ========== */
@@ -364,6 +394,29 @@
             background: #c8e6c9;
             color: #2e7d32;
             border-left-color: #4CAF50;
+            display: none;
+        }
+
+        .planning-task.a-facturer {
+            background: #ffe0b2;
+            color: #e65100;
+            border-left-color: #FF9800;
+            display: none;
+        }
+
+        .planning-task.subtask {
+            background: #e8eaf6;
+            color: #3f51b5;
+            border-left-color: #667eea;
+            padding-left: 12px;
+            margin-left: 8px;
+        }
+
+        .subtask-parent-name {
+            font-size: 0.75em;
+            opacity: 0.8;
+            display: block;
+            margin-bottom: 2px;
         }
 
         /* Week View */
@@ -464,7 +517,7 @@
             background-color: white;
             padding: 30px;
             border-radius: 12px;
-            max-width: 500px;
+            max-width: 600px;
             width: 90%;
             max-height: 90vh;
             overflow-y: auto;
@@ -688,8 +741,17 @@
             color: #999;
         }
 
+        .subtask-date {
+            font-size: 0.85em;
+            color: #667eea;
+            font-weight: 500;
+        }
+
         .add-subtask {
             margin-top: 15px;
+            padding: 15px;
+            background: #f9f9f9;
+            border-radius: 6px;
         }
 
         .add-subtask input {
@@ -708,6 +770,16 @@
             border-radius: 6px;
             cursor: pointer;
             font-weight: 600;
+        }
+
+        .time-warning {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            color: #856404;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            font-size: 0.95em;
         }
 
         /* Scrollbar styling */
@@ -745,6 +817,17 @@
 
         .add-task-btn:hover {
             background: #764ba2;
+        }
+
+        .parent-task-link {
+            color: #667eea;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: underline;
+        }
+
+        .parent-task-link:hover {
+            color: #764ba2;
         }
     </style>
 </head>
@@ -796,6 +879,15 @@
                         </div>
                         <div class="tasks-list" id="tasks-termine"></div>
                     </div>
+
+                    <!-- À FACTURER -->
+                    <div class="status-column a-facturer">
+                        <div class="column-header">
+                            <h3>🟠 À facturer</h3>
+                            <span class="column-count" id="count-a-facturer">0</span>
+                        </div>
+                        <div class="tasks-list" id="tasks-a-facturer"></div>
+                    </div>
                 </div>
 
                 <button class="add-task-btn" onclick="openTaskModal()">+ Ajouter une tâche</button>
@@ -809,27 +901,25 @@
                         <button class="nav-mode-btn" data-mode="week">Semaine</button>
                         <button class="nav-mode-btn" data-mode="day">Jour</button>
                     </div>
-                    
-                    <div class="planning-date" id="planning-date">Août 2026</div>
-                    
+                    <span class="planning-date" id="planning-date"></span>
                     <div class="nav-arrows">
                         <button onclick="previousPeriod()">← Précédent</button>
                         <button onclick="nextPeriod()">Suivant →</button>
                     </div>
                 </div>
 
-                <!-- MONTH VIEW -->
-                <div class="calendar-view active" id="month-view">
-                    <div class="calendar-grid" id="calendar-grid"></div>
+                <!-- Month View -->
+                <div id="month-view" class="calendar-view active">
+                    <div id="calendar-grid" class="calendar-grid"></div>
                 </div>
 
-                <!-- WEEK VIEW -->
-                <div class="week-view" id="week-view">
-                    <div class="week-grid" id="week-grid"></div>
+                <!-- Week View -->
+                <div id="week-view" class="calendar-view">
+                    <div id="week-grid" class="week-grid"></div>
                 </div>
 
-                <!-- DAY VIEW -->
-                <div class="day-view" id="day-view">
+                <!-- Day View -->
+                <div id="day-view" class="calendar-view">
                     <div class="day-view-content">
                         <div class="day-view-date" id="day-view-date"></div>
                         <div class="day-view-tasks" id="day-view-tasks"></div>
@@ -873,26 +963,77 @@
                     <input type="date" id="taskDueDate">
                 </div>
 
-                <div class="form-group">
-                    <label for="taskEstimatedTime">Temps estimé (heures)</label>
-                    <input type="number" id="taskEstimatedTime" min="0" step="0.5">
+                <div class="time-warning" id="timeWarning" style="display: none;">
+                    ⏱️ <strong>Temps estimé :</strong> <span id="calculatedTime">0</span>h
+                    <br><small>Calculé automatiquement à partir des sous-tâches</small>
                 </div>
 
                 <div class="subtasks-section">
-                    <label>Sous-tâches</label>
-                    <div class="subtasks-list" id="subtasksList"></div>
+                    <h3>📌 Sous-tâches</h3>
+                    <p style="font-size: 0.9em; color: #666; margin-bottom: 10px;">Les sous-tâches peuvent être planifiées indépendamment</p>
+                    <div class="subtasks-list" id="subtasksList" data-subtasks="[]"></div>
                     
                     <div class="add-subtask">
+                        <label>Ajouter une sous-tâche</label>
                         <input type="text" id="newSubtaskName" placeholder="Nom de la sous-tâche">
                         <input type="number" id="newSubtaskTime" min="0" step="0.5" placeholder="Durée (heures)">
-                        <div class="add-subtask-actions">
-                            <button type="button" class="btn-primary" onclick="addSubtask()" style="flex: 1;">Ajouter</button>
+                        <input type="date" id="newSubtaskDate" placeholder="Date">
+                        <div class="add-subtask-actions" style="margin-top: 10px;">
+                            <button type="button" class="btn-primary" onclick="addSubtask()">Ajouter</button>
                         </div>
                     </div>
                 </div>
 
                 <div class="modal-actions">
                     <button type="button" class="btn-secondary" onclick="closeTaskModal()">Annuler</button>
+                    <button type="submit" class="btn-primary">Sauvegarder</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ========== SUBTASK MODAL ========== -->
+    <div id="subtaskModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Détails de la sous-tâche</h2>
+                <button class="close-btn" onclick="closeSubtaskModal()">&times;</button>
+            </div>
+
+            <form id="subtaskForm" onsubmit="saveSubtaskChanges(event)">
+                <div class="form-group">
+                    <label>Tâche parent</label>
+                    <input type="text" id="parentTaskName" readonly style="background: #f5f5f5;">
+                </div>
+
+                <div class="form-group">
+                    <label for="subtaskTitle">Nom de la sous-tâche</label>
+                    <input type="text" id="subtaskTitle" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="subtaskDuration">Durée estimée (heures)</label>
+                    <input type="number" id="subtaskDuration" min="0" step="0.5" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="subtaskDate">Date</label>
+                    <input type="date" id="subtaskDate">
+                </div>
+
+                <div class="form-group">
+                    <label for="subtaskStatus">Statut</label>
+                    <select id="subtaskStatus">
+                        <option value="a-faire">À faire</option>
+                        <option value="en-cours">En cours</option>
+                        <option value="en-retard">En retard</option>
+                        <option value="termine">Terminé</option>
+                    </select>
+                </div>
+
+                <div class="modal-actions">
+                    <button type="button" class="btn-danger" onclick="deleteCurrentSubtask()">Supprimer</button>
+                    <button type="button" class="btn-secondary" onclick="closeSubtaskModal()">Annuler</button>
                     <button type="submit" class="btn-primary">Sauvegarder</button>
                 </div>
             </form>
@@ -925,6 +1066,7 @@
         // ========== DATA MANAGEMENT ==========
         let tasks = [];
         let currentTaskId = null;
+        let currentSubtaskIndex = null;
         let pendingBillingTaskId = null;
         let currentMode = 'month';
         let currentDate = new Date();
@@ -934,7 +1076,27 @@
             const saved = localStorage.getItem('chantierTasks');
             if (saved) {
                 tasks = JSON.parse(saved);
+            } else {
+                // Données de démonstration
+                tasks = [
+                    {
+                        id: 1,
+                        title: "Caserne dieuzé",
+                        description: "Projet de rénovation",
+                        status: "a-faire",
+                        dueDate: "2026-09-15",
+                        estimatedTime: 0,
+                        subtasks: [
+                            { id: 1, name: "Fondations", duration: 5, date: "2026-09-05", status: "a-faire" },
+                            { id: 2, name: "Murs", duration: 8, date: "2026-09-10", status: "a-faire" },
+                            { id: 3, name: "Toiture", duration: 6, date: "2026-09-15", status: "a-faire" }
+                        ]
+                    }
+                ];
+                calculateTaskTimes();
+                saveData();
             }
+            calculateTaskTimes();
         }
 
         // Save data to localStorage
@@ -944,6 +1106,14 @@
         }
 
         // ========== TASK MANAGEMENT ==========
+        function calculateTaskTimes() {
+            tasks.forEach(task => {
+                if (task.subtasks && task.subtasks.length > 0) {
+                    task.estimatedTime = task.subtasks.reduce((sum, st) => sum + (st.duration || 0), 0);
+                }
+            });
+        }
+
         function openTaskModal(taskId = null) {
             currentTaskId = taskId;
             
@@ -953,11 +1123,13 @@
                 document.getElementById('taskDescription').value = task.description || '';
                 document.getElementById('taskStatus').value = task.status;
                 document.getElementById('taskDueDate').value = task.dueDate || '';
-                document.getElementById('taskEstimatedTime').value = task.estimatedTime || '';
                 renderSubtasks(task.subtasks || []);
+                updateTimeWarning();
             } else {
                 document.getElementById('taskForm').reset();
                 document.getElementById('subtasksList').innerHTML = '';
+                document.getElementById('subtasksList').setAttribute('data-subtasks', '[]');
+                document.getElementById('timeWarning').style.display = 'none';
             }
 
             document.getElementById('taskModal').classList.add('show');
@@ -977,7 +1149,7 @@
                 description: document.getElementById('taskDescription').value,
                 status: document.getElementById('taskStatus').value,
                 dueDate: document.getElementById('taskDueDate').value,
-                estimatedTime: parseFloat(document.getElementById('taskEstimatedTime').value) || 0,
+                estimatedTime: 0,
                 subtasks: JSON.parse(document.getElementById('subtasksList').getAttribute('data-subtasks') || '[]'),
                 createdAt: currentTaskId ? tasks.find(t => t.id === currentTaskId).createdAt : new Date().toISOString()
             };
@@ -989,12 +1161,13 @@
                 tasks.push(taskData);
             }
 
+            calculateTaskTimes();
             saveData();
             closeTaskModal();
         }
 
         function deleteTask(taskId) {
-            if (confirm('Êtes-vous sûr de vouloir supprimer cette tâche ?')) {
+            if (confirm('Êtes-vous sûr de vouloir supprimer cette tâche et toutes ses sous-tâches ?')) {
                 tasks = tasks.filter(t => t.id !== taskId);
                 saveData();
             }
@@ -1004,7 +1177,6 @@
             const task = tasks.find(t => t.id === taskId);
             if (task) {
                 if (newStatus === 'termine' && task.status !== 'termine') {
-                    // Show billing modal
                     pendingBillingTaskId = taskId;
                     document.getElementById('billingTaskName').textContent = task.title;
                     document.getElementById('billingModal').classList.add('show');
@@ -1038,61 +1210,161 @@
             const container = document.getElementById('subtasksList');
             container.innerHTML = tempSubtasks.map((st, idx) => `
                 <div class="subtask-item">
-                    <input type="checkbox" ${st.completed ? 'checked' : ''} onchange="toggleSubtask(${idx})">
-                    <div class="subtask-info">
-                        <div class="subtask-name" style="${st.completed ? 'text-decoration: line-through;' : ''}">${st.name}</div>
+                    <div class="subtask-info" style="flex: 1; cursor: pointer;" onclick="openSubtaskModal(${idx})">
+                        <div class="subtask-name">${st.name}</div>
                         <div class="subtask-duration">⏱️ ${st.duration}h</div>
+                        ${st.date ? `<div class="subtask-date">📅 ${new Date(st.date).toLocaleDateString('fr-FR')}</div>` : ''}
                     </div>
                     <button type="button" class="btn-danger" style="padding: 5px 10px; font-size: 0.8em;" onclick="removeSubtask(${idx})">Supprimer</button>
                 </div>
             `).join('');
             document.getElementById('subtasksList').setAttribute('data-subtasks', JSON.stringify(tempSubtasks));
+            updateTimeWarning();
+        }
+
+        function updateTimeWarning() {
+            const total = tempSubtasks.reduce((sum, st) => sum + (st.duration || 0), 0);
+            if (total > 0) {
+                document.getElementById('timeWarning').style.display = 'block';
+                document.getElementById('calculatedTime').textContent = total;
+            } else {
+                document.getElementById('timeWarning').style.display = 'none';
+            }
         }
 
         function addSubtask() {
             const name = document.getElementById('newSubtaskName').value;
             const duration = parseFloat(document.getElementById('newSubtaskTime').value) || 0;
+            const date = document.getElementById('newSubtaskDate').value;
             
-            if (name.trim()) {
-                tempSubtasks.push({ name, duration, completed: false });
+            if (name.trim() && duration > 0) {
+                tempSubtasks.push({ 
+                    id: Date.now(),
+                    name, 
+                    duration, 
+                    date,
+                    status: 'a-faire',
+                    completed: false 
+                });
                 document.getElementById('newSubtaskName').value = '';
                 document.getElementById('newSubtaskTime').value = '';
+                document.getElementById('newSubtaskDate').value = '';
                 updateSubtasksList();
             }
         }
 
-        function toggleSubtask(idx) {
-            tempSubtasks[idx].completed = !tempSubtasks[idx].completed;
-            updateSubtasksList();
+        function removeSubtask(idx) {
+            if (confirm('Êtes-vous sûr de vouloir supprimer cette sous-tâche ?')) {
+                tempSubtasks.splice(idx, 1);
+                updateSubtasksList();
+            }
         }
 
-        function removeSubtask(idx) {
-            tempSubtasks.splice(idx, 1);
+        function openSubtaskModal(idx) {
+            currentSubtaskIndex = idx;
+            const st = tempSubtasks[idx];
+            const parentTask = tasks.find(t => t.id === currentTaskId);
+
+            document.getElementById('parentTaskName').value = parentTask?.title || 'Nouvelle tâche';
+            document.getElementById('subtaskTitle').value = st.name;
+            document.getElementById('subtaskDuration').value = st.duration;
+            document.getElementById('subtaskDate').value = st.date || '';
+            document.getElementById('subtaskStatus').value = st.status || 'a-faire';
+
+            document.getElementById('subtaskModal').classList.add('show');
+        }
+
+        function closeSubtaskModal() {
+            document.getElementById('subtaskModal').classList.remove('show');
+            currentSubtaskIndex = null;
+        }
+
+        function saveSubtaskChanges(event) {
+            event.preventDefault();
+            
+            tempSubtasks[currentSubtaskIndex] = {
+                ...tempSubtasks[currentSubtaskIndex],
+                name: document.getElementById('subtaskTitle').value,
+                duration: parseFloat(document.getElementById('subtaskDuration').value),
+                date: document.getElementById('subtaskDate').value,
+                status: document.getElementById('subtaskStatus').value
+            };
+
             updateSubtasksList();
+            closeSubtaskModal();
+        }
+
+        function deleteCurrentSubtask() {
+            if (confirm('Êtes-vous sûr de vouloir supprimer cette sous-tâche ?')) {
+                tempSubtasks.splice(currentSubtaskIndex, 1);
+                updateSubtasksList();
+                closeSubtaskModal();
+            }
         }
 
         // ========== RENDERING FUNCTIONS ==========
         function renderTodoList() {
-            const statuses = ['a-faire', 'en-retard', 'en-cours', 'termine'];
+            const statuses = ['a-faire', 'en-retard', 'en-cours', 'termine', 'a-facturer'];
             
             statuses.forEach(status => {
                 const filtered = tasks.filter(t => t.status === status);
                 const container = document.getElementById(`tasks-${status}`);
                 const count = document.getElementById(`count-${status}`);
                 
+                if (!container || !count) return;
+                
                 count.textContent = filtered.length;
                 
-                container.innerHTML = filtered.map(task => `
-                    <div class="task-card ${task.status}" onclick="openTaskModal(${task.id})">
-                        <div class="task-title">${task.title}</div>
-                        <div class="task-info">
-                            ${task.dueDate ? `<span class="task-info-item">📅 ${new Date(task.dueDate).toLocaleDateString('fr-FR')}</span>` : ''}
-                            ${task.estimatedTime ? `<span class="task-info-item">⏱️ ${task.estimatedTime}h</span>` : ''}
-                            ${task.subtasks && task.subtasks.length > 0 ? `<span class="subtasks-badge">${task.subtasks.length} sous-tâche(s)</span>` : ''}
+                container.innerHTML = filtered.map(task => {
+                    const subtasksList = task.subtasks && task.subtasks.length > 0 ? `
+                        ${task.subtasks.map(st => `
+                            <div class="subtask-card">
+                                <div class="subtask-parent">${task.title}</div>
+                                <strong>${st.name}</strong> - ${st.duration}h
+                                ${st.date ? ` (${new Date(st.date).toLocaleDateString('fr-FR')})` : ''}
+                            </div>
+                        `).join('')}
+                    ` : '';
+
+                    return `
+                        <div class="task-card ${task.status}" onclick="openTaskModal(${task.id})">
+                            <div class="task-title">${task.title}</div>
+                            <div class="task-info">
+                                ${task.dueDate ? `<span class="task-info-item">📅 ${new Date(task.dueDate).toLocaleDateString('fr-FR')}</span>` : ''}
+                                ${task.estimatedTime > 0 ? `<span class="task-info-item">⏱️ ${task.estimatedTime}h</span>` : ''}
+                                ${task.subtasks && task.subtasks.length > 0 ? `<span class="subtasks-badge">${task.subtasks.length} sous-tâche(s)</span>` : ''}
+                            </div>
+                            ${subtasksList}
                         </div>
-                    </div>
-                `).join('');
+                    `;
+                }).join('');
             });
+        }
+
+        function getAllTasksWithSubtasks() {
+            const allItems = [];
+            
+            tasks.forEach(task => {
+                if (task.subtasks && task.subtasks.length > 0) {
+                    task.subtasks.forEach(st => {
+                        allItems.push({
+                            type: 'subtask',
+                            parentId: task.id,
+                            parentTitle: task.title,
+                            subtask: st,
+                            date: st.date
+                        });
+                    });
+                } else {
+                    allItems.push({
+                        type: 'task',
+                        task: task,
+                        date: task.dueDate
+                    });
+                }
+            });
+            
+            return allItems;
         }
 
         function renderCalendar() {
@@ -1130,6 +1402,8 @@
 
             // Add day cells
             let currentCell = new Date(startDate);
+            const allItems = getAllTasksWithSubtasks();
+
             while (currentCell <= lastDay) {
                 const cell = document.createElement('div');
                 cell.className = 'day-cell';
@@ -1139,16 +1413,30 @@
                 }
 
                 const dateStr = currentCell.toISOString().split('T')[0];
-                const dayTasks = tasks.filter(t => t.dueDate === dateStr && !['termine', 'a-facturer'].includes(t.status));
+                const dayItems = allItems.filter(item => {
+                    const itemDate = item.type === 'subtask' ? item.subtask.date : item.task.dueDate;
+                    return itemDate === dateStr && (item.type === 'subtask' || !['termine', 'a-facturer'].includes(item.task.status));
+                });
 
                 cell.innerHTML = `
                     <div class="day-date">${currentCell.getDate()}</div>
                     <div class="day-tasks">
-                        ${dayTasks.map(task => `
-                            <div class="planning-task ${task.status}" onclick="openTaskModal(${task.id})">
-                                ${task.title}
-                            </div>
-                        `).join('')}
+                        ${dayItems.map(item => {
+                            if (item.type === 'subtask') {
+                                return `
+                                    <div class="planning-task subtask ${item.subtask.status}" onclick="openTaskModal(${item.parentId})">
+                                        <span class="subtask-parent-name">${item.parentTitle}</span>
+                                        ${item.subtask.name}
+                                    </div>
+                                `;
+                            } else {
+                                return `
+                                    <div class="planning-task ${item.task.status}" onclick="openTaskModal(${item.task.id})">
+                                        ${item.task.title}
+                                    </div>
+                                `;
+                            }
+                        }).join('')}
                     </div>
                 `;
 
@@ -1176,9 +1464,14 @@
             const grid = document.getElementById('week-grid');
             grid.innerHTML = '';
 
+            const allItems = getAllTasksWithSubtasks();
+
             weekDates.forEach(date => {
                 const dateStr = date.toISOString().split('T')[0];
-                const dayTasks = tasks.filter(t => t.dueDate === dateStr && !['termine', 'a-facturer'].includes(t.status));
+                const dayItems = allItems.filter(item => {
+                    const itemDate = item.type === 'subtask' ? item.subtask.date : item.task.dueDate;
+                    return itemDate === dateStr && (item.type === 'subtask' || !['termine', 'a-facturer'].includes(item.task.status));
+                });
 
                 const dayEl = document.createElement('div');
                 dayEl.className = 'week-day';
@@ -1188,11 +1481,22 @@
                         <div class="week-day-date">${date.getDate()}</div>
                     </div>
                     <div class="week-tasks">
-                        ${dayTasks.map(task => `
-                            <div class="planning-task ${task.status}" onclick="openTaskModal(${task.id})">
-                                ${task.title}
-                            </div>
-                        `).join('')}
+                        ${dayItems.map(item => {
+                            if (item.type === 'subtask') {
+                                return `
+                                    <div class="planning-task subtask ${item.subtask.status}" onclick="openTaskModal(${item.parentId})">
+                                        <span class="subtask-parent-name">${item.parentTitle}</span>
+                                        ${item.subtask.name}
+                                    </div>
+                                `;
+                            } else {
+                                return `
+                                    <div class="planning-task ${item.task.status}" onclick="openTaskModal(${item.task.id})">
+                                        ${item.task.title}
+                                    </div>
+                                `;
+                            }
+                        }).join('')}
                     </div>
                 `;
                 grid.appendChild(dayEl);
@@ -1201,7 +1505,11 @@
 
         function renderDayView() {
             const dateStr = currentDate.toISOString().split('T')[0];
-            const dayTasks = tasks.filter(t => t.dueDate === dateStr && !['termine', 'a-facturer'].includes(t.status));
+            const allItems = getAllTasksWithSubtasks();
+            const dayItems = allItems.filter(item => {
+                const itemDate = item.type === 'subtask' ? item.subtask.date : item.task.dueDate;
+                return itemDate === dateStr && (item.type === 'subtask' || !['termine', 'a-facturer'].includes(item.task.status));
+            });
 
             document.getElementById('planning-date').textContent = 
                 currentDate.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
@@ -1210,15 +1518,31 @@
                 currentDate.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
 
             const container = document.getElementById('day-view-tasks');
-            container.innerHTML = dayTasks.length > 0 ? dayTasks.map(task => `
-                <div class="task-card ${task.status}" onclick="openTaskModal(${task.id})">
-                    <div class="task-title">${task.title}</div>
-                    <div class="task-info">
-                        ${task.estimatedTime ? `<span class="task-info-item">⏱️ ${task.estimatedTime}h</span>` : ''}
-                        ${task.subtasks && task.subtasks.length > 0 ? `<span class="subtasks-badge">${task.subtasks.length} sous-tâche(s)</span>` : ''}
-                    </div>
-                </div>
-            `).join('') : '<p style="text-align: center; color: #999;">Aucune tâche pour ce jour</p>';
+            container.innerHTML = dayItems.length > 0 ? dayItems.map(item => {
+                if (item.type === 'subtask') {
+                    return `
+                        <div class="task-card ${item.subtask.status}" onclick="openTaskModal(${item.parentId})">
+                            <div style="font-size: 0.85em; color: #667eea; margin-bottom: 4px;">
+                                <strong>${item.parentTitle}</strong>
+                            </div>
+                            <div class="task-title">${item.subtask.name}</div>
+                            <div class="task-info">
+                                <span class="task-info-item">⏱️ ${item.subtask.duration}h</span>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    return `
+                        <div class="task-card ${item.task.status}" onclick="openTaskModal(${item.task.id})">
+                            <div class="task-title">${item.task.title}</div>
+                            <div class="task-info">
+                                ${item.task.estimatedTime > 0 ? `<span class="task-info-item">⏱️ ${item.task.estimatedTime}h</span>` : ''}
+                                ${item.task.subtasks && item.task.subtasks.length > 0 ? `<span class="subtasks-badge">${item.task.subtasks.length} sous-tâche(s)</span>` : ''}
+                            </div>
+                        </div>
+                    `;
+                }
+            }).join('') : '<p style="text-align: center; color: #999;">Aucune tâche pour ce jour</p>';
         }
 
         function updateAllViews() {
@@ -1258,7 +1582,7 @@
                 const mode = this.getAttribute('data-mode');
                 currentMode = mode;
                 
-                document.querySelectorAll('.calendar-view, .week-view, .day-view').forEach(v => v.classList.remove('active'));
+                document.querySelectorAll('.calendar-view').forEach(v => v.classList.remove('active'));
                 document.getElementById(mode + '-view').classList.add('active');
                 
                 currentDate = new Date();
@@ -1269,10 +1593,14 @@
         // ========== CLOSE MODALS ON CLICK OUTSIDE ==========
         window.addEventListener('click', function(event) {
             const taskModal = document.getElementById('taskModal');
+            const subtaskModal = document.getElementById('subtaskModal');
             const billingModal = document.getElementById('billingModal');
             
             if (event.target === taskModal) {
                 closeTaskModal();
+            }
+            if (event.target === subtaskModal) {
+                closeSubtaskModal();
             }
             if (event.target === billingModal) {
                 document.getElementById('billingModal').classList.remove('show');
