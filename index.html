@@ -187,6 +187,8 @@
             width: 90%; 
             max-width: 500px;
             box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            max-height: 90vh;
+            overflow-y: auto;
         }
         .modal-close { 
             color: #aaa; 
@@ -205,6 +207,7 @@
             border-radius: 5px;
             font-family: Arial, sans-serif;
         }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
         .form-actions { 
             display: flex; 
             gap: 10px; 
@@ -301,12 +304,20 @@
                 <input type="date" id="taskStart" onchange="updateDuration()">
             </div>
             <div class="form-group">
+                <label>Heure de début (8h30 à 18h00) *</label>
+                <input type="time" id="taskStartTime" onchange="updateDuration()" value="08:30">
+            </div>
+            <div class="form-group">
                 <label>Date de fin *</label>
                 <input type="date" id="taskEnd" onchange="updateDuration()">
             </div>
             <div class="form-group">
-                <label>Durée (jours) - Auto calculée</label>
-                <input type="number" id="taskDuration" readonly>
+                <label>Heure de fin (8h30 à 18h00) *</label>
+                <input type="time" id="taskEndTime" onchange="updateDuration()" value="18:00">
+            </div>
+            <div class="form-group">
+                <label>Durée (heures) - Auto calculée</label>
+                <input type="number" id="taskDuration" readonly step="0.5">
             </div>
             <div class="form-actions">
                 <button class="btn btn-save" onclick="saveTask()">Enregistrer</button>
@@ -333,6 +344,19 @@
             tasks = saved ? JSON.parse(saved) : [];
         }
 
+        // === CALCUL DE DURÉE EN HEURES ===
+        function calculateDurationInHours(startDate, startTime, endDate, endTime) {
+            const start = new Date(`${startDate}T${startTime}`);
+            const end = new Date(`${endDate}T${endTime}`);
+            
+            if (!start || !end || isNaN(start) || isNaN(end)) return 0;
+            
+            const diffMs = end - start;
+            const diffHours = diffMs / (1000 * 60 * 60);
+            
+            return Math.max(0, Math.round(diffHours * 10) / 10); // Arrondir à 0.5
+        }
+
         // === MODAL ===
         function openModal(taskId = null) {
             const modal = document.getElementById('taskModal');
@@ -346,7 +370,9 @@
                 document.getElementById('taskDesc').value = task.description;
                 document.getElementById('taskStatus').value = task.status;
                 document.getElementById('taskStart').value = task.start;
+                document.getElementById('taskStartTime').value = task.startTime || '08:30';
                 document.getElementById('taskEnd').value = task.end;
+                document.getElementById('taskEndTime').value = task.endTime || '18:00';
                 updateDuration();
             } else {
                 document.getElementById('modal-title').textContent = 'Nouvelle Tâche';
@@ -354,9 +380,12 @@
                 document.getElementById('taskName').value = '';
                 document.getElementById('taskDesc').value = '';
                 document.getElementById('taskStatus').value = 'a-faire';
-                document.getElementById('taskStart').value = new Date().toISOString().split('T')[0];
-                document.getElementById('taskEnd').value = new Date().toISOString().split('T')[0];
-                document.getElementById('taskDuration').value = '1';
+                const today = new Date().toISOString().split('T')[0];
+                document.getElementById('taskStart').value = today;
+                document.getElementById('taskStartTime').value = '08:30';
+                document.getElementById('taskEnd').value = today;
+                document.getElementById('taskEndTime').value = '18:00';
+                updateDuration();
             }
             modal.classList.add('active');
         }
@@ -367,12 +396,13 @@
         }
 
         function updateDuration() {
-            const start = new Date(document.getElementById('taskStart').value);
-            const end = new Date(document.getElementById('taskEnd').value);
-            if (start && end) {
-                const duration = Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
-                document.getElementById('taskDuration').value = Math.max(1, duration);
-            }
+            const start = document.getElementById('taskStart').value;
+            const startTime = document.getElementById('taskStartTime').value;
+            const end = document.getElementById('taskEnd').value;
+            const endTime = document.getElementById('taskEndTime').value;
+            
+            const duration = calculateDurationInHours(start, startTime, end, endTime);
+            document.getElementById('taskDuration').value = duration;
         }
 
         function saveTask() {
@@ -387,8 +417,10 @@
                 description: document.getElementById('taskDesc').value,
                 status: document.getElementById('taskStatus').value,
                 start: document.getElementById('taskStart').value,
+                startTime: document.getElementById('taskStartTime').value,
                 end: document.getElementById('taskEnd').value,
-                duration: parseInt(document.getElementById('taskDuration').value)
+                endTime: document.getElementById('taskEndTime').value,
+                duration: parseFloat(document.getElementById('taskDuration').value)
             };
 
             if (editingTaskId) {
@@ -467,8 +499,8 @@
                 container.innerHTML = tasksForStatus.map(task => `
                     <div class="task-item" draggable="true" onmousedown="startDrag(${task.id})" ondragstart="startDrag(${task.id})" ondrop="dropOnStatus('${status}')" ondragover="allowDrop(event)" onclick="openModal(${task.id})">
                         <div class="task-item-name">${task.name}</div>
-                        <div class="task-item-info">📅 ${task.start} → ${task.end}</div>
-                        <div class="task-item-info">⏱️ ${task.duration} jour(s)</div>
+                        <div class="task-item-info">📅 ${task.start} ${task.startTime} → ${task.end} ${task.endTime}</div>
+                        <div class="task-item-info">⏱️ ${task.duration}h</div>
                     </div>
                 `).join('');
             });
@@ -496,8 +528,8 @@
             dayEnd.setDate(dayEnd.getDate() + 1);
 
             const dayTasks = tasks.filter(t => {
-                const start = new Date(t.start);
-                const end = new Date(t.end);
+                const start = new Date(`${t.start}T${t.startTime}`);
+                const end = new Date(`${t.end}T${t.endTime}`);
                 return start <= dayEnd && end >= dayStart;
             });
 
@@ -507,7 +539,8 @@
             dayTasks.forEach(task => {
                 html += `
                     <div class="calendar-task ${task.status}" draggable="true" ondragstart="startDrag(${task.id})" ondrop="event.stopPropagation()" onclick="openModal(${task.id}); event.stopPropagation();">
-                        <strong>${task.name}</strong> (${task.duration}j)
+                        <strong>${task.name}</strong><br/>
+                        ${task.startTime} → ${task.endTime} (${task.duration}h)
                     </div>
                 `;
             });
@@ -536,8 +569,8 @@
                 const dateStr = day.toISOString().split('T')[0];
                 
                 const dayTasks = tasks.filter(t => {
-                    const start = new Date(t.start);
-                    const end = new Date(t.end);
+                    const start = new Date(`${t.start}T${t.startTime}`);
+                    const end = new Date(`${t.end}T${t.endTime}`);
                     return start <= day && end >= day;
                 });
 
@@ -547,7 +580,7 @@
                 dayTasks.forEach(task => {
                     html += `
                         <div class="calendar-task ${task.status}" draggable="true" ondragstart="startDrag(${task.id})" ondrop="event.stopPropagation()" onclick="openModal(${task.id}); event.stopPropagation();">
-                            ${task.name.slice(0, 12)}
+                            ${task.name.slice(0, 12)}<br/>${task.duration}h
                         </div>
                     `;
                 });
@@ -583,8 +616,8 @@
                 const isToday = new Date().toDateString() === date.toDateString();
                 
                 const dayTasks = tasks.filter(t => {
-                    const start = new Date(t.start);
-                    const end = new Date(t.end);
+                    const start = new Date(`${t.start}T${t.startTime}`);
+                    const end = new Date(`${t.end}T${t.endTime}`);
                     return start <= date && end >= date;
                 });
 
@@ -594,7 +627,7 @@
                 dayTasks.slice(0, 3).forEach(task => {
                     html += `
                         <div class="calendar-task ${task.status}" draggable="true" ondragstart="startDrag(${task.id})" ondrop="event.stopPropagation()" onclick="openModal(${task.id}); event.stopPropagation();" style="font-size: 0.7em;">
-                            ${task.name.slice(0, 10)}
+                            ${task.name.slice(0, 10)}<br/>${task.duration}h
                         </div>
                     `;
                 });
