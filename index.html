@@ -5,515 +5,57 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chantier - Gestion de Tâches et Planning</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #f5f5f5;
-            padding: 20px;
-        }
-
-        .container {
-            max-width: 1800px;
-            margin: 0 auto;
-        }
-
-        header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 30px;
-            border-radius: 12px;
-            margin-bottom: 30px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        header h1 {
-            font-size: 2.5em;
-            margin: 0;
-        }
-
-        .btn-new-task {
-            background: white;
-            color: #667eea;
-            border: none;
-            padding: 12px 25px;
-            border-radius: 8px;
-            font-size: 1em;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-        }
-
-        .btn-new-task:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
-        }
-
-        .main-layout {
-            display: grid;
-            grid-template-columns: 35% 65%;
-            gap: 20px;
-        }
-
-        @media (max-width: 1200px) {
-            .main-layout {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        /* ========== TO DO LIST SECTION ========== */
-        .todo-section {
-            background: white;
-            border-radius: 12px;
-            padding: 25px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-            max-height: 80vh;
-            overflow-y: auto;
-        }
-
-        .todo-section h2 {
-            color: #333;
-            margin-bottom: 20px;
-            font-size: 1.5em;
-        }
-
-        .status-columns {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-
-        .status-column {
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
-            padding: 15px;
-            min-height: 200px;
-            background: #fafafa;
-        }
-
-        .status-column h3 {
-            margin-bottom: 10px;
-            font-size: 1.1em;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .status-column.a-faire {
-            border-top: 4px solid #2196F3;
-            background: #e3f2fd;
-        }
-
-        .status-column.a-faire h3 {
-            color: #1976D2;
-        }
-
-        .status-column.en-cours {
-            border-top: 4px solid #FFC107;
-            background: #fff8e1;
-        }
-
-        .status-column.en-cours h3 {
-            color: #F57F17;
-        }
-
-        .status-column.en-retard {
-            border-top: 4px solid #F44336;
-            background: #ffebee;
-        }
-
-        .status-column.en-retard h3 {
-            color: #D32F2F;
-        }
-
-        .status-column.termine {
-            border-top: 4px solid #4CAF50;
-            background: #e8f5e9;
-        }
-
-        .status-column.termine h3 {
-            color: #388E3C;
-        }
-
-        .status-column.a-facturer {
-            border-top: 4px solid #9C27B0;
-            background: #f3e5f5;
-        }
-
-        .status-column.a-facturer h3 {
-            color: #7B1FA2;
-        }
-
-        .task-item {
-            background: white;
-            padding: 12px;
-            margin: 8px 0;
-            border-radius: 6px;
-            cursor: move;
-            border-left: 4px solid #667eea;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-            transition: all 0.2s;
-        }
-
-        .task-item:hover {
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-            transform: translateY(-2px);
-        }
-
-        .task-item.dragging {
-            opacity: 0.5;
-        }
-
-        .task-name {
-            font-weight: bold;
-            color: #333;
-            margin-bottom: 5px;
-        }
-
-        .task-details {
-            font-size: 0.85em;
-            color: #666;
-            display: flex;
-            justify-content: space-between;
-        }
-
-        /* ========== PLANNING SECTION ========== */
-        .planning-section {
-            background: white;
-            border-radius: 12px;
-            padding: 25px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-        }
-
-        .planning-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-
-        .planning-header h2 {
-            color: #333;
-            font-size: 1.5em;
-        }
-
-        .nav-buttons {
-            display: flex;
-            gap: 10px;
-        }
-
-        button {
-            background: #667eea;
-            color: white;
-            border: none;
-            padding: 10px 15px;
-            border-radius: 6px;
-            cursor: pointer;
-            transition: all 0.3s;
-            font-size: 0.9em;
-        }
-
-        button:hover {
-            background: #764ba2;
-            transform: translateY(-2px);
-        }
-
-        .nav-mode-btn {
-            background: #e0e0e0;
-            color: #333;
-        }
-
-        .nav-mode-btn.active {
-            background: #667eea;
-            color: white;
-        }
-
-        .calendar-view {
-            display: none;
-        }
-
-        .calendar-view.active {
-            display: block;
-        }
-
-        .day-view, .week-view {
-            display: grid;
-            gap: 10px;
-        }
-
-        .day-header {
-            font-weight: bold;
-            color: #667eea;
-            margin-top: 15px;
-            margin-bottom: 10px;
-        }
-
-        .timeline {
-            position: relative;
-            height: 100px;
-            background: linear-gradient(to right, #f9f9f9 0%, #ffffff 100%);
-            border: 1px solid #e0e0e0;
-            border-radius: 6px;
-            margin: 10px 0;
-            overflow: hidden;
-        }
-
-        .task-bar {
-            position: absolute;
-            height: 40px;
-            border-radius: 4px;
-            display: flex;
-            align-items: center;
-            padding: 0 8px;
-            color: white;
-            font-size: 0.85em;
-            font-weight: bold;
-            cursor: move;
-            top: 30px;
-            user-select: none;
-        }
-
-        .task-bar.a-faire {
-            background: #2196F3;
-            border: 2px solid #1976D2;
-        }
-
-        .task-bar.en-cours {
-            background: #FFC107;
-            color: #333;
-            border: 2px solid #F57F17;
-        }
-
-        .task-bar.en-retard {
-            background: #F44336;
-            border: 2px solid #D32F2F;
-            animation: pulse 1s infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.7; }
-        }
-
-        .task-bar.termine {
-            background: #4CAF50;
-            border: 2px solid #388E3C;
-            opacity: 0.6;
-        }
-
-        .task-bar.a-facturer {
-            display: none;
-        }
-
-        .resize-handle {
-            position: absolute;
-            right: -5px;
-            top: 0;
-            bottom: 0;
-            width: 10px;
-            cursor: ew-resize;
-            background: rgba(0, 0, 0, 0.2);
-        }
-
-        /* ========== MODAL ========== */
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 1000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            border-radius: 8px;
-        }
-
-        .modal.active {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .modal-content {
-            background: white;
-            padding: 30px;
-            border-radius: 12px;
-            width: 90%;
-            max-width: 500px;
-            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
-            max-height: 90vh;
-            overflow-y: auto;
-        }
-
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-
-        .modal-header h3 {
-            font-size: 1.3em;
-            color: #333;
-        }
-
-        .close-btn {
-            background: none;
-            color: #999;
-            font-size: 1.5em;
-            cursor: pointer;
-            border: none;
-            padding: 0;
-            width: 30px;
-            height: 30px;
-        }
-
-        .close-btn:hover {
-            color: #333;
-        }
-
-        .form-group {
-            margin-bottom: 15px;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 5px;
-            color: #333;
-            font-weight: bold;
-        }
-
-        .form-group input,
-        .form-group select,
-        .form-group textarea {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            font-size: 0.95em;
-            font-family: inherit;
-        }
-
-        .form-group textarea {
-            resize: vertical;
-            min-height: 100px;
-        }
-
-        .form-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
-            gap: 10px;
-        }
-
-        .form-buttons {
-            display: flex;
-            gap: 10px;
-            margin-top: 20px;
-        }
-
-        .form-buttons button {
-            flex: 1;
-            padding: 12px;
-            font-size: 1em;
-        }
-
-        .btn-cancel {
-            background: #ccc;
-        }
-
-        .btn-cancel:hover {
-            background: #aaa;
-        }
-
-        .btn-delete {
-            background: #F44336;
-        }
-
-        .btn-delete:hover {
-            background: #D32F2F;
-        }
-
-        .subtasks-section {
-            margin-top: 20px;
-            padding-top: 20px;
-            border-top: 1px solid #ddd;
-        }
-
-        .subtasks-section h4 {
-            margin-bottom: 10px;
-            color: #333;
-        }
-
-        .subtask-item {
-            background: #f9f9f9;
-            padding: 10px;
-            margin: 8px 0;
-            border-radius: 6px;
-            border-left: 3px solid #667eea;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .btn-small {
-            padding: 5px 10px;
-            font-size: 0.85em;
-        }
-
-        .month-grid {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            gap: 10px;
-        }
-
-        .day-cell {
-            border: 1px solid #e0e0e0;
-            border-radius: 6px;
-            padding: 10px;
-            min-height: 120px;
-            background: white;
-        }
-
-        .day-cell.other-month {
-            background: #f9f9f9;
-            color: #ccc;
-        }
-
-        .day-cell-header {
-            font-weight: bold;
-            color: #667eea;
-            margin-bottom: 8px;
-        }
-
-        .day-cell-tasks {
-            font-size: 0.85em;
-        }
-
-        .day-cell-task {
-            background: #e3f2fd;
-            padding: 4px;
-            margin: 4px 0;
-            border-radius: 3px;
-            border-left: 2px solid #2196F3;
-        }
-
-        .day-cell-task.en-cours {
-            background: #fff8e1;
-            border-left-color: #FFC107;
-        }
-
-        .day-cell-task.en-retard {
-            background: #ffebee;
-            border-left-color: #F44336;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f5f5f5; padding: 20px; }
+        .container { max-width: 1800px; margin: 0 auto; }
+        header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; border-radius: 12px; margin-bottom: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); display: flex; justify-content: space-between; align-items: center; }
+        header h1 { font-size: 2.5em; margin: 0; }
+        .btn-new-task { background: white; color: #667eea; border: none; padding: 12px 25px; border-radius: 8px; font-size: 1em; font-weight: bold; cursor: pointer; transition: all 0.3s; }
+        .btn-new-task:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0,0,0,0.2); }
+        .main-layout { display: grid; grid-template-columns: 35% 65%; gap: 20px; }
+        @media (max-width: 1200px) { .main-layout { grid-template-columns: 1fr; } }
+        .todo-section { background: white; border-radius: 12px; padding: 25px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); max-height: 80vh; overflow-y: auto; }
+        .todo-section h2 { color: #333; margin-bottom: 20px; font-size: 1.5em; }
+        .status-columns { display: flex; flex-direction: column; gap: 15px; }
+        .status-column { border: 2px solid #e0e0e0; border-radius: 8px; padding: 15px; min-height: 100px; background: #fafafa; }
+        .status-column h3 { margin-bottom: 10px; font-size: 1.1em; }
+        .status-column.a-faire { border-top: 4px solid #2196F3; background: #e3f2fd; }
+        .status-column.en-cours { border-top: 4px solid #FFC107; background: #fff8e1; }
+        .status-column.en-retard { border-top: 4px solid #F44336; background: #ffebee; }
+        .status-column.termine { border-top: 4px solid #4CAF50; background: #e8f5e9; }
+        .task-item { background: white; padding: 12px; margin: 8px 0; border-radius: 6px; cursor: pointer; border-left: 4px solid #667eea; box-shadow: 0 2px 8px rgba(0,0,0,0.1); transition: all 0.2s; }
+        .task-item:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.15); transform: translateY(-2px); }
+        .task-name { font-weight: bold; color: #333; margin-bottom: 5px; }
+        .planning-section { background: white; border-radius: 12px; padding: 25px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        .planning-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .nav-buttons { display: flex; gap: 10px; }
+        button { background: #667eea; color: white; border: none; padding: 10px 15px; border-radius: 6px; cursor: pointer; transition: all 0.3s; }
+        button:hover { background: #764ba2; transform: translateY(-2px); }
+        .nav-mode-btn { background: #e0e0e0; color: #333; }
+        .nav-mode-btn.active { background: #667eea; color: white; }
+        .calendar-view { display: none; }
+        .calendar-view.active { display: block; }
+        .timeline { position: relative; height: 80px; background: #f9f9f9; border: 1px solid #e0e0e0; border-radius: 6px; margin: 10px 0; }
+        .task-bar { position: absolute; height: 35px; border-radius: 4px; display: flex; align-items: center; padding: 0 8px; color: white; font-size: 0.85em; font-weight: bold; top: 22px; cursor: move; }
+        .task-bar.a-faire { background: #2196F3; }
+        .task-bar.en-cours { background: #FFC107; color: #333; }
+        .task-bar.en-retard { background: #F44336; }
+        .task-bar.termine { background: #4CAF50; opacity: 0.6; }
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); align-items: center; justify-content: center; }
+        .modal.active { display: flex; }
+        .modal-content { background: white; padding: 30px; border-radius: 12px; width: 90%; max-width: 500px; box-shadow: 0 15px 40px rgba(0,0,0,0.3); }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .close-btn { background: none; color: #999; font-size: 1.5em; cursor: pointer; border: none; padding: 0; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; color: #333; font-weight: bold; }
+        .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 0.95em; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+        .form-buttons { display: flex; gap: 10px; margin-top: 20px; }
+        .form-buttons button { flex: 1; padding: 12px; }
+        .btn-cancel { background: #ccc; }
+        .btn-cancel:hover { background: #aaa; }
+        .btn-delete { background: #F44336; }
+        .btn-delete:hover { background: #D32F2F; }
     </style>
 </head>
 <body>
@@ -524,7 +66,6 @@
         </header>
 
         <div class="main-layout">
-            <!-- TO DO LIST -->
             <div class="todo-section">
                 <h2>📝 To Do List</h2>
                 <div class="status-columns">
@@ -544,14 +85,9 @@
                         <h3>🟢 Terminé</h3>
                         <div id="column-termine"></div>
                     </div>
-                    <div class="status-column a-facturer">
-                        <h3>💰 À Facturer</h3>
-                        <div id="column-a-facturer"></div>
-                    </div>
                 </div>
             </div>
 
-            <!-- PLANNING -->
             <div class="planning-section">
                 <div class="planning-header">
                     <h2>📅 Planning</h2>
@@ -567,11 +103,9 @@
                 <div id="day-view" class="calendar-view active">
                     <div id="day-content"></div>
                 </div>
-
                 <div id="week-view" class="calendar-view">
                     <div id="week-content"></div>
                 </div>
-
                 <div id="month-view" class="calendar-view">
                     <div id="month-content"></div>
                 </div>
@@ -579,25 +113,21 @@
         </div>
     </div>
 
-    <!-- MODAL TÂCHE -->
     <div id="taskModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
                 <h3 id="modalTitle">Nouvelle Tâche</h3>
                 <button class="close-btn" onclick="closeTaskModal()">×</button>
             </div>
-
             <form id="taskForm">
                 <div class="form-group">
                     <label>Nom de la Tâche *</label>
                     <input type="text" id="taskName" required>
                 </div>
-
                 <div class="form-group">
                     <label>Description</label>
                     <textarea id="taskDescription"></textarea>
                 </div>
-
                 <div class="form-group">
                     <label>Statut *</label>
                     <select id="taskStatus" required>
@@ -605,31 +135,22 @@
                         <option value="en-cours">🟡 En Cours</option>
                         <option value="en-retard">🔴 En Retard</option>
                         <option value="termine">🟢 Terminé</option>
-                        <option value="a-facturer">💰 À Facturer</option>
                     </select>
                 </div>
-
-                <div class="form-group">
-                    <label>Tâche Principale (optionnel)</label>
-                    <select id="taskParent"></select>
-                </div>
-
                 <div class="form-group">
                     <label>Date de Début *</label>
                     <input type="datetime-local" id="taskStartDate" required>
                 </div>
-
                 <div class="form-row">
                     <div class="form-group">
-                        <label>Heure de Fin</label>
+                        <label>Date de Fin</label>
                         <input type="datetime-local" id="taskEndDate">
                     </div>
                     <div class="form-group">
-                        <label>Durée (heures)</label>
+                        <label>Durée (h)</label>
                         <input type="number" id="taskDuration" min="0" step="0.5">
                     </div>
                 </div>
-
                 <div class="form-buttons">
                     <button type="button" class="btn-cancel" onclick="closeTaskModal()">Annuler</button>
                     <button type="button" class="btn-delete" id="deleteBtn" style="display:none;" onclick="deleteTask()">Supprimer</button>
@@ -640,15 +161,11 @@
     </div>
 
     <script>
-        // ========== STATE ==========
         let tasks = [];
         let currentEditId = null;
         let currentMode = 'day';
         let currentDate = new Date();
-        let draggedTask = null;
-        let draggedFrom = null;
 
-        // ========== LOCAL STORAGE ==========
         function saveData() {
             localStorage.setItem('chantier-tasks', JSON.stringify(tasks));
         }
@@ -658,21 +175,18 @@
             tasks = saved ? JSON.parse(saved) : [];
         }
 
-        // ========== MODAL FUNCTIONS ==========
         function openTaskModal(taskId = null) {
             const modal = document.getElementById('taskModal');
             const form = document.getElementById('taskForm');
-            const modalTitle = document.getElementById('modalTitle');
             const deleteBtn = document.getElementById('deleteBtn');
 
             if (taskId) {
                 currentEditId = taskId;
                 const task = tasks.find(t => t.id === taskId);
-                modalTitle.textContent = 'Modifier Tâche';
+                document.getElementById('modalTitle').textContent = 'Modifier Tâche';
                 document.getElementById('taskName').value = task.name;
                 document.getElementById('taskDescription').value = task.description || '';
                 document.getElementById('taskStatus').value = task.status;
-                document.getElementById('taskParent').value = task.parentId || '';
                 document.getElementById('taskStartDate').value = task.startDate;
                 document.getElementById('taskEndDate').value = task.endDate || '';
                 document.getElementById('taskDuration').value = task.duration || '';
@@ -680,12 +194,11 @@
             } else {
                 currentEditId = null;
                 form.reset();
-                modalTitle.textContent = 'Nouvelle Tâche';
+                document.getElementById('modalTitle').textContent = 'Nouvelle Tâche';
                 deleteBtn.style.display = 'none';
                 document.getElementById('taskStartDate').value = new Date().toISOString().slice(0, 16);
             }
 
-            updateParentSelect();
             modal.classList.add('active');
         }
 
@@ -694,39 +207,17 @@
             currentEditId = null;
         }
 
-        function updateParentSelect() {
-            const select = document.getElementById('taskParent');
-            select.innerHTML = '<option value="">Aucune (Tâche principale)</option>';
-            tasks.forEach(task => {
-                if (!task.parentId) {
-                    select.innerHTML += `<option value="${task.id}">${task.name}</option>`;
-                }
-            });
-        }
-
-        // ========== FORM HANDLING ==========
         document.getElementById('taskForm').addEventListener('submit', function(e) {
             e.preventDefault();
-
-            const startDate = document.getElementById('taskStartDate').value;
-            const endDate = document.getElementById('taskEndDate').value;
-            const duration = parseFloat(document.getElementById('taskDuration').value) || null;
-
-            if (duration && !endDate) {
-                const start = new Date(startDate);
-                const end = new Date(start.getTime() + duration * 60 * 60 * 1000);
-                document.getElementById('taskEndDate').value = end.toISOString().slice(0, 16);
-            }
 
             const task = {
                 id: currentEditId || Date.now().toString(),
                 name: document.getElementById('taskName').value,
                 description: document.getElementById('taskDescription').value,
                 status: document.getElementById('taskStatus').value,
-                parentId: document.getElementById('taskParent').value || null,
-                startDate: startDate,
+                startDate: document.getElementById('taskStartDate').value,
                 endDate: document.getElementById('taskEndDate').value || null,
-                duration: duration,
+                duration: parseFloat(document.getElementById('taskDuration').value) || null,
             };
 
             if (currentEditId) {
@@ -742,7 +233,7 @@
         });
 
         function deleteTask() {
-            if (confirm('Êtes-vous sûr de vouloir supprimer cette tâche ?')) {
+            if (confirm('Supprimer cette tâche ?')) {
                 tasks = tasks.filter(t => t.id !== currentEditId);
                 saveData();
                 updateAllViews();
@@ -750,79 +241,55 @@
             }
         }
 
-        // ========== VIEW UPDATES ==========
         function updateAllViews() {
             updateTodoList();
             renderCalendar();
         }
 
         function updateTodoList() {
-            const statuses = ['a-faire', 'en-cours', 'en-retard', 'termine', 'a-facturer'];
+            const statuses = ['a-faire', 'en-cours', 'en-retard', 'termine'];
             statuses.forEach(status => {
                 const column = document.getElementById(`column-${status}`);
                 const tasksInStatus = tasks.filter(t => t.status === status);
                 
                 column.innerHTML = tasksInStatus.map(task => `
-                    <div class="task-item" draggable="true" ondragstart="startDrag(event, '${task.id}')" ondrop="drop(event, '${status}')" ondragover="allowDrop(event)" onclick="openTaskModal('${task.id}')">
+                    <div class="task-item" onclick="openTaskModal('${task.id}')">
                         <div class="task-name">${task.name}</div>
-                        <div class="task-details">
-                            <span>${task.startDate.slice(0, 10)}</span>
-                            <span>${task.duration ? task.duration + 'h' : ''}</span>
-                        </div>
+                        <div class="task-details">${task.startDate.slice(0, 10)} | ${task.duration ? task.duration + 'h' : 'N/A'}</div>
                     </div>
                 `).join('');
             });
         }
 
-        function startDrag(e, taskId) {
-            draggedTask = taskId;
-            draggedFrom = e.target.closest('.task-item').parentElement.id.replace('column-', '');
-            e.target.closest('.task-item').classList.add('dragging');
-        }
-
-        function allowDrop(e) {
-            e.preventDefault();
-        }
-
-        function drop(e, status) {
-            e.preventDefault();
-            if (draggedTask) {
-                const task = tasks.find(t => t.id === draggedTask);
-                if (task) {
-                    task.status = status;
-                    saveData();
-                    updateAllViews();
-                }
-            }
-        }
-
-        // ========== CALENDAR VIEWS ==========
         function renderCalendar() {
-            if (currentMode === 'day') {
-                renderDayView();
-            } else if (currentMode === 'week') {
-                renderWeekView();
-            } else if (currentMode === 'month') {
-                renderMonthView();
-            }
+            if (currentMode === 'day') renderDayView();
+            else if (currentMode === 'week') renderWeekView();
+            else if (currentMode === 'month') renderMonthView();
         }
 
         function renderDayView() {
             const dayContent = document.getElementById('day-content');
-            const date = new Date(currentDate);
-            const dateStr = date.toLocaleDateString('fr-FR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-            
-            const dayTasks = getTodaysTasks(date);
+            const dateStr = currentDate.toLocaleDateString('fr-FR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+            const dayTasks = tasks.filter(t => new Date(t.startDate).toDateString() === currentDate.toDateString());
             
             let html = `<h3>${dateStr}</h3>`;
-            for (let hour = 8; hour < 18; hour++) {
-                const hourStr = `${hour.toString().padStart(2, '0')}:00`;
-                html += `<div style="margin-top: 10px; font-size: 0.9em; color: #999;">${hourStr}</div>`;
-                html += `<div class="timeline" id="timeline-${hour}"></div>`;
+            for (let h = 8; h < 18; h++) {
+                html += `<div style="margin:15px 0;"><strong>${h}:00</strong></div>`;
+                html += `<div class="timeline" id="timeline-${h}"></div>`;
             }
-
             dayContent.innerHTML = html;
-            renderTasksOnTimeline(dayTasks);
+            dayTasks.forEach(task => {
+                const hour = new Date(task.startDate).getHours();
+                const timeline = document.getElementById(`timeline-${hour}`);
+                if (timeline) {
+                    const bar = document.createElement('div');
+                    bar.className = `task-bar ${task.status}`;
+                    bar.textContent = task.name;
+                    bar.style.width = (task.duration || 1) * 50 + 'px';
+                    bar.onclick = () => openTaskModal(task.id);
+                    timeline.appendChild(bar);
+                }
+            });
         }
 
         function renderWeekView() {
@@ -832,177 +299,91 @@
 
             let html = '<div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 10px;">';
             for (let i = 0; i < 7; i++) {
-                const date = new Date(startDate);
-                date.setDate(date.getDate() + i);
-                const dateStr = date.toLocaleDateString('fr-FR', { weekday: 'short', month: 'short', day: 'numeric' });
-                html += `<div><h4>${dateStr}</h4><div class="timeline" id="timeline-week-${i}"></div></div>`;
+                const d = new Date(startDate);
+                d.setDate(d.getDate() + i);
+                const dateStr = d.toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric' });
+                html += `<div><h4>${dateStr}</h4><div class="timeline" id="week-${i}"></div></div>`;
             }
             html += '</div>';
-
             weekContent.innerHTML = html;
 
-            for (let i = 0; i < 7; i++) {
-                const date = new Date(startDate);
-                date.setDate(date.getDate() + i);
-                const dayTasks = getTodaysTasks(date);
-                renderTasksOnTimeline(dayTasks, `timeline-week-${i}`);
-            }
+            tasks.forEach(task => {
+                const taskDate = new Date(task.startDate);
+                for (let i = 0; i < 7; i++) {
+                    const d = new Date(startDate);
+                    d.setDate(d.getDate() + i);
+                    if (taskDate.toDateString() === d.toDateString()) {
+                        const timeline = document.getElementById(`week-${i}`);
+                        if (timeline) {
+                            const bar = document.createElement('div');
+                            bar.className = `task-bar ${task.status}`;
+                            bar.textContent = task.name;
+                            bar.style.width = (task.duration || 1) * 30 + 'px';
+                            bar.onclick = () => openTaskModal(task.id);
+                            timeline.appendChild(bar);
+                        }
+                    }
+                }
+            });
         }
 
         function renderMonthView() {
             const monthContent = document.getElementById('month-content');
             const year = currentDate.getFullYear();
             const month = currentDate.getMonth();
-
             const firstDay = new Date(year, month, 1);
             const lastDay = new Date(year, month + 1, 0);
-            const prevLastDay = new Date(year, month, 0).getDate();
             const startDate = firstDay.getDay() - 1;
 
-            let html = '<div class="month-grid">';
+            let html = '<div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px;">';
             const days = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
-            days.forEach(day => {
-                html += `<div style="font-weight: bold; text-align: center; padding: 10px; background: #f0f0f0;">${day}</div>`;
-            });
+            days.forEach(d => html += `<div style="font-weight: bold; text-align: center; padding: 8px; background: #f0f0f0;">${d}</div>`);
 
-            for (let i = startDate; i > 0; i--) {
-                html += `<div class="day-cell other-month">${prevLastDay - i + 1}</div>`;
-            }
+            for (let i = startDate; i > 0; i--) html += '<div style="padding: 8px; background: #f9f9f9; color: #ccc;"></div>';
 
             for (let day = 1; day <= lastDay.getDate(); day++) {
-                const date = new Date(year, month, day);
-                const dayTasks = getTodaysTasks(date);
-                html += `<div class="day-cell"><div class="day-cell-header">${day}</div><div class="day-cell-tasks">`;
-                dayTasks.forEach(task => {
-                    html += `<div class="day-cell-task ${task.status}" title="${task.name}">${task.name.slice(0, 15)}</div>`;
-                });
-                html += `</div></div>`;
+                const d = new Date(year, month, day);
+                const dayTasks = tasks.filter(t => new Date(t.startDate).toDateString() === d.toDateString());
+                html += `<div style="padding: 8px; border: 1px solid #e0e0e0; border-radius: 4px; min-height: 80px;"><strong>${day}</strong>`;
+                dayTasks.slice(0, 2).forEach(t => html += `<div style="font-size: 0.8em; background: #e3f2fd; padding: 2px; margin: 2px 0; border-radius: 2px; cursor: pointer;" onclick="openTaskModal('${t.id}')">${t.name.slice(0, 10)}</div>`);
+                html += '</div>';
             }
 
-            for (let day = 1; day <= 42 - lastDay.getDate() - startDate; day++) {
-                html += `<div class="day-cell other-month">${day}</div>`;
-            }
+            for (let i = 1; i <= 42 - lastDay.getDate() - startDate; i++) html += '<div style="padding: 8px; background: #f9f9f9;"></div>';
 
             html += '</div>';
             monthContent.innerHTML = html;
         }
 
-        function getTodaysTasks(date) {
-            return tasks.filter(task => {
-                const taskDate = new Date(task.startDate);
-                return taskDate.toDateString() === date.toDateString() && ['a-faire', 'en-cours', 'en-retard'].includes(task.status);
-            });
-        }
-
-        function renderTasksOnTimeline(dayTasks, timelineId = null) {
-            dayTasks.forEach(task => {
-                const startHour = new Date(task.startDate).getHours();
-                const targetId = timelineId || `timeline-${startHour}`;
-                const timeline = document.getElementById(targetId);
-
-                if (timeline) {
-                    const taskBar = document.createElement('div');
-                    taskBar.className = `task-bar ${task.status}`;
-                    taskBar.textContent = task.name;
-                    taskBar.draggable = true;
-                    taskBar.style.left = '0%';
-                    taskBar.style.width = '100%';
-
-                    const resizeHandle = document.createElement('div');
-                    resizeHandle.className = 'resize-handle';
-                    resizeHandle.onmousedown = (e) => startResize(e, task);
-                    taskBar.appendChild(resizeHandle);
-
-                    taskBar.ondragstart = (e) => startTaskBarDrag(e, task);
-                    taskBar.ondragend = (e) => endTaskBarDrag(e, task);
-
-                    timeline.appendChild(taskBar);
-                }
-            });
-        }
-
-        function startTaskBarDrag(e, task) {
-            e.dataTransfer.effectAllowed = 'move';
-            draggedTask = task.id;
-        }
-
-        function endTaskBarDrag(e, task) {
-            // Logique de drop si nécessaire
-        }
-
-        function startResize(e, task) {
-            e.preventDefault();
-            const startX = e.clientX;
-            const startDuration = task.duration || 1;
-
-            const moveHandler = (e) => {
-                const diff = e.clientX - startX;
-                const hourWidth = 100; // pixels par heure
-                task.duration = Math.max(0.5, startDuration + (diff / hourWidth));
-                
-                if (task.startDate && task.duration) {
-                    const start = new Date(task.startDate);
-                    const end = new Date(start.getTime() + task.duration * 60 * 60 * 1000);
-                    task.endDate = end.toISOString().slice(0, 16);
-                }
-
-                saveData();
-                renderCalendar();
-            };
-
-            const upHandler = () => {
-                document.removeEventListener('mousemove', moveHandler);
-                document.removeEventListener('mouseup', upHandler);
-            };
-
-            document.addEventListener('mousemove', moveHandler);
-            document.addEventListener('mouseup', upHandler);
-        }
-
-        // ========== MODE SWITCHING ==========
         function switchMode(mode) {
             currentMode = mode;
-            document.querySelectorAll('.nav-mode-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.nav-mode-btn').forEach(b => b.classList.remove('active'));
             event.target.classList.add('active');
-
-            document.querySelectorAll('.calendar-view').forEach(view => view.classList.remove('active'));
+            document.querySelectorAll('.calendar-view').forEach(v => v.classList.remove('active'));
             document.getElementById(`${mode}-view`).classList.add('active');
-
             renderCalendar();
         }
 
         function previousDate() {
-            if (currentMode === 'month') {
-                currentDate.setMonth(currentDate.getMonth() - 1);
-            } else if (currentMode === 'week') {
-                currentDate.setDate(currentDate.getDate() - 7);
-            } else if (currentMode === 'day') {
-                currentDate.setDate(currentDate.getDate() - 1);
-            }
+            if (currentMode === 'month') currentDate.setMonth(currentDate.getMonth() - 1);
+            else if (currentMode === 'week') currentDate.setDate(currentDate.getDate() - 7);
+            else currentDate.setDate(currentDate.getDate() - 1);
             renderCalendar();
         }
 
         function nextDate() {
-            if (currentMode === 'month') {
-                currentDate.setMonth(currentDate.getMonth() + 1);
-            } else if (currentMode === 'week') {
-                currentDate.setDate(currentDate.getDate() + 7);
-            } else if (currentMode === 'day') {
-                currentDate.setDate(currentDate.getDate() + 1);
-            }
+            if (currentMode === 'month') currentDate.setMonth(currentDate.getMonth() + 1);
+            else if (currentMode === 'week') currentDate.setDate(currentDate.getDate() + 7);
+            else currentDate.setDate(currentDate.getDate() + 1);
             renderCalendar();
         }
 
-        // ========== INITIALIZE ==========
         document.addEventListener('DOMContentLoaded', function() {
             loadData();
             updateAllViews();
-
-            window.addEventListener('click', function(event) {
+            window.addEventListener('click', function(e) {
                 const modal = document.getElementById('taskModal');
-                if (event.target === modal) {
-                    closeTaskModal();
-                }
+                if (e.target === modal) closeTaskModal();
             });
         });
     </script>
