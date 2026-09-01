@@ -109,6 +109,26 @@
             gap: 10px;
         }
 
+        .view-buttons {
+            display: flex;
+            gap: 5px;
+        }
+
+        .view-btn {
+            padding: 8px 15px;
+            background: #e0e0e0;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.2s;
+        }
+
+        .view-btn.active {
+            background: #667eea;
+            color: white;
+        }
+
         .planning-controls {
             display: flex;
             gap: 10px;
@@ -134,7 +154,98 @@
             min-width: 200px;
         }
 
-        /* ===== CALENDRIER ===== */
+        /* ===== VUE JOUR ===== */
+        .day-view {
+            display: none;
+        }
+
+        .day-view.active {
+            display: block;
+        }
+
+        .day-header {
+            background: #667eea;
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-size: 1.3em;
+            font-weight: bold;
+        }
+
+        .day-schedule {
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .time-slot {
+            display: grid;
+            grid-template-columns: 80px 1fr;
+            border-bottom: 1px solid #eee;
+            min-height: 60px;
+        }
+
+        .time-label {
+            background: #f9f9f9;
+            padding: 10px;
+            font-weight: bold;
+            color: #667eea;
+            border-right: 2px solid #ddd;
+            text-align: center;
+        }
+
+        .time-content {
+            padding: 10px;
+            position: relative;
+        }
+
+        /* ===== VUE SEMAINE ===== */
+        .week-view {
+            display: none;
+        }
+
+        .week-view.active {
+            display: block;
+        }
+
+        .week-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+        }
+
+        .week-day {
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .week-day-header {
+            background: #667eea;
+            color: white;
+            padding: 15px;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .week-day-content {
+            padding: 15px;
+            min-height: 400px;
+            overflow-y: auto;
+        }
+
+        /* ===== VUE MOIS ===== */
+        .month-view {
+            display: none;
+        }
+
+        .month-view.active {
+            display: block;
+        }
+
         .calendar-header {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
@@ -148,6 +259,10 @@
             color: #667eea;
             padding: 10px;
             font-size: 0.95em;
+        }
+
+        .calendar-day-header.weekend {
+            color: #f44336;
         }
 
         .calendar-grid {
@@ -166,6 +281,11 @@
             position: relative;
             overflow-y: auto;
             transition: 0.2s;
+        }
+
+        .calendar-day.weekend {
+            background: #f5f5f5;
+            opacity: 0.7;
         }
 
         .calendar-day:hover {
@@ -188,6 +308,10 @@
             color: #333;
             margin-bottom: 8px;
             font-size: 1.1em;
+        }
+
+        .calendar-day-num.weekend {
+            color: #f44336;
         }
 
         /* ===== TÂCHES SUR LE PLANNING ===== */
@@ -377,6 +501,15 @@
         .btn-delete:hover { background: #e68900; }
 
         h2 { color: #333; margin-bottom: 15px; }
+
+        .weekend-warning {
+            background: #FFEBEE;
+            color: #C62828;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            border-left: 4px solid #F44336;
+        }
     </style>
 </head>
 <body>
@@ -416,15 +549,34 @@
             <div class="planning-section">
                 <div class="planning-header">
                     <h2>📅 Planning</h2>
+                    <div class="view-buttons">
+                        <button class="view-btn active" onclick="switchView('jour')">📆 Jour</button>
+                        <button class="view-btn" onclick="switchView('semaine')">📊 Semaine</button>
+                        <button class="view-btn" onclick="switchView('mois')">📅 Mois</button>
+                    </div>
                     <div class="planning-controls">
-                        <button onclick="previousMonth()" class="nav-btn">← Précédent</button>
+                        <button onclick="previousPeriod()" class="nav-btn">← Précédent</button>
                         <span class="current-period" id="current-period"></span>
-                        <button onclick="nextMonth()" class="nav-btn">Suivant →</button>
+                        <button onclick="nextPeriod()" class="nav-btn">Suivant →</button>
                     </div>
                 </div>
 
-                <div class="calendar-header" id="calendar-header"></div>
-                <div class="calendar-grid" id="calendar-grid"></div>
+                <!-- VUE JOUR -->
+                <div id="day-view" class="day-view active">
+                    <div class="day-header" id="day-header"></div>
+                    <div class="day-schedule" id="day-schedule"></div>
+                </div>
+
+                <!-- VUE SEMAINE -->
+                <div id="week-view" class="week-view">
+                    <div class="week-grid" id="week-grid"></div>
+                </div>
+
+                <!-- VUE MOIS -->
+                <div id="month-view" class="month-view">
+                    <div class="calendar-header" id="calendar-header"></div>
+                    <div class="calendar-grid" id="calendar-grid"></div>
+                </div>
             </div>
         </div>
     </div>
@@ -434,6 +586,10 @@
         <div class="modal-content">
             <span class="modal-close" onclick="closeTaskModal()">&times;</span>
             <h2 id="modal-title">Nouvelle Tâche</h2>
+
+            <div id="weekend-warning" class="weekend-warning" style="display: none;">
+                ⚠️ Attention : Cette tâche s'étend sur un samedi ou dimanche. Les jours non travaillés seront grisés.
+            </div>
 
             <div class="form-group">
                 <label>Nom *</label>
@@ -458,7 +614,7 @@
             <div class="form-row">
                 <div class="form-group">
                     <label>Date début *</label>
-                    <input type="date" id="taskStart" onchange="updateTaskDuration()">
+                    <input type="date" id="taskStart" onchange="updateTaskDuration(); checkWeekend();">
                 </div>
                 <div class="form-group">
                     <label>Heure début *</label>
@@ -469,7 +625,7 @@
             <div class="form-row">
                 <div class="form-group">
                     <label>Date fin *</label>
-                    <input type="date" id="taskEnd" onchange="updateTaskDuration()">
+                    <input type="date" id="taskEnd" onchange="updateTaskDuration(); checkWeekend();">
                 </div>
                 <div class="form-group">
                     <label>Heure fin *</label>
@@ -505,6 +661,10 @@
             <span class="modal-close" onclick="closeSubtaskModal()">&times;</span>
             <h2>Sous-tâche</h2>
 
+            <div id="subtask-weekend-warning" class="weekend-warning" style="display: none;">
+                ⚠️ Attention : Cette sous-tâche s'étend sur un samedi ou dimanche.
+            </div>
+
             <div class="form-group">
                 <label>Nom *</label>
                 <input type="text" id="subtaskName" placeholder="Ex: Préparer le matériel">
@@ -523,7 +683,7 @@
             <div class="form-row">
                 <div class="form-group">
                     <label>Date début *</label>
-                    <input type="date" id="subtaskStart" onchange="updateSubtaskDuration()">
+                    <input type="date" id="subtaskStart" onchange="updateSubtaskDuration(); checkSubtaskWeekend();">
                 </div>
                 <div class="form-group">
                     <label>Heure début *</label>
@@ -534,7 +694,7 @@
             <div class="form-row">
                 <div class="form-group">
                     <label>Date fin *</label>
-                    <input type="date" id="subtaskEnd" onchange="updateSubtaskDuration()">
+                    <input type="date" id="subtaskEnd" onchange="updateSubtaskDuration(); checkSubtaskWeekend();">
                 </div>
                 <div class="form-group">
                     <label>Heure fin *</label>
@@ -558,9 +718,61 @@
         let tasks = [];
         let subtasks = [];
         let currentDate = new Date();
+        let currentView = 'jour';
         let editingTaskId = null;
         let editingSubtaskId = null;
         let draggedItem = null;
+
+        // === CONTRÔLE WEEKEND ===
+        function isWeekend(dateStr) {
+            const date = new Date(dateStr + 'T00:00');
+            const day = date.getDay();
+            return day === 0 || day === 6; // 0 = dimanche, 6 = samedi
+        }
+
+        function checkWeekend() {
+            const start = document.getElementById('taskStart').value;
+            const end = document.getElementById('taskEnd').value;
+            
+            if (!start || !end) return;
+
+            let hasWeekend = false;
+            let current = new Date(start + 'T00:00');
+            const endDate = new Date(end + 'T00:00');
+
+            while (current <= endDate) {
+                const dateStr = current.toISOString().split('T')[0];
+                if (isWeekend(dateStr)) {
+                    hasWeekend = true;
+                    break;
+                }
+                current.setDate(current.getDate() + 1);
+            }
+
+            document.getElementById('weekend-warning').style.display = hasWeekend ? 'block' : 'none';
+        }
+
+        function checkSubtaskWeekend() {
+            const start = document.getElementById('subtaskStart').value;
+            const end = document.getElementById('subtaskEnd').value;
+            
+            if (!start || !end) return;
+
+            let hasWeekend = false;
+            let current = new Date(start + 'T00:00');
+            const endDate = new Date(end + 'T00:00');
+
+            while (current <= endDate) {
+                const dateStr = current.toISOString().split('T')[0];
+                if (isWeekend(dateStr)) {
+                    hasWeekend = true;
+                    break;
+                }
+                current.setDate(current.getDate() + 1);
+            }
+
+            document.getElementById('subtask-weekend-warning').style.display = hasWeekend ? 'block' : 'none';
+        }
 
         // === LOCALSTORAGE ===
         function saveTasks() {
@@ -610,6 +822,24 @@
             document.getElementById('subtaskDuration').value = duration;
         }
 
+        // === SWITCHVIEW ===
+        function switchView(view) {
+            currentView = view;
+            
+            document.querySelectorAll('.view-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+
+            document.getElementById('day-view').classList.remove('active');
+            document.getElementById('week-view').classList.remove('active');
+            document.getElementById('month-view').classList.remove('active');
+
+            if (view === 'jour') document.getElementById('day-view').classList.add('active');
+            else if (view === 'semaine') document.getElementById('week-view').classList.add('active');
+            else if (view === 'mois') document.getElementById('month-view').classList.add('active');
+
+            renderPlanning();
+        }
+
         // === MODAL TÂCHE ===
         function openTaskModal(taskId = null) {
             editingTaskId = taskId;
@@ -643,6 +873,7 @@
             document.getElementById('taskStartTime').value = '08:30';
             document.getElementById('taskEnd').value = today;
             document.getElementById('taskEndTime').value = '18:00';
+            document.getElementById('weekend-warning').style.display = 'none';
             updateTaskDuration();
         }
 
@@ -655,6 +886,7 @@
             document.getElementById('taskEnd').value = task.end;
             document.getElementById('taskEndTime').value = task.endTime;
             updateTaskDuration();
+            checkWeekend();
         }
 
         function saveTask() {
@@ -715,6 +947,7 @@
                 document.getElementById('subtaskEnd').value = subtask.end;
                 document.getElementById('subtaskEndTime').value = subtask.endTime;
                 updateSubtaskDuration();
+                checkSubtaskWeekend();
             } else {
                 document.getElementById('subtaskName').value = '';
                 document.getElementById('subtaskStatus').value = 'a-faire';
@@ -722,6 +955,7 @@
                 document.getElementById('subtaskStartTime').value = '08:30';
                 document.getElementById('subtaskEnd').value = today;
                 document.getElementById('subtaskEndTime').value = '18:00';
+                document.getElementById('subtask-weekend-warning').style.display = 'none';
                 updateSubtaskDuration();
             }
 
@@ -811,7 +1045,7 @@
         }
 
         function dropOnDay(dateStr) {
-            if (!draggedItem) return;
+            if (!draggedItem || isWeekend(dateStr)) return;
 
             let item;
             if (draggedItem.type === 'task') {
@@ -849,7 +1083,6 @@
 
                 let html = '';
 
-                // Tâches principales
                 tasksForStatus.forEach(task => {
                     html += `
                         <div class="task-list-item" onclick="openTaskModal(${task.id})">
@@ -860,7 +1093,6 @@
                     `;
                 });
 
-                // Sous-tâches
                 subtasksForStatus.forEach(subtask => {
                     const parentTask = tasks.find(t => t.id === subtask.parentId);
                     const parentName = parentTask ? parentTask.name : 'Orpheline';
@@ -878,8 +1110,95 @@
             });
         }
 
-        // === RENDER PLANNING ===
-        function renderPlanning() {
+        // === RENDER VUE JOUR ===
+        function renderDayView() {
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth();
+            const day = currentDate.getDate();
+
+            const header = document.getElementById('day-header');
+            const schedule = document.getElementById('day-schedule');
+
+            const dateStr = currentDate.toISOString().split('T')[0];
+            const dayName = currentDate.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+
+            header.textContent = dayName.charAt(0).toUpperCase() + dayName.slice(1);
+
+            const allItems = [...tasks.map(t => ({ ...t, type: 'task' })), ...subtasks.map(s => ({ ...s, type: 'subtask' }))];
+            const dayItems = allItems.filter(item => item.start === dateStr || (item.start <= dateStr && item.end >= dateStr));
+
+            let html = '';
+            for (let hour = 8; hour < 19; hour++) {
+                const timeStr = `${String(hour).padStart(2, '0')}:00`;
+                html += `<div class="time-slot">
+                    <div class="time-label">${timeStr}</div>
+                    <div class="time-content" ondrop="dropOnDay('${dateStr}')" ondragover="allowDrop(event)">`;
+
+                dayItems.forEach(item => {
+                    const parentName = item.type === 'subtask' ? ` (${tasks.find(t => t.id === item.parentId)?.name || '?'})` : '';
+                    const clickHandler = item.type === 'task' 
+                        ? `onclick="openTaskModal(${item.id}); event.stopPropagation();"` 
+                        : `onclick="openTaskModal(${item.parentId}); event.stopPropagation();"`;
+
+                    html += `
+                        <div class="calendar-task ${item.status}" draggable="true" ondragstart="startDrag(${item.id}, '${item.type}')" ondrop="event.stopPropagation()" ${clickHandler}>
+                            <div class="calendar-task-name">${item.name}</div>
+                            ${item.type === 'subtask' ? `<div class="calendar-task-info">${parentName}</div>` : ''}
+                            <div class="calendar-task-info">${item.startTime} → ${item.endTime} (${item.duration}h)</div>
+                        </div>
+                    `;
+                });
+
+                html += '</div></div>';
+            }
+
+            schedule.innerHTML = html;
+        }
+
+        // === RENDER VUE SEMAINE ===
+        function renderWeekView() {
+            const startDate = new Date(currentDate);
+            startDate.setDate(currentDate.getDate() - (currentDate.getDay() || 7) + 1);
+
+            const allItems = [...tasks.map(t => ({ ...t, type: 'task' })), ...subtasks.map(s => ({ ...s, type: 'subtask' }))];
+            let html = '';
+
+            for (let i = 0; i < 5; i++) {
+                const date = new Date(startDate);
+                date.setDate(date.getDate() + i);
+
+                const dateStr = date.toISOString().split('T')[0];
+                const dayName = date.toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric' });
+
+                const dayItems = allItems.filter(item => item.start === dateStr || (item.start <= dateStr && item.end >= dateStr));
+
+                html += `<div class="week-day">
+                    <div class="week-day-header">${dayName}</div>
+                    <div class="week-day-content" ondrop="dropOnDay('${dateStr}')" ondragover="allowDrop(event)">`;
+
+                dayItems.forEach(item => {
+                    const parentName = item.type === 'subtask' ? ` (${tasks.find(t => t.id === item.parentId)?.name || '?'})` : '';
+                    const clickHandler = item.type === 'task' 
+                        ? `onclick="openTaskModal(${item.id}); event.stopPropagation();"` 
+                        : `onclick="openTaskModal(${item.parentId}); event.stopPropagation();"`;
+
+                    html += `
+                        <div class="calendar-task ${item.status}" draggable="true" ondragstart="startDrag(${item.id}, '${item.type}')" ondrop="event.stopPropagation()" ${clickHandler}>
+                            <div class="calendar-task-name">${item.name}</div>
+                            ${item.type === 'subtask' ? `<div class="calendar-task-info">${parentName}</div>` : ''}
+                            <div class="calendar-task-info">${item.startTime} → ${item.endTime} (${item.duration}h)</div>
+                        </div>
+                    `;
+                });
+
+                html += '</div></div>';
+            }
+
+            document.getElementById('week-grid').innerHTML = html;
+        }
+
+        // === RENDER VUE MOIS ===
+        function renderMonthView() {
             const year = currentDate.getFullYear();
             const month = currentDate.getMonth();
 
@@ -888,7 +1207,10 @@
 
             const days = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
             const header = document.getElementById('calendar-header');
-            header.innerHTML = days.map(d => `<div class="calendar-day-header">${d}</div>`).join('');
+            header.innerHTML = days.map((d, idx) => {
+                const isWeekend = idx === 5 || idx === 6;
+                return `<div class="calendar-day-header ${isWeekend ? 'weekend' : ''}">${d}</div>`;
+            }).join('');
 
             const firstDay = new Date(year, month, 1);
             const startDate = new Date(firstDay);
@@ -904,17 +1226,17 @@
                 const dateStr = date.toISOString().split('T')[0];
                 const isOtherMonth = date.getMonth() !== month;
                 const isToday = new Date().toDateString() === date.toDateString();
+                const isWeekendDay = date.getDay() === 0 || date.getDay() === 6;
 
-                const dayItems = allItems.filter(item => {
-                    const start = new Date(`${item.start}T00:00`);
-                    const end = new Date(`${item.end}T23:59`);
-                    return start <= date && end >= date;
-                });
+                const dayItems = allItems.filter(item => item.start === dateStr || (item.start <= dateStr && item.end >= dateStr));
 
-                const dayClass = isOtherMonth ? 'other-month' : isToday ? 'today' : '';
+                let dayClass = '';
+                if (isOtherMonth) dayClass += 'other-month ';
+                if (isToday) dayClass += 'today ';
+                if (isWeekendDay) dayClass += 'weekend ';
 
                 html += `<div class="calendar-day ${dayClass}" ondrop="dropOnDay('${dateStr}')" ondragover="allowDrop(event)">
-                    <div class="calendar-day-num">${date.getDate()}</div>`;
+                    <div class="calendar-day-num ${isWeekendDay ? 'weekend' : ''}">${date.getDate()}</div>`;
 
                 dayItems.forEach(item => {
                     const parentName = item.type === 'subtask' ? ` (${tasks.find(t => t.id === item.parentId)?.name || '?'})` : '';
@@ -926,7 +1248,6 @@
                         <div class="calendar-task ${item.status}" draggable="true" ondragstart="startDrag(${item.id}, '${item.type}')" ondrop="event.stopPropagation()" ${clickHandler}>
                             <div class="calendar-task-name">${item.name}</div>
                             ${item.type === 'subtask' ? `<div class="calendar-task-info">${parentName}</div>` : ''}
-                            <div class="calendar-task-info">${item.startTime} → ${item.endTime}</div>
                             <div class="calendar-task-info">${item.duration}h</div>
                         </div>
                     `;
@@ -939,13 +1260,24 @@
             grid.innerHTML = html;
         }
 
-        function previousMonth() {
-            currentDate.setMonth(currentDate.getMonth() - 1);
+        // === RENDER PLANNING ===
+        function renderPlanning() {
+            if (currentView === 'jour') renderDayView();
+            else if (currentView === 'semaine') renderWeekView();
+            else if (currentView === 'mois') renderMonthView();
+        }
+
+        function previousPeriod() {
+            if (currentView === 'jour') currentDate.setDate(currentDate.getDate() - 1);
+            else if (currentView === 'semaine') currentDate.setDate(currentDate.getDate() - 7);
+            else currentDate.setMonth(currentDate.getMonth() - 1);
             renderPlanning();
         }
 
-        function nextMonth() {
-            currentDate.setMonth(currentDate.getMonth() + 1);
+        function nextPeriod() {
+            if (currentView === 'jour') currentDate.setDate(currentDate.getDate() + 1);
+            else if (currentView === 'semaine') currentDate.setDate(currentDate.getDate() + 7);
+            else currentDate.setMonth(currentDate.getMonth() + 1);
             renderPlanning();
         }
 
