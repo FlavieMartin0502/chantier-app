@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chantier - Gestion de Tâches</title>
+    <title>Chantier - Gestion de Tâches et Planning</title>
     <style>
         * {
             margin: 0;
@@ -13,20 +13,22 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
+            background: #f5f5f5;
             padding: 20px;
         }
 
         .container {
-            max-width: 1400px;
+            max-width: 1800px;
             margin: 0 auto;
         }
 
         header {
-            text-align: center;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
+            padding: 30px;
+            border-radius: 12px;
             margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
         }
 
         header h1 {
@@ -34,291 +36,413 @@
             margin-bottom: 10px;
         }
 
-        header p {
-            font-size: 1.1em;
-            opacity: 0.9;
-        }
-
         .main-layout {
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: 35% 65%;
             gap: 20px;
-            margin-bottom: 30px;
         }
 
-        .section {
+        @media (max-width: 1200px) {
+            .main-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* ========== TO DO LIST SECTION ========== */
+        .todo-section {
             background: white;
             border-radius: 12px;
             padding: 25px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            height: fit-content;
         }
 
-        .section h2 {
+        .todo-section h2 {
             color: #333;
             margin-bottom: 20px;
             font-size: 1.5em;
-            border-bottom: 3px solid #667eea;
-            padding-bottom: 10px;
         }
 
-        .form-group {
-            margin-bottom: 15px;
-        }
-
-        label {
-            display: block;
-            color: #333;
-            font-weight: 600;
-            margin-bottom: 5px;
-        }
-
-        input[type="text"],
-        input[type="date"],
-        input[type="number"],
-        select,
-        textarea {
-            width: 100%;
-            padding: 10px;
-            border: 2px solid #ddd;
-            border-radius: 6px;
-            font-size: 0.95em;
-            transition: border-color 0.3s;
-        }
-
-        input[type="text"]:focus,
-        input[type="date"]:focus,
-        input[type="number"]:focus,
-        select:focus,
-        textarea:focus {
-            outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 5px rgba(102, 126, 234, 0.3);
-        }
-
-        textarea {
-            resize: vertical;
-            min-height: 60px;
-        }
-
-        button {
-            background: #667eea;
-            color: white;
-            border: none;
-            padding: 12px 20px;
-            border-radius: 6px;
-            font-size: 1em;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background 0.3s;
-            width: 100%;
-        }
-
-        button:hover {
-            background: #764ba2;
-        }
-
-        button.secondary {
-            background: #6c757d;
-        }
-
-        button.secondary:hover {
-            background: #5a6268;
-        }
-
-        .tabs {
+        .status-columns {
             display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-            border-bottom: 2px solid #ddd;
-            flex-wrap: wrap;
+            flex-direction: column;
+            gap: 15px;
         }
 
-        .tab-btn {
-            padding: 10px 15px;
-            background: none;
-            border: none;
-            color: #666;
-            font-weight: 600;
-            cursor: pointer;
-            border-bottom: 3px solid transparent;
-            transition: all 0.3s;
-            width: auto;
-        }
-
-        .tab-btn.active {
-            color: #667eea;
-            border-bottom-color: #667eea;
-        }
-
-        .tab-btn:hover {
-            color: #667eea;
-        }
-
-        .tab-content {
-            display: none;
-        }
-
-        .tab-content.active {
-            display: block;
-        }
-
-        .chantier-card {
-            background: #f8f9fa;
-            border-left: 5px solid #667eea;
+        .status-column {
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
             padding: 15px;
+            min-height: 400px;
+            background: #fafafa;
+        }
+
+        .status-column.a-faire {
+            border-top-color: #2196F3;
+            background: #e3f2fd;
+        }
+
+        .status-column.en-cours {
+            border-top-color: #FFC107;
+            background: #fffde7;
+        }
+
+        .status-column.en-retard {
+            border-top-color: #f44336;
+            background: #ffebee;
+        }
+
+        .status-column.termine {
+            border-top-color: #4CAF50;
+            background: #e8f5e9;
+        }
+
+        .column-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .column-header h3 {
+            font-size: 0.95em;
+            margin: 0;
+        }
+
+        .column-count {
+            background: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 0.9em;
+        }
+
+        .status-column.a-faire .column-count {
+            color: #2196F3;
+        }
+
+        .status-column.en-cours .column-count {
+            color: #FFC107;
+        }
+
+        .status-column.en-retard .column-count {
+            color: #f44336;
+        }
+
+        .status-column.termine .column-count {
+            color: #4CAF50;
+        }
+
+        .tasks-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .task-card {
+            background: white;
+            border-left: 4px solid;
+            padding: 12px;
             border-radius: 6px;
             cursor: pointer;
-            transition: all 0.3s;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
 
-        .chantier-card:hover {
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        .task-card:hover {
             transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
         }
 
-        .chantier-card.collapsed {
-            border-left-color: #ddd;
+        .task-card.a-faire {
+            border-left-color: #2196F3;
         }
 
-        .chantier-card.collapsed .chantier-content {
-            display: none;
+        .task-card.en-cours {
+            border-left-color: #FFC107;
         }
 
-        .chantier-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-weight: 600;
-            color: #333;
-            margin-bottom: 10px;
+        .task-card.en-retard {
+            border-left-color: #f44336;
         }
 
-        .chantier-title {
-            cursor: pointer;
-            flex: 1;
-        }
-
-        .chantier-toggle {
-            background: none;
-            border: none;
-            color: #667eea;
-            font-size: 1.2em;
-            cursor: pointer;
-            padding: 0 10px;
-            width: auto;
-        }
-
-        .chantier-actions {
-            display: flex;
-            gap: 8px;
-        }
-
-        .chantier-actions button {
-            padding: 6px 12px;
-            font-size: 0.85em;
-            width: auto;
-        }
-
-        .task-list {
-            margin-top: 10px;
-            padding-top: 10px;
-            border-top: 1px solid #ddd;
-        }
-
-        .task-item {
-            background: white;
-            padding: 12px;
-            margin-bottom: 10px;
-            border-radius: 4px;
-            border-left: 4px solid #667eea;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .task-item.todo {
-            border-left-color: #007bff;
-        }
-
-        .task-item.in-progress {
-            border-left-color: #ffc107;
-        }
-
-        .task-item.completed {
-            border-left-color: #28a745;
-            opacity: 0.7;
-        }
-
-        .task-item.to-bill {
-            border-left-color: #ff6b6b;
-        }
-
-        .task-item.overdue {
-            border-left-color: #dc3545;
-            background: #ffe5e5;
-        }
-
-        .task-info {
-            flex: 1;
+        .task-card.termine {
+            border-left-color: #4CAF50;
         }
 
         .task-title {
             font-weight: 600;
             color: #333;
-            margin-bottom: 4px;
+            margin-bottom: 6px;
+            word-break: break-word;
         }
 
-        .task-details {
+        .task-info {
+            display: flex;
+            gap: 8px;
             font-size: 0.85em;
             color: #666;
-            display: flex;
-            gap: 15px;
             flex-wrap: wrap;
         }
 
-        .task-status {
-            display: inline-block;
-            padding: 3px 8px;
-            border-radius: 3px;
+        .task-info-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .subtasks-badge {
+            background: #667eea;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
             font-size: 0.8em;
+        }
+
+        /* ========== PLANNING SECTION ========== */
+        .planning-section {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .planning-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .planning-nav {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .planning-nav button {
+            background: white;
+            border: 1px solid #ddd;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .planning-nav button:hover {
+            background: #f5f5f5;
+            border-color: #667eea;
+        }
+
+        .planning-nav button.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .planning-date {
             font-weight: 600;
-            margin-top: 4px;
+            color: #333;
+            font-size: 1.1em;
         }
 
-        .status-todo {
-            background: #d1ecf1;
-            color: #0c5460;
-        }
-
-        .status-in-progress {
-            background: #fff3cd;
-            color: #856404;
-        }
-
-        .status-completed {
-            background: #d4edda;
-            color: #155724;
-        }
-
-        .status-to-bill {
-            background: #f8d7da;
-            color: #721c24;
-        }
-
-        .task-actions {
+        .planning-controls .nav-arrows {
             display: flex;
             gap: 5px;
         }
 
-        .task-actions button {
-            padding: 4px 8px;
-            font-size: 0.75em;
-            width: auto;
-            margin: 0;
+        .nav-arrows button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
         }
 
+        .nav-arrows button:hover {
+            background: #764ba2;
+        }
+
+        /* Calendar View */
+        .calendar-view {
+            display: none;
+        }
+
+        .calendar-view.active {
+            display: block;
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .day-header {
+            text-align: center;
+            font-weight: 600;
+            padding: 10px;
+            background: #f5f5f5;
+            border-radius: 6px;
+            color: #667eea;
+        }
+
+        .day-cell {
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 10px;
+            min-height: 120px;
+            background: white;
+            transition: all 0.3s ease;
+        }
+
+        .day-cell:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .day-cell.other-month {
+            background: #fafafa;
+            color: #999;
+        }
+
+        .day-date {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+            font-size: 0.95em;
+        }
+
+        .day-tasks {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .planning-task {
+            padding: 6px 8px;
+            border-radius: 4px;
+            font-size: 0.85em;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            word-break: break-word;
+            border-left: 3px solid;
+        }
+
+        .planning-task:hover {
+            transform: translateX(2px);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+        }
+
+        .planning-task.a-faire {
+            background: #bbdefb;
+            color: #1565c0;
+            border-left-color: #2196F3;
+        }
+
+        .planning-task.en-cours {
+            background: #fff9c4;
+            color: #f57f17;
+            border-left-color: #FFC107;
+        }
+
+        .planning-task.en-retard {
+            background: #ffcdd2;
+            color: #c62828;
+            border-left-color: #f44336;
+        }
+
+        .planning-task.termine {
+            background: #c8e6c9;
+            color: #2e7d32;
+            border-left-color: #4CAF50;
+        }
+
+        /* Week View */
+        .week-view {
+            display: none;
+        }
+
+        .week-view.active {
+            display: block;
+        }
+
+        .week-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 10px;
+        }
+
+        .week-day {
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 15px;
+            background: white;
+            min-height: 400px;
+        }
+
+        .week-day-header {
+            font-weight: 600;
+            margin-bottom: 15px;
+            text-align: center;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #667eea;
+        }
+
+        .week-day-name {
+            color: #667eea;
+            font-size: 0.95em;
+        }
+
+        .week-day-date {
+            color: #999;
+            font-size: 0.85em;
+        }
+
+        .week-tasks {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        /* Day View */
+        .day-view {
+            display: none;
+        }
+
+        .day-view.active {
+            display: block;
+        }
+
+        .day-view-content {
+            background: white;
+            border-radius: 8px;
+            padding: 25px;
+            border: 1px solid #e0e0e0;
+        }
+
+        .day-view-date {
+            font-size: 1.5em;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .day-view-tasks {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        /* ========== MODALS ========== */
         .modal {
             display: none;
             position: fixed;
@@ -330,21 +454,21 @@
             background-color: rgba(0, 0, 0, 0.5);
         }
 
-        .modal.active {
+        .modal.show {
             display: flex;
             align-items: center;
             justify-content: center;
         }
 
         .modal-content {
-            background: white;
+            background-color: white;
             padding: 30px;
             border-radius: 12px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
             max-width: 500px;
             width: 90%;
             max-height: 90vh;
             overflow-y: auto;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
         }
 
         .modal-header {
@@ -352,635 +476,811 @@
             justify-content: space-between;
             align-items: center;
             margin-bottom: 20px;
+            border-bottom: 2px solid #f5f5f5;
+            padding-bottom: 15px;
         }
 
         .modal-header h2 {
+            margin: 0;
             color: #333;
         }
 
-        .close-modal {
+        .close-btn {
             background: none;
             border: none;
-            font-size: 1.5em;
-            color: #999;
+            font-size: 28px;
             cursor: pointer;
-            width: auto;
-            padding: 0;
-        }
-
-        .close-modal:hover {
-            color: #333;
-            background: none;
-        }
-
-        .empty-message {
-            text-align: center;
             color: #999;
-            padding: 20px;
-            font-style: italic;
         }
 
-        .color-indicator {
-            display: inline-block;
-            width: 12px;
-            height: 12px;
-            border-radius: 2px;
-            margin-right: 8px;
-            vertical-align: middle;
+        .close-btn:hover {
+            color: #333;
         }
 
-        .color-todo {
-            background: #007bff;
-        }
-
-        .color-in-progress {
-            background: #ffc107;
-        }
-
-        .color-completed {
-            background: #28a745;
-        }
-
-        .color-to-bill {
-            background: #ff6b6b;
-        }
-
-        .color-overdue {
-            background: #dc3545;
-        }
-
-        .legend {
-            background: #f8f9fa;
-            padding: 15px;
-            border-radius: 6px;
+        .form-group {
             margin-bottom: 20px;
-            font-size: 0.9em;
         }
 
-        .legend-item {
+        .form-group label {
+            display: block;
             margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
         }
 
-        .legend-item:last-child {
-            margin-bottom: 0;
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 1em;
+            font-family: inherit;
         }
 
-        .full-width {
-            grid-column: 1 / -1;
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 25px;
+        }
+
+        .modal-actions button {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #764ba2;
+        }
+
+        .btn-secondary {
+            background: #f5f5f5;
+            color: #333;
+            border: 1px solid #ddd;
+        }
+
+        .btn-secondary:hover {
+            background: #eee;
+        }
+
+        .btn-success {
+            background: #4CAF50;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #45a049;
+        }
+
+        .btn-danger {
+            background: #f44336;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #da190b;
+        }
+
+        /* ========== BILLING MODAL ========== */
+        .billing-modal-content {
+            text-align: center;
+        }
+
+        .billing-icon {
+            font-size: 3em;
+            margin-bottom: 20px;
+        }
+
+        .billing-text {
+            font-size: 1.1em;
+            color: #333;
+            margin-bottom: 15px;
+            line-height: 1.6;
+        }
+
+        .billing-task-name {
+            font-weight: 700;
+            color: #667eea;
+            margin: 15px 0;
+        }
+
+        .billing-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 30px;
+        }
+
+        .billing-actions button {
+            flex: 1;
+            padding: 14px;
+            font-weight: 600;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1em;
+        }
+
+        .btn-bill {
+            background: #4CAF50;
+            color: white;
+        }
+
+        .btn-bill:hover {
+            background: #45a049;
+        }
+
+        .btn-no-bill {
+            background: #f5f5f5;
+            color: #333;
+            border: 1px solid #ddd;
+        }
+
+        .btn-no-bill:hover {
+            background: #eee;
+        }
+
+        /* ========== SUBTASKS ========== */
+        .subtasks-section {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .subtasks-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 15px;
         }
 
         .subtask-item {
-            background: #f0f0f0;
-            padding: 10px;
-            margin-left: 20px;
-            margin-top: 5px;
-            border-radius: 4px;
-            font-size: 0.9em;
+            background: #f9f9f9;
             border-left: 3px solid #667eea;
+            padding: 12px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
 
-        .subtask-title {
+        .subtask-item input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .subtask-info {
+            flex: 1;
+        }
+
+        .subtask-name {
             font-weight: 500;
             color: #333;
         }
 
-        .subtask-time {
-            color: #666;
+        .subtask-duration {
             font-size: 0.85em;
-            margin-top: 3px;
-        }
-
-        @media (max-width: 1024px) {
-            .main-layout {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        .drag-handle {
-            cursor: grab;
             color: #999;
-            user-select: none;
-            width: auto;
-            background: none;
-            border: none;
-            padding: 0 5px;
         }
 
-        .drag-handle:active {
-            cursor: grabbing;
+        .add-subtask {
+            margin-top: 15px;
+        }
+
+        .add-subtask input {
+            margin-bottom: 10px;
+        }
+
+        .add-subtask-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .add-subtask-actions button {
+            flex: 1;
+            padding: 8px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        /* Scrollbar styling */
+        .tasks-list::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .tasks-list::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+
+        .tasks-list::-webkit-scrollbar-thumb {
+            background: #667eea;
+            border-radius: 10px;
+        }
+
+        .tasks-list::-webkit-scrollbar-thumb:hover {
+            background: #764ba2;
+        }
+
+        /* Add task button */
+        .add-task-btn {
+            width: 100%;
+            padding: 12px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            margin-top: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .add-task-btn:hover {
+            background: #764ba2;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>🏗️ Chantier</h1>
-            <p>Gestion de chantiers et tâches</p>
+            <h1>📋 Chantier</h1>
+            <p>Gestion de tâches et planning pour ingénieure structure</p>
         </header>
 
         <div class="main-layout">
-            <!-- Section Ajouter un Chantier -->
-            <div class="section">
-                <h2>Ajouter un Chantier</h2>
-                <form id="addChantierForm">
-                    <div class="form-group">
-                        <label for="chantierName">Nom du Chantier *</label>
-                        <input type="text" id="chantierName" required placeholder="Ex: Rénovation cuisine">
+            <!-- ========== TO DO LIST ========== -->
+            <div class="todo-section">
+                <h2>📝 To Do List</h2>
+                
+                <div class="status-columns">
+                    <!-- À FAIRE -->
+                    <div class="status-column a-faire">
+                        <div class="column-header">
+                            <h3>🔵 À faire</h3>
+                            <span class="column-count" id="count-a-faire">0</span>
+                        </div>
+                        <div class="tasks-list" id="tasks-a-faire"></div>
                     </div>
-                    <div class="form-group">
-                        <label for="chantierDescription">Description</label>
-                        <textarea id="chantierDescription" placeholder="Détails du chantier..."></textarea>
-                    </div>
-                    <div class="form-group">
-                        <label for="chantierDeadline">Date limite</label>
-                        <input type="date" id="chantierDeadline">
-                    </div>
-                    <button type="submit">Créer le Chantier</button>
-                </form>
-            </div>
 
-            <!-- Section Ajouter une Tâche -->
-            <div class="section">
-                <h2>Ajouter une Tâche</h2>
-                <form id="addTaskForm">
-                    <div class="form-group">
-                        <label for="taskChantier">Chantier *</label>
-                        <select id="taskChantier" required>
-                            <option value="">-- Sélectionner un chantier --</option>
-                        </select>
+                    <!-- EN RETARD -->
+                    <div class="status-column en-retard">
+                        <div class="column-header">
+                            <h3>🔴 En retard</h3>
+                            <span class="column-count" id="count-en-retard">0</span>
+                        </div>
+                        <div class="tasks-list" id="tasks-en-retard"></div>
                     </div>
-                    <div class="form-group">
-                        <label for="taskName">Nom de la Tâche *</label>
-                        <input type="text" id="taskName" required placeholder="Ex: Enlever carrelage">
-                    </div>
-                    <div class="form-group">
-                        <label for="taskDescription">Description</label>
-                        <textarea id="taskDescription" placeholder="Détails de la tâche..."></textarea>
-                    </div>
-                    <div class="form-group">
-                        <label for="taskDeadline">Date limite</label>
-                        <input type="date" id="taskDeadline">
-                    </div>
-                    <div class="form-group">
-                        <label for="taskEstimatedTime">Temps estimé (heures)</label>
-                        <input type="number" id="taskEstimatedTime" min="0" step="0.5" placeholder="2.5">
-                    </div>
-                    <div class="form-group">
-                        <label for="taskRecurrence">Récurrence</label>
-                        <select id="taskRecurrence">
-                            <option value="none">Aucune</option>
-                            <option value="daily">Quotidienne</option>
-                            <option value="weekly">Hebdomadaire</option>
-                            <option value="monthly">Mensuelle</option>
-                        </select>
-                    </div>
-                    <button type="submit">Ajouter la Tâche</button>
-                </form>
-            </div>
-        </div>
 
-        <!-- Affichage des Chantiers et Tâches -->
-        <div class="section full-width">
-            <div class="tabs">
-                <button class="tab-btn active" data-tab="todo-list">📋 To-Do List</button>
-                <button class="tab-btn" data-tab="planning">📅 Planning</button>
-                <button class="tab-btn" data-tab="to-bill">💰 À Facturer</button>
-            </div>
+                    <!-- EN COURS -->
+                    <div class="status-column en-cours">
+                        <div class="column-header">
+                            <h3>🟡 En cours</h3>
+                            <span class="column-count" id="count-en-cours">0</span>
+                        </div>
+                        <div class="tasks-list" id="tasks-en-cours"></div>
+                    </div>
 
-            <!-- Onglet To-Do List -->
-            <div id="todo-list" class="tab-content active">
-                <div class="legend">
-                    <div class="legend-item"><span class="color-indicator color-todo"></span>À faire</div>
-                    <div class="legend-item"><span class="color-indicator color-in-progress"></span>En cours</div>
-                    <div class="legend-item"><span class="color-indicator color-completed"></span>Terminé</div>
-                    <div class="legend-item"><span class="color-indicator color-overdue"></span>En retard</div>
+                    <!-- TERMINÉ -->
+                    <div class="status-column termine">
+                        <div class="column-header">
+                            <h3>🟢 Terminé</h3>
+                            <span class="column-count" id="count-termine">0</span>
+                        </div>
+                        <div class="tasks-list" id="tasks-termine"></div>
+                    </div>
                 </div>
-                <div id="todoListContent"></div>
+
+                <button class="add-task-btn" onclick="openTaskModal()">+ Ajouter une tâche</button>
             </div>
 
-            <!-- Onglet Planning -->
-            <div id="planning" class="tab-content">
-                <div class="legend">
-                    <div class="legend-item"><span class="color-indicator color-todo"></span>À faire (bleu)</div>
-                    <div class="legend-item"><span class="color-indicator color-in-progress"></span>En cours (jaune)</div>
-                    <div class="legend-item"><span class="color-indicator color-overdue"></span>En retard (rouge)</div>
+            <!-- ========== PLANNING ========== -->
+            <div class="planning-section">
+                <div class="planning-controls">
+                    <div class="planning-nav">
+                        <button class="nav-mode-btn active" data-mode="month">Mois</button>
+                        <button class="nav-mode-btn" data-mode="week">Semaine</button>
+                        <button class="nav-mode-btn" data-mode="day">Jour</button>
+                    </div>
+                    
+                    <div class="planning-date" id="planning-date">Août 2026</div>
+                    
+                    <div class="nav-arrows">
+                        <button onclick="previousPeriod()">← Précédent</button>
+                        <button onclick="nextPeriod()">Suivant →</button>
+                    </div>
                 </div>
-                <div id="planningContent"></div>
-            </div>
 
-            <!-- Onglet À Facturer -->
-            <div id="to-bill" class="tab-content">
-                <div id="toBillContent"></div>
+                <!-- MONTH VIEW -->
+                <div class="calendar-view active" id="month-view">
+                    <div class="calendar-grid" id="calendar-grid"></div>
+                </div>
+
+                <!-- WEEK VIEW -->
+                <div class="week-view" id="week-view">
+                    <div class="week-grid" id="week-grid"></div>
+                </div>
+
+                <!-- DAY VIEW -->
+                <div class="day-view" id="day-view">
+                    <div class="day-view-content">
+                        <div class="day-view-date" id="day-view-date"></div>
+                        <div class="day-view-tasks" id="day-view-tasks"></div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- Modal pour détails -->
-    <div id="detailsModal" class="modal">
+    <!-- ========== TASK MODAL ========== -->
+    <div id="taskModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2>Détails de la Tâche</h2>
-                <button class="close-modal">&times;</button>
+                <h2>Ajouter/Modifier une tâche</h2>
+                <button class="close-btn" onclick="closeTaskModal()">&times;</button>
             </div>
-            <div id="modalBody"></div>
+
+            <form id="taskForm" onsubmit="saveTask(event)">
+                <div class="form-group">
+                    <label for="taskTitle">Nom de la tâche</label>
+                    <input type="text" id="taskTitle" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="taskDescription">Description</label>
+                    <textarea id="taskDescription"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="taskStatus">Statut</label>
+                    <select id="taskStatus">
+                        <option value="a-faire">À faire</option>
+                        <option value="en-cours">En cours</option>
+                        <option value="en-retard">En retard</option>
+                        <option value="termine">Terminé</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="taskDueDate">Date limite</label>
+                    <input type="date" id="taskDueDate">
+                </div>
+
+                <div class="form-group">
+                    <label for="taskEstimatedTime">Temps estimé (heures)</label>
+                    <input type="number" id="taskEstimatedTime" min="0" step="0.5">
+                </div>
+
+                <div class="subtasks-section">
+                    <label>Sous-tâches</label>
+                    <div class="subtasks-list" id="subtasksList"></div>
+                    
+                    <div class="add-subtask">
+                        <input type="text" id="newSubtaskName" placeholder="Nom de la sous-tâche">
+                        <input type="number" id="newSubtaskTime" min="0" step="0.5" placeholder="Durée (heures)">
+                        <div class="add-subtask-actions">
+                            <button type="button" class="btn-primary" onclick="addSubtask()" style="flex: 1;">Ajouter</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-actions">
+                    <button type="button" class="btn-secondary" onclick="closeTaskModal()">Annuler</button>
+                    <button type="submit" class="btn-primary">Sauvegarder</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ========== BILLING MODAL ========== -->
+    <div id="billingModal" class="modal">
+        <div class="modal-content billing-modal-content">
+            <div class="modal-header" style="border: none; justify-content: center; padding: 0; margin-bottom: 20px;">
+                <h2>💰 À facturer ?</h2>
+            </div>
+
+            <div class="billing-icon">✅</div>
+            
+            <p class="billing-text">La tâche a été marquée comme terminée.</p>
+            
+            <p class="billing-text">Voulez-vous marquer cette tâche comme <strong>à facturer</strong> ?</p>
+            
+            <div class="billing-task-name" id="billingTaskName"></div>
+
+            <div class="billing-actions">
+                <button class="btn-bill" onclick="confirmBilling(true)">✓ Oui, à facturer</button>
+                <button class="btn-no-bill" onclick="confirmBilling(false)">✗ Non, pas facturer</button>
+            </div>
         </div>
     </div>
 
     <script>
-        // Données stockées localement
-        let data = {
-            chantiers: [],
-            tasks: []
-        };
+        // ========== DATA MANAGEMENT ==========
+        let tasks = [];
+        let currentTaskId = null;
+        let pendingBillingTaskId = null;
+        let currentMode = 'month';
+        let currentDate = new Date();
 
-        // Charger les données du localStorage
+        // Load data from localStorage
         function loadData() {
-            const stored = localStorage.getItem('chantierData');
-            if (stored) {
-                data = JSON.parse(stored);
+            const saved = localStorage.getItem('chantierTasks');
+            if (saved) {
+                tasks = JSON.parse(saved);
             }
         }
 
-        // Sauvegarder les données
+        // Save data to localStorage
         function saveData() {
-            localStorage.setItem('chantierData', JSON.stringify(data));
+            localStorage.setItem('chantierTasks', JSON.stringify(tasks));
             updateAllViews();
         }
 
-        // Ajouter un chantier
-        document.getElementById('addChantierForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            const name = document.getElementById('chantierName').value;
-            const description = document.getElementById('chantierDescription').value;
-            const deadline = document.getElementById('chantierDeadline').value;
+        // ========== TASK MANAGEMENT ==========
+        function openTaskModal(taskId = null) {
+            currentTaskId = taskId;
+            
+            if (taskId) {
+                const task = tasks.find(t => t.id === taskId);
+                document.getElementById('taskTitle').value = task.title;
+                document.getElementById('taskDescription').value = task.description || '';
+                document.getElementById('taskStatus').value = task.status;
+                document.getElementById('taskDueDate').value = task.dueDate || '';
+                document.getElementById('taskEstimatedTime').value = task.estimatedTime || '';
+                renderSubtasks(task.subtasks || []);
+            } else {
+                document.getElementById('taskForm').reset();
+                document.getElementById('subtasksList').innerHTML = '';
+            }
 
-            const chantier = {
-                id: Date.now(),
-                name: name,
-                description: description,
-                deadline: deadline,
-                createdAt: new Date().toISOString()
+            document.getElementById('taskModal').classList.add('show');
+        }
+
+        function closeTaskModal() {
+            document.getElementById('taskModal').classList.remove('show');
+            currentTaskId = null;
+        }
+
+        function saveTask(event) {
+            event.preventDefault();
+
+            const taskData = {
+                id: currentTaskId || Date.now(),
+                title: document.getElementById('taskTitle').value,
+                description: document.getElementById('taskDescription').value,
+                status: document.getElementById('taskStatus').value,
+                dueDate: document.getElementById('taskDueDate').value,
+                estimatedTime: parseFloat(document.getElementById('taskEstimatedTime').value) || 0,
+                subtasks: JSON.parse(document.getElementById('subtasksList').getAttribute('data-subtasks') || '[]'),
+                createdAt: currentTaskId ? tasks.find(t => t.id === currentTaskId).createdAt : new Date().toISOString()
             };
 
-            data.chantiers.push(chantier);
+            if (currentTaskId) {
+                const index = tasks.findIndex(t => t.id === currentTaskId);
+                tasks[index] = taskData;
+            } else {
+                tasks.push(taskData);
+            }
+
             saveData();
-
-            this.reset();
-            updateChantierSelect();
-        });
-
-        // Ajouter une tâche
-        document.getElementById('addTaskForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            const chantierId = document.getElementById('taskChantier').value;
-            const name = document.getElementById('taskName').value;
-            const description = document.getElementById('taskDescription').value;
-            const deadline = document.getElementById('taskDeadline').value;
-            const estimatedTime = document.getElementById('taskEstimatedTime').value;
-            const recurrence = document.getElementById('taskRecurrence').value;
-
-            const task = {
-                id: Date.now(),
-                chantierId: parseInt(chantierId),
-                name: name,
-                description: description,
-                deadline: deadline,
-                estimatedTime: parseFloat(estimatedTime) || 0,
-                recurrence: recurrence,
-                status: 'todo', // à faire, in-progress, completed, to-bill
-                subtasks: [],
-                createdAt: new Date().toISOString()
-            };
-
-            data.tasks.push(task);
-            saveData();
-
-            this.reset();
-        });
-
-        // Mettre à jour le sélecteur de chantiers
-        function updateChantierSelect() {
-            const select = document.getElementById('taskChantier');
-            select.innerHTML = '<option value="">-- Sélectionner un chantier --</option>';
-            data.chantiers.forEach(chantier => {
-                const option = document.createElement('option');
-                option.value = chantier.id;
-                option.textContent = chantier.name;
-                select.appendChild(option);
-            });
+            closeTaskModal();
         }
 
-        // Afficher tous les chantiers et tâches (To-Do List)
-        function renderTodoList() {
-            const content = document.getElementById('todoListContent');
-            
-            if (data.chantiers.length === 0) {
-                content.innerHTML = '<div class="empty-message">Aucun chantier créé</div>';
-                return;
-            }
-
-            let html = '';
-            data.chantiers.forEach(chantier => {
-                const chantierTasks = data.tasks.filter(t => t.chantierId === chantier.id);
-                
-                html += `
-                    <div class="chantier-card">
-                        <div class="chantier-header">
-                            <span class="chantier-title">${chantier.name}</span>
-                            <div class="chantier-actions">
-                                <button class="secondary" onclick="editChantier(${chantier.id})">Éditer</button>
-                                <button class="secondary" onclick="deleteChantier(${chantier.id})">Supprimer</button>
-                            </div>
-                        </div>
-                        <div class="chantier-content">
-                `;
-
-                if (chantier.description) {
-                    html += `<p style="color: #666; font-size: 0.9em; margin-bottom: 10px;">${chantier.description}</p>`;
-                }
-
-                if (chantier.deadline) {
-                    html += `<p style="color: #999; font-size: 0.85em; margin-bottom: 10px;">Deadline: ${new Date(chantier.deadline).toLocaleDateString()}</p>`;
-                }
-
-                // Grouper les tâches par statut
-                const statuses = ['todo', 'in-progress', 'completed', 'to-bill'];
-                statuses.forEach(status => {
-                    const statusTasks = chantierTasks.filter(t => t.status === status);
-                    if (statusTasks.length > 0) {
-                        html += `<div style="margin-top: 10px;"><strong style="color: #667eea; font-size: 0.9em;">${getStatusLabel(status)}</strong>`;
-                        statusTasks.forEach(task => {
-                            html += renderTaskItem(task);
-                        });
-                        html += '</div>';
-                    }
-                });
-
-                html += `
-                        </div>
-                    </div>
-                `;
-            });
-
-            content.innerHTML = html;
-        }
-
-        // Afficher le planning
-        function renderPlanning() {
-            const content = document.getElementById('planningContent');
-            
-            // Filtrer les tâches à afficher (non terminées et non facturées)
-            const visibleTasks = data.tasks.filter(t => 
-                t.status !== 'completed' && t.status !== 'to-bill'
-            );
-
-            if (visibleTasks.length === 0) {
-                content.innerHTML = '<div class="empty-message">Aucune tâche à planifier</div>';
-                return;
-            }
-
-            // Trier par deadline
-            visibleTasks.sort((a, b) => {
-                if (!a.deadline) return 1;
-                if (!b.deadline) return -1;
-                return new Date(a.deadline) - new Date(b.deadline);
-            });
-
-            let html = '';
-            visibleTasks.forEach(task => {
-                const chantier = data.chantiers.find(c => c.id === task.chantierId);
-                const isOverdue = task.deadline && new Date(task.deadline) < new Date();
-                const statusClass = isOverdue && task.status !== 'completed' ? 'overdue' : task.status;
-
-                html += `
-                    <div class="task-item ${statusClass}" draggable="true" ondragstart="dragStart(event, ${task.id})">
-                        <span class="drag-handle">⋮⋮</span>
-                        <div class="task-info">
-                            <div class="task-title">${task.name}</div>
-                            <div class="task-details">
-                                <span>📍 ${chantier?.name || 'Chantier supprimé'}</span>
-                                ${task.deadline ? `<span>📅 ${new Date(task.deadline).toLocaleDateString()}</span>` : ''}
-                                ${task.estimatedTime ? `<span>⏱️ ${task.estimatedTime}h</span>` : ''}
-                            </div>
-                            <div class="task-status ${getStatusClass(statusClass)}">${getStatusLabel(task.status)}</div>
-                        </div>
-                        <div class="task-actions">
-                            <button class="secondary" onclick="updateTaskStatus(${task.id}, 'in-progress')">En cours</button>
-                            <button class="secondary" onclick="updateTaskStatus(${task.id}, 'completed')">Terminer</button>
-                            <button class="secondary" onclick="showDetails(${task.id})">Détails</button>
-                        </div>
-                    </div>
-                `;
-            });
-
-            content.innerHTML = html;
-        }
-
-        // Afficher la liste à facturer
-        function renderToBill() {
-            const content = document.getElementById('toBillContent');
-            const toBillTasks = data.tasks.filter(t => t.status === 'to-bill');
-
-            if (toBillTasks.length === 0) {
-                content.innerHTML = '<div class="empty-message">Aucune tâche à facturer</div>';
-                return;
-            }
-
-            let html = '';
-            toBillTasks.forEach(task => {
-                const chantier = data.chantiers.find(c => c.id === task.chantierId);
-                html += `
-                    <div class="task-item to-bill">
-                        <div class="task-info">
-                            <div class="task-title">${task.name}</div>
-                            <div class="task-details">
-                                <span>📍 ${chantier?.name || 'Chantier supprimé'}</span>
-                                ${task.deadline ? `<span>📅 ${new Date(task.deadline).toLocaleDateString()}</span>` : ''}
-                                ${task.estimatedTime ? `<span>⏱️ ${task.estimatedTime}h</span>` : ''}
-                            </div>
-                        </div>
-                        <div class="task-actions">
-                            <button class="secondary" onclick="removeFromBill(${task.id})">Retirer</button>
-                            <button class="secondary" onclick="showDetails(${task.id})">Détails</button>
-                        </div>
-                    </div>
-                `;
-            });
-
-            content.innerHTML = html;
-        }
-
-        // Rendre un élément de tâche
-        function renderTaskItem(task) {
-            const isOverdue = task.deadline && new Date(task.deadline) < new Date();
-            const statusClass = isOverdue && task.status !== 'completed' ? 'overdue' : task.status;
-
-            let html = `
-                <div class="task-item ${statusClass}">
-                    <div class="task-info">
-                        <div class="task-title">${task.name}</div>
-                        <div class="task-details">
-                            ${task.deadline ? `<span>📅 ${new Date(task.deadline).toLocaleDateString()}</span>` : ''}
-                            ${task.estimatedTime ? `<span>⏱️ ${task.estimatedTime}h</span>` : ''}
-                        </div>
-                        <div class="task-status ${getStatusClass(statusClass)}">${getStatusLabel(task.status)}</div>
-                    </div>
-                    <div class="task-actions">
-                        <button class="secondary" onclick="updateTaskStatus(${task.id}, 'in-progress')">En cours</button>
-                        <button class="secondary" onclick="updateTaskStatus(${task.id}, 'completed')">Terminer</button>
-                        ${task.status === 'completed' ? `<button class="secondary" onclick="updateTaskStatus(${task.id}, 'to-bill')">À facturer</button>` : ''}
-                        <button class="secondary" onclick="deleteTask(${task.id})">Supprimer</button>
-                    </div>
-                </div>
-            `;
-
-            return html;
-        }
-
-        // Mettre à jour le statut d'une tâche
-        function updateTaskStatus(taskId, newStatus) {
-            const task = data.tasks.find(t => t.id === taskId);
-            if (task) {
-                task.status = newStatus;
-                saveData();
-            }
-        }
-
-        // Retirer de la facturation
-        function removeFromBill(taskId) {
-            const task = data.tasks.find(t => t.id === taskId);
-            if (task) {
-                task.status = 'completed';
-                saveData();
-            }
-        }
-
-        // Supprimer une tâche
         function deleteTask(taskId) {
             if (confirm('Êtes-vous sûr de vouloir supprimer cette tâche ?')) {
-                data.tasks = data.tasks.filter(t => t.id !== taskId);
+                tasks = tasks.filter(t => t.id !== taskId);
                 saveData();
             }
         }
 
-        // Supprimer un chantier
-        function deleteChantier(chantierId) {
-            if (confirm('Êtes-vous sûr de vouloir supprimer ce chantier et toutes ses tâches ?')) {
-                data.chantiers = data.chantiers.filter(c => c.id !== chantierId);
-                data.tasks = data.tasks.filter(t => t.chantierId !== chantierId);
-                saveData();
-            }
-        }
-
-        // Éditer un chantier
-        function editChantier(chantierId) {
-            const chantier = data.chantiers.find(c => c.id === chantierId);
-            if (chantier) {
-                const newName = prompt('Nouveau nom :', chantier.name);
-                if (newName) {
-                    chantier.name = newName;
+        function updateTaskStatus(taskId, newStatus) {
+            const task = tasks.find(t => t.id === taskId);
+            if (task) {
+                if (newStatus === 'termine' && task.status !== 'termine') {
+                    // Show billing modal
+                    pendingBillingTaskId = taskId;
+                    document.getElementById('billingTaskName').textContent = task.title;
+                    document.getElementById('billingModal').classList.add('show');
+                } else {
+                    task.status = newStatus;
                     saveData();
                 }
             }
         }
 
-        // Afficher les détails
-        function showDetails(taskId) {
-            const task = data.tasks.find(t => t.id === taskId);
-            const chantier = data.chantiers.find(c => c.id === task.chantierId);
-            const modal = document.getElementById('detailsModal');
-            const modalBody = document.getElementById('modalBody');
-
-            let html = `
-                <div class="form-group">
-                    <label>Chantier:</label>
-                    <p>${chantier?.name || 'Supprimé'}</p>
-                </div>
-                <div class="form-group">
-                    <label>Nom:</label>
-                    <p>${task.name}</p>
-                </div>
-                <div class="form-group">
-                    <label>Description:</label>
-                    <p>${task.description || '-'}</p>
-                </div>
-                <div class="form-group">
-                    <label>Statut:</label>
-                    <p>${getStatusLabel(task.status)}</p>
-                </div>
-                <div class="form-group">
-                    <label>Date limite:</label>
-                    <p>${task.deadline ? new Date(task.deadline).toLocaleDateString() : '-'}</p>
-                </div>
-                <div class="form-group">
-                    <label>Temps estimé:</label>
-                    <p>${task.estimatedTime ? task.estimatedTime + 'h' : '-'}</p>
-                </div>
-                <div class="form-group">
-                    <label>Récurrence:</label>
-                    <p>${task.recurrence !== 'none' ? task.recurrence : 'Aucune'}</p>
-                </div>
-            `;
-
-            modalBody.innerHTML = html;
-            modal.classList.add('active');
+        function confirmBilling(shouldBill) {
+            const task = tasks.find(t => t.id === pendingBillingTaskId);
+            if (task) {
+                task.status = shouldBill ? 'a-facturer' : 'termine';
+                saveData();
+            }
+            document.getElementById('billingModal').classList.remove('show');
+            pendingBillingTaskId = null;
         }
 
-        // Obtenir le libellé du statut
-        function getStatusLabel(status) {
-            const labels = {
-                'todo': 'À faire',
-                'in-progress': 'En cours',
-                'completed': 'Terminé',
-                'to-bill': 'À facturer'
-            };
-            return labels[status] || status;
+        // ========== SUBTASKS ==========
+        let tempSubtasks = [];
+
+        function renderSubtasks(subtasks) {
+            tempSubtasks = JSON.parse(JSON.stringify(subtasks));
+            updateSubtasksList();
+            document.getElementById('subtasksList').setAttribute('data-subtasks', JSON.stringify(tempSubtasks));
         }
 
-        // Obtenir la classe CSS du statut
-        function getStatusClass(status) {
-            const classes = {
-                'todo': 'status-todo',
-                'in-progress': 'status-in-progress',
-                'completed': 'status-completed',
-                'to-bill': 'status-to-bill',
-                'overdue': 'status-todo'
-            };
-            return classes[status] || '';
+        function updateSubtasksList() {
+            const container = document.getElementById('subtasksList');
+            container.innerHTML = tempSubtasks.map((st, idx) => `
+                <div class="subtask-item">
+                    <input type="checkbox" ${st.completed ? 'checked' : ''} onchange="toggleSubtask(${idx})">
+                    <div class="subtask-info">
+                        <div class="subtask-name" style="${st.completed ? 'text-decoration: line-through;' : ''}">${st.name}</div>
+                        <div class="subtask-duration">⏱️ ${st.duration}h</div>
+                    </div>
+                    <button type="button" class="btn-danger" style="padding: 5px 10px; font-size: 0.8em;" onclick="removeSubtask(${idx})">Supprimer</button>
+                </div>
+            `).join('');
+            document.getElementById('subtasksList').setAttribute('data-subtasks', JSON.stringify(tempSubtasks));
         }
 
-        // Gestion des onglets
-        document.querySelectorAll('.tab-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
-                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        function addSubtask() {
+            const name = document.getElementById('newSubtaskName').value;
+            const duration = parseFloat(document.getElementById('newSubtaskTime').value) || 0;
+            
+            if (name.trim()) {
+                tempSubtasks.push({ name, duration, completed: false });
+                document.getElementById('newSubtaskName').value = '';
+                document.getElementById('newSubtaskTime').value = '';
+                updateSubtasksList();
+            }
+        }
+
+        function toggleSubtask(idx) {
+            tempSubtasks[idx].completed = !tempSubtasks[idx].completed;
+            updateSubtasksList();
+        }
+
+        function removeSubtask(idx) {
+            tempSubtasks.splice(idx, 1);
+            updateSubtasksList();
+        }
+
+        // ========== RENDERING FUNCTIONS ==========
+        function renderTodoList() {
+            const statuses = ['a-faire', 'en-retard', 'en-cours', 'termine'];
+            
+            statuses.forEach(status => {
+                const filtered = tasks.filter(t => t.status === status);
+                const container = document.getElementById(`tasks-${status}`);
+                const count = document.getElementById(`count-${status}`);
                 
+                count.textContent = filtered.length;
+                
+                container.innerHTML = filtered.map(task => `
+                    <div class="task-card ${task.status}" onclick="openTaskModal(${task.id})">
+                        <div class="task-title">${task.title}</div>
+                        <div class="task-info">
+                            ${task.dueDate ? `<span class="task-info-item">📅 ${new Date(task.dueDate).toLocaleDateString('fr-FR')}</span>` : ''}
+                            ${task.estimatedTime ? `<span class="task-info-item">⏱️ ${task.estimatedTime}h</span>` : ''}
+                            ${task.subtasks && task.subtasks.length > 0 ? `<span class="subtasks-badge">${task.subtasks.length} sous-tâche(s)</span>` : ''}
+                        </div>
+                    </div>
+                `).join('');
+            });
+        }
+
+        function renderCalendar() {
+            if (currentMode === 'month') {
+                renderMonthView();
+            } else if (currentMode === 'week') {
+                renderWeekView();
+            } else if (currentMode === 'day') {
+                renderDayView();
+            }
+        }
+
+        function renderMonthView() {
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth();
+            
+            const firstDay = new Date(year, month, 1);
+            const lastDay = new Date(year, month + 1, 0);
+            const startDate = new Date(firstDay);
+            startDate.setDate(startDate.getDate() - firstDay.getDay());
+
+            document.getElementById('planning-date').textContent = 
+                new Date(year, month).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
+
+            const grid = document.getElementById('calendar-grid');
+            grid.innerHTML = '';
+
+            // Add day headers
+            ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'].forEach(day => {
+                const header = document.createElement('div');
+                header.className = 'day-header';
+                header.textContent = day;
+                grid.appendChild(header);
+            });
+
+            // Add day cells
+            let currentCell = new Date(startDate);
+            while (currentCell <= lastDay) {
+                const cell = document.createElement('div');
+                cell.className = 'day-cell';
+                
+                if (currentCell.getMonth() !== month) {
+                    cell.classList.add('other-month');
+                }
+
+                const dateStr = currentCell.toISOString().split('T')[0];
+                const dayTasks = tasks.filter(t => t.dueDate === dateStr && !['termine', 'a-facturer'].includes(t.status));
+
+                cell.innerHTML = `
+                    <div class="day-date">${currentCell.getDate()}</div>
+                    <div class="day-tasks">
+                        ${dayTasks.map(task => `
+                            <div class="planning-task ${task.status}" onclick="openTaskModal(${task.id})">
+                                ${task.title}
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+
+                grid.appendChild(cell);
+                currentCell.setDate(currentCell.getDate() + 1);
+            }
+        }
+
+        function renderWeekView() {
+            const startOfWeek = new Date(currentDate);
+            startOfWeek.setDate(currentDate.getDate() - currentDate.getDay() + 1);
+
+            const weekDates = [];
+            for (let i = 0; i < 7; i++) {
+                const date = new Date(startOfWeek);
+                date.setDate(startOfWeek.getDate() + i);
+                weekDates.push(date);
+            }
+
+            const start = weekDates[0];
+            const end = weekDates[6];
+            document.getElementById('planning-date').textContent = 
+                `${start.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })} - ${end.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })}`;
+
+            const grid = document.getElementById('week-grid');
+            grid.innerHTML = '';
+
+            weekDates.forEach(date => {
+                const dateStr = date.toISOString().split('T')[0];
+                const dayTasks = tasks.filter(t => t.dueDate === dateStr && !['termine', 'a-facturer'].includes(t.status));
+
+                const dayEl = document.createElement('div');
+                dayEl.className = 'week-day';
+                dayEl.innerHTML = `
+                    <div class="week-day-header">
+                        <div class="week-day-name">${date.toLocaleDateString('fr-FR', { weekday: 'short' })}</div>
+                        <div class="week-day-date">${date.getDate()}</div>
+                    </div>
+                    <div class="week-tasks">
+                        ${dayTasks.map(task => `
+                            <div class="planning-task ${task.status}" onclick="openTaskModal(${task.id})">
+                                ${task.title}
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+                grid.appendChild(dayEl);
+            });
+        }
+
+        function renderDayView() {
+            const dateStr = currentDate.toISOString().split('T')[0];
+            const dayTasks = tasks.filter(t => t.dueDate === dateStr && !['termine', 'a-facturer'].includes(t.status));
+
+            document.getElementById('planning-date').textContent = 
+                currentDate.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+            
+            document.getElementById('day-view-date').textContent = 
+                currentDate.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+
+            const container = document.getElementById('day-view-tasks');
+            container.innerHTML = dayTasks.length > 0 ? dayTasks.map(task => `
+                <div class="task-card ${task.status}" onclick="openTaskModal(${task.id})">
+                    <div class="task-title">${task.title}</div>
+                    <div class="task-info">
+                        ${task.estimatedTime ? `<span class="task-info-item">⏱️ ${task.estimatedTime}h</span>` : ''}
+                        ${task.subtasks && task.subtasks.length > 0 ? `<span class="subtasks-badge">${task.subtasks.length} sous-tâche(s)</span>` : ''}
+                    </div>
+                </div>
+            `).join('') : '<p style="text-align: center; color: #999;">Aucune tâche pour ce jour</p>';
+        }
+
+        function updateAllViews() {
+            renderTodoList();
+            renderCalendar();
+        }
+
+        // ========== PLANNING NAVIGATION ==========
+        function nextPeriod() {
+            if (currentMode === 'month') {
+                currentDate.setMonth(currentDate.getMonth() + 1);
+            } else if (currentMode === 'week') {
+                currentDate.setDate(currentDate.getDate() + 7);
+            } else if (currentMode === 'day') {
+                currentDate.setDate(currentDate.getDate() + 1);
+            }
+            renderCalendar();
+        }
+
+        function previousPeriod() {
+            if (currentMode === 'month') {
+                currentDate.setMonth(currentDate.getMonth() - 1);
+            } else if (currentMode === 'week') {
+                currentDate.setDate(currentDate.getDate() - 7);
+            } else if (currentMode === 'day') {
+                currentDate.setDate(currentDate.getDate() - 1);
+            }
+            renderCalendar();
+        }
+
+        // ========== VIEW MODE SWITCHING ==========
+        document.querySelectorAll('.nav-mode-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.nav-mode-btn').forEach(b => b.classList.remove('active'));
                 this.classList.add('active');
-                const tabId = this.getAttribute('data-tab');
-                document.getElementById(tabId).classList.add('active');
+                
+                const mode = this.getAttribute('data-mode');
+                currentMode = mode;
+                
+                document.querySelectorAll('.calendar-view, .week-view, .day-view').forEach(v => v.classList.remove('active'));
+                document.getElementById(mode + '-view').classList.add('active');
+                
+                currentDate = new Date();
+                renderCalendar();
             });
         });
 
-        // Fermer la modal
-        document.querySelector('.close-modal').addEventListener('click', function() {
-            document.getElementById('detailsModal').classList.remove('active');
+        // ========== CLOSE MODALS ON CLICK OUTSIDE ==========
+        window.addEventListener('click', function(event) {
+            const taskModal = document.getElementById('taskModal');
+            const billingModal = document.getElementById('billingModal');
+            
+            if (event.target === taskModal) {
+                closeTaskModal();
+            }
+            if (event.target === billingModal) {
+                document.getElementById('billingModal').classList.remove('show');
+            }
         });
 
-        // Drag and drop
-        function dragStart(event, taskId) {
-            event.dataTransfer.setData('text/plain', taskId);
-        }
-
-        // Mettre à jour toutes les vues
-        function updateAllViews() {
-            renderTodoList();
-            renderPlanning();
-            renderToBill();
-        }
-
-        // Initialisation
+        // ========== INITIALIZATION ==========
         loadData();
-        updateChantierSelect();
         updateAllViews();
     </script>
 </body>
