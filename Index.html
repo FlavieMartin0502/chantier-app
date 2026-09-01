@@ -263,6 +263,7 @@
         }
 
         .hour-slot.lunch { background: #f5f5f5; }
+        .hour-slot.off-hours { background: #e8e8e8; }
         .hour-slot:last-child { border-bottom: none; }
 
         .day-timeline {
@@ -280,6 +281,7 @@
         }
 
         .timeline-slot.lunch { background: #f5f5f5; }
+        .timeline-slot.off-hours { background: #e8e8e8; }
         .timeline-slot:last-child { border-bottom: none; }
 
         .calendar-task {
@@ -397,6 +399,10 @@
 
         .week-slot.lunch {
             background: #f5f5f5;
+        }
+
+        .week-slot.off-hours {
+            background: #e8e8e8;
         }
 
         /* ===== VUE MOIS ===== */
@@ -664,6 +670,8 @@
             width: auto !important;
             margin: 0;
         }
+
+        .required-asterisk { color: red; }
     </style>
 </head>
 <body>
@@ -716,32 +724,32 @@
                 <h2 id="modalTitle">Nouvelle Tâche</h2>
                 <button class="close" onclick="closeTaskModal()">&times;</button>
             </div>
-            <form id="taskForm">
+            <form onsubmit="saveTask(event)">
                 <div class="form-group">
-                    <label>Nom de la tâche *</label>
+                    <label>Nom de la tâche <span class="required-asterisk">*</span></label>
                     <input type="text" id="taskName" required>
                 </div>
 
                 <div class="form-row">
                     <div class="form-group">
-                        <label>Date de début *</label>
-                        <input type="datetime-local" id="taskStartDate" required onchange="updateEndDate()">
+                        <label>Date de début <span class="required-asterisk">*</span></label>
+                        <input type="datetime-local" id="taskStart" required onchange="updateEndDate()">
                     </div>
                     <div class="form-group">
-                        <label>Durée (heures) *</label>
+                        <label>Durée (heures) <span class="required-asterisk">*</span></label>
                         <input type="number" id="taskDuration" min="0.5" step="0.5" required onchange="updateEndDate()">
                     </div>
                 </div>
 
                 <div class="form-group">
                     <label>Date de fin (calculée)</label>
-                    <input type="datetime-local" id="taskEndDate" disabled>
+                    <input type="datetime-local" id="taskEnd" readonly>
                 </div>
 
                 <div class="form-row">
                     <div class="form-group">
-                        <label>Statut</label>
-                        <select id="taskStatus">
+                        <label>Statut <span class="required-asterisk">*</span></label>
+                        <select id="taskStatus" required>
                             <option value="a-faire">À faire</option>
                             <option value="en-cours">En cours</option>
                             <option value="termine">Terminé</option>
@@ -749,12 +757,12 @@
                     </div>
                     <div class="form-group">
                         <label>Coût d'étude HT (€)</label>
-                        <input type="number" id="taskCost" min="0" step="0.01">
+                        <input type="number" id="taskCost" min="0" step="0.01" value="0">
                     </div>
                 </div>
 
                 <div class="form-group">
-                    <label style="display: flex; align-items: center; gap: 8px;">
+                    <label class="checkbox-label">
                         <input type="checkbox" id="taskBillable">
                         À facturer
                     </label>
@@ -762,30 +770,30 @@
 
                 <div class="recurrence-group">
                     <h4>Récurrence</h4>
-                    <label class="checkbox-label">
+                    <div class="checkbox-label">
                         <input type="checkbox" id="recurDaily">
-                        Quotidienne
-                    </label>
-                    <label class="checkbox-label">
+                        <label>Quotidien</label>
+                    </div>
+                    <div class="checkbox-label">
                         <input type="checkbox" id="recurWeekly">
-                        Hebdomadaire
-                    </label>
-                    <label class="checkbox-label">
+                        <label>Hebdomadaire</label>
+                    </div>
+                    <div class="checkbox-label">
                         <input type="checkbox" id="recurMonthly">
-                        Mensuelle
-                    </label>
+                        <label>Mensuel</label>
+                    </div>
                 </div>
 
                 <div class="subtask-list">
                     <h4>Sous-tâches</h4>
                     <div id="subtasksList"></div>
-                    <button type="button" class="btn-add-subtask" onclick="addSubtaskField()">+ Ajouter une sous-tâche</button>
+                    <button type="button" class="btn-add-subtask" onclick="addSubtaskField()">➕ Ajouter une sous-tâche</button>
                 </div>
 
                 <div class="button-group">
                     <button type="button" class="btn-cancel" onclick="closeTaskModal()">Annuler</button>
                     <button type="button" class="btn-delete" id="deleteBtn" onclick="deleteTask()" style="display:none;">Supprimer</button>
-                    <button type="button" class="btn-submit" onclick="saveTask()">Enregistrer</button>
+                    <button type="submit" class="btn-submit">Enregistrer</button>
                 </div>
             </form>
         </div>
@@ -793,132 +801,36 @@
 
     <script>
         // ===== CONSTANTES =====
-        const WORK_START = 8.5; // 8h30
-        const WORK_END = 18;    // 18h00
-        const LUNCH_START = 12; // 12h00
-        const LUNCH_END = 14;   // 14h00
+        const WORK_START = 8.5;  // 8h30
+        const WORK_END = 18;     // 18h00
+        const LUNCH_START = 12;  // 12h00
+        const LUNCH_END = 14;    // 14h00
+        const WORK_HOURS_PER_DAY = 7.5; // 3.5h (8h30-12h) + 4h (14h-18h)
 
         // ===== VARIABLES GLOBALES =====
         let tasks = [];
-        let currentView = 'jour';
         let currentDate = new Date();
+        let currentView = 'jour';
         let currentTaskId = null;
         let draggedTask = null;
         let dragOffsetY = 0;
+        let currentSubtasks = [];
 
-        // ===== HELPERS =====
-        function generateId() {
-            return '_' + Math.random().toString(36).substr(2, 9);
-        }
-
-        function isWorkingDay(date) {
-            const day = date.getDay();
-            return day >= 1 && day <= 5; // Lundi = 1, Vendredi = 5
-        }
-
-        function getAvailableHoursPerDay() {
-            return (LUNCH_START - WORK_START) + (WORK_END - LUNCH_END); // 3.5h + 4h = 7.5h
-        }
-
-        /**
-         * Calcule la date de fin en tenant compte UNIQUEMENT des heures de travail
-         * Plages: 8h30-12h (3.5h) et 14h-18h (4h) = 7.5h par jour
-         * Jours: lundi-vendredi uniquement
-         */
-        function calculateEndDate(startDateStr, durationHours) {
-            let currentDateTime = new Date(startDateStr);
-            let remainingHours = durationHours;
-
-            // Arrondir la date de début à 8h30 si elle est plus tôt
-            if (currentDateTime.getHours() < WORK_START) {
-                currentDateTime.setHours(Math.floor(WORK_START), 30, 0, 0);
-            }
-
-            while (remainingHours > 0) {
-                const day = currentDateTime.getDay();
-                const hours = currentDateTime.getHours();
-                const minutes = currentDateTime.getMinutes();
-                const totalHours = hours + minutes / 60;
-
-                // Vérifier si on est dans une plage de travail
-                const inMorning = totalHours >= WORK_START && totalHours < LUNCH_START;
-                const inAfternoon = totalHours >= LUNCH_END && totalHours < WORK_END;
-
-                // Si c'est un weekend ou pas en horaires de travail
-                if (!isWorkingDay(currentDateTime)) {
-                    // Aller au lundi suivant 8h30
-                    currentDateTime.setDate(currentDateTime.getDate() + (8 - day));
-                    currentDateTime.setHours(Math.floor(WORK_START), 30, 0, 0);
-                    continue;
-                }
-
-                if (!inMorning && !inAfternoon) {
-                    // Pas en horaires de travail
-                    if (totalHours >= LUNCH_START && totalHours < LUNCH_END) {
-                        // En plage de déjeuner, aller à 14h
-                        currentDateTime.setHours(14, 0, 0, 0);
-                    } else if (totalHours >= WORK_END) {
-                        // Après 18h, aller au jour suivant 8h30
-                        currentDateTime.setDate(currentDateTime.getDate() + 1);
-                        currentDateTime.setHours(Math.floor(WORK_START), 30, 0, 0);
-                    } else if (totalHours < WORK_START) {
-                        // Avant 8h30, aller à 8h30
-                        currentDateTime.setHours(Math.floor(WORK_START), 30, 0, 0);
-                    }
-                    continue;
-                }
-
-                // Calcul des heures disponibles jusqu'à la fin de la plage
-                let hoursAvailable = 0;
-                if (inMorning) {
-                    hoursAvailable = LUNCH_START - totalHours;
-                    if (remainingHours <= hoursAvailable) {
-                        currentDateTime.setHours(currentDateTime.getHours() + Math.floor(remainingHours));
-                        currentDateTime.setMinutes(currentDateTime.getMinutes() + (remainingHours % 1) * 60);
-                        remainingHours = 0;
-                    } else {
-                        remainingHours -= hoursAvailable;
-                        currentDateTime.setHours(14, 0, 0, 0); // Aller à 14h
-                    }
-                } else if (inAfternoon) {
-                    hoursAvailable = WORK_END - totalHours;
-                    if (remainingHours <= hoursAvailable) {
-                        currentDateTime.setHours(currentDateTime.getHours() + Math.floor(remainingHours));
-                        currentDateTime.setMinutes(currentDateTime.getMinutes() + (remainingHours % 1) * 60);
-                        remainingHours = 0;
-                    } else {
-                        remainingHours -= hoursAvailable;
-                        // Aller au jour suivant 8h30
-                        currentDateTime.setDate(currentDateTime.getDate() + 1);
-                        currentDateTime.setHours(Math.floor(WORK_START), 30, 0, 0);
-                    }
-                }
-            }
-
-            return currentDateTime.toISOString().slice(0, 16);
-        }
-
-        function updateTasksStatus() {
-            tasks.forEach(t => {
-                const taskDate = new Date(t.startDate);
-                const today = new Date();
-                if (t.status === 'a-faire' && taskDate < today) {
-                    t.status = 'en-retard';
-                }
-            });
-        }
-
-        // ===== LOCAL STORAGE =====
+        // ===== LOCALSTORAGE =====
         function saveTasks() {
             localStorage.setItem('chantierTasks', JSON.stringify(tasks));
         }
 
         function loadTasks() {
-            const stored = localStorage.getItem('chantierTasks');
-            tasks = stored ? JSON.parse(stored) : [];
+            const saved = localStorage.getItem('chantierTasks');
+            tasks = saved ? JSON.parse(saved) : [];
         }
 
-        // ===== NAVIGATION =====
+        function generateId() {
+            return Date.now().toString(36) + Math.random().toString(36).substr(2);
+        }
+
+        // ===== VUE =====
         function switchView(view) {
             currentView = view;
             document.querySelectorAll('.view-btn').forEach(btn => btn.classList.remove('active'));
@@ -953,86 +865,159 @@
             renderPlanning();
         }
 
-        // ===== MODALS =====
+        // ===== CALCUL DATE FIN =====
+        function calculateEndDate(startDateStr, durationHours) {
+            let current = new Date(startDateStr);
+            let remainingHours = durationHours;
+
+            while (remainingHours > 0) {
+                const dayOfWeek = current.getDay();
+                const hour = current.getHours() + current.getMinutes() / 60;
+
+                // Vérifier si weekend
+                if (dayOfWeek === 0 || dayOfWeek === 6) {
+                    current.setDate(current.getDate() + 1);
+                    current.setHours(WORK_START, 0, 0, 0);
+                    continue;
+                }
+
+                // Vérifier la plage horaire
+                if (hour < WORK_START) {
+                    current.setHours(WORK_START, 0, 0, 0);
+                    continue;
+                } else if (hour >= WORK_END) {
+                    current.setDate(current.getDate() + 1);
+                    current.setHours(WORK_START, 0, 0, 0);
+                    continue;
+                } else if (hour >= LUNCH_START && hour < LUNCH_END) {
+                    current.setHours(LUNCH_END, 0, 0, 0);
+                    continue;
+                }
+
+                // Calculer le temps disponible avant lunch ou fin de jour
+                let timeAvailable;
+                if (hour < LUNCH_START) {
+                    timeAvailable = LUNCH_START - hour;
+                } else {
+                    timeAvailable = WORK_END - hour;
+                }
+
+                if (remainingHours <= timeAvailable) {
+                    current.setHours(current.getHours() + Math.floor(remainingHours));
+                    current.setMinutes(current.getMinutes() + (remainingHours % 1) * 60);
+                    remainingHours = 0;
+                } else {
+                    remainingHours -= timeAvailable;
+                    if (hour < LUNCH_START) {
+                        current.setHours(LUNCH_END, 0, 0, 0);
+                    } else {
+                        current.setDate(current.getDate() + 1);
+                        current.setHours(WORK_START, 0, 0, 0);
+                    }
+                }
+            }
+
+            return current.toISOString().slice(0, 16);
+        }
+
+        function updateEndDate() {
+            const start = document.getElementById('taskStart').value;
+            const duration = parseFloat(document.getElementById('taskDuration').value);
+            if (start && duration) {
+                const end = calculateEndDate(start, duration);
+                document.getElementById('taskEnd').value = end;
+            }
+        }
+
+        // ===== MODAL TÂCHE =====
         function openTaskModal(taskId = null) {
             currentTaskId = taskId;
-            window.currentSubtasks = [];
+            currentSubtasks = [];
+            const modal = document.getElementById('taskModal');
+            const titleEl = document.getElementById('modalTitle');
 
             if (taskId) {
                 const task = tasks.find(t => t.id === taskId);
-                document.getElementById('modalTitle').textContent = 'Modifier la tâche';
-                document.getElementById('deleteBtn').style.display = 'inline-block';
-                document.getElementById('taskName').value = task.name;
-                document.getElementById('taskStartDate').value = task.startDate;
-                document.getElementById('taskEndDate').value = task.endDate;
-                document.getElementById('taskDuration').value = task.duration;
-                document.getElementById('taskStatus').value = task.status;
-                document.getElementById('taskCost').value = task.cost || '';
-                document.getElementById('taskBillable').checked = task.aFacturer || false;
-                document.getElementById('recurDaily').checked = task.recurDaily || false;
-                document.getElementById('recurWeekly').checked = task.recurWeekly || false;
-                document.getElementById('recurMonthly').checked = task.recurMonthly || false;
-                window.currentSubtasks = task.subtasks || [];
-                renderSubtasksList();
+                if (task) {
+                    titleEl.textContent = 'Modifier la tâche';
+                    document.getElementById('taskName').value = task.name;
+                    document.getElementById('taskStart').value = task.startDate;
+                    document.getElementById('taskEnd').value = task.endDate;
+                    document.getElementById('taskDuration').value = task.duration;
+                    document.getElementById('taskStatus').value = task.status;
+                    document.getElementById('taskCost').value = task.cost || 0;
+                    document.getElementById('taskBillable').checked = task.aFacturer || false;
+                    document.getElementById('recurDaily').checked = task.recurDaily || false;
+                    document.getElementById('recurWeekly').checked = task.recurWeekly || false;
+                    document.getElementById('recurMonthly').checked = task.recurMonthly || false;
+                    currentSubtasks = JSON.parse(JSON.stringify(task.subtasks || []));
+                    document.getElementById('deleteBtn').style.display = 'block';
+                } else {
+                    closeTaskModal();
+                    return;
+                }
             } else {
-                document.getElementById('modalTitle').textContent = 'Nouvelle Tâche';
+                titleEl.textContent = 'Nouvelle Tâche';
+                modal.querySelector('form').reset();
+                document.getElementById('taskStart').value = new Date().toISOString().slice(0, 16);
                 document.getElementById('deleteBtn').style.display = 'none';
-                document.getElementById('taskForm').reset();
-                renderSubtasksList();
+                currentSubtasks = [];
             }
 
-            document.getElementById('taskModal').classList.add('show');
+            renderSubtasksList();
+            modal.classList.add('show');
         }
 
         function closeTaskModal() {
             document.getElementById('taskModal').classList.remove('show');
             currentTaskId = null;
+            currentSubtasks = [];
+        }
+
+        function addSubtaskField() {
+            const subtaskName = prompt('Nom de la sous-tâche:');
+            if (!subtaskName) return;
+
+            const subtaskDuration = prompt('Durée en heures:');
+            if (!subtaskDuration) return;
+
+            currentSubtasks.push({
+                id: generateId(),
+                name: subtaskName,
+                duration: parseFloat(subtaskDuration)
+            });
+            renderSubtasksList();
         }
 
         function renderSubtasksList() {
             const list = document.getElementById('subtasksList');
             list.innerHTML = '';
-            (window.currentSubtasks || []).forEach((st, idx) => {
-                list.innerHTML += `
-                    <div class="subtask-item">
-                        <div>
-                            <div class="subtask-item-name">${st.name}</div>
-                            <div class="subtask-item-duration">⏱️ ${st.duration}h</div>
-                        </div>
-                        <button type="button" class="btn-subtask-delete" onclick="deleteSubtask(${idx})">✕</button>
+
+            currentSubtasks.forEach((st, idx) => {
+                const div = document.createElement('div');
+                div.className = 'subtask-item';
+                div.innerHTML = `
+                    <div>
+                        <div class="subtask-item-name">${st.name}</div>
+                        <div class="subtask-item-duration">⏱️ ${st.duration}h</div>
                     </div>
+                    <button type="button" class="btn-subtask-delete" onclick="deleteSubtask(${idx})">✕</button>
                 `;
+                list.appendChild(div);
             });
         }
 
-        function addSubtaskField() {
-            const name = prompt('Nom de la sous-tâche:');
-            if (!name) return;
-            const duration = parseFloat(prompt('Durée (heures):') || 1);
-
-            if (!window.currentSubtasks) window.currentSubtasks = [];
-            window.currentSubtasks.push({ name, duration, id: generateId() });
-            renderSubtasksList();
-        }
-
         function deleteSubtask(idx) {
-            window.currentSubtasks.splice(idx, 1);
+            currentSubtasks.splice(idx, 1);
             renderSubtasksList();
         }
 
-        function updateEndDate() {
-            const startDate = document.getElementById('taskStartDate').value;
-            const duration = parseFloat(document.getElementById('taskDuration').value) || 0;
+        function saveTask(event) {
+            event.preventDefault();
 
-            if (startDate && duration > 0) {
-                const endDate = calculateEndDate(startDate, duration);
-                document.getElementById('taskEndDate').value = endDate;
-            }
-        }
-
-        function saveTask() {
             const name = document.getElementById('taskName').value;
-            const startDate = document.getElementById('taskStartDate').value;
+            const startDate = document.getElementById('taskStart').value;
+            const endDate = document.getElementById('taskEnd').value;
             const duration = parseFloat(document.getElementById('taskDuration').value);
             const status = document.getElementById('taskStatus').value;
             const cost = parseFloat(document.getElementById('taskCost').value) || 0;
@@ -1040,13 +1025,6 @@
             const recurDaily = document.getElementById('recurDaily').checked;
             const recurWeekly = document.getElementById('recurWeekly').checked;
             const recurMonthly = document.getElementById('recurMonthly').checked;
-
-            if (!name || !startDate || duration <= 0) {
-                alert('Remplissez tous les champs obligatoires');
-                return;
-            }
-
-            const endDate = calculateEndDate(startDate, duration);
 
             if (currentTaskId) {
                 const task = tasks.find(t => t.id === currentTaskId);
@@ -1060,7 +1038,7 @@
                 task.recurDaily = recurDaily;
                 task.recurWeekly = recurWeekly;
                 task.recurMonthly = recurMonthly;
-                task.subtasks = window.currentSubtasks || [];
+                task.subtasks = currentSubtasks;
             } else {
                 const task = {
                     id: generateId(),
@@ -1074,12 +1052,11 @@
                     recurDaily,
                     recurWeekly,
                     recurMonthly,
-                    subtasks: window.currentSubtasks || []
+                    subtasks: currentSubtasks
                 };
                 tasks.push(task);
             }
 
-            window.currentSubtasks = [];
             saveTasks();
             renderSidebar();
             renderPlanning();
@@ -1096,12 +1073,13 @@
             }
         }
 
+        // ===== AFFICHAGE CHIFFRE AFFAIRES =====
         function displayRevenue() {
             const currentMonth = currentDate.getMonth();
             const currentYear = currentDate.getFullYear();
             const monthTasks = tasks.filter(t => {
                 const taskDate = new Date(t.startDate);
-                return taskDate.getMonth() === currentMonth && taskDate.getFullYear() === currentYear;
+                return taskDate.getMonth() === currentMonth && taskDate.getFullYear() === currentYear && !t.aFacturer && t.status !== 'termine';
             });
 
             const totalRevenue = monthTasks.reduce((sum, t) => sum + (t.cost || 0), 0);
@@ -1112,17 +1090,17 @@
             document.getElementById('revenuePeriod').textContent = monthName.charAt(0).toUpperCase() + monthName.slice(1);
         }
 
+        // ===== SIDEBAR =====
         function renderSidebar() {
             const tasksList = document.getElementById('tasksList');
             const billableList = document.getElementById('billableList');
             tasksList.innerHTML = '';
             billableList.innerHTML = '';
 
-            const statuses = ['a-faire', 'en-cours', 'en-retard', 'termine'];
+            const statuses = ['a-faire', 'en-cours', 'termine'];
             const statusNames = { 
                 'a-faire': '🔵 À faire', 
                 'en-cours': '🟡 En cours', 
-                'en-retard': '🔴 En retard',
                 'termine': '🟢 Terminé'
             };
 
@@ -1207,6 +1185,21 @@
             displayRevenue();
         }
 
+        // ===== STATUT AUTOMATIQUE =====
+        function updateTasksStatus() {
+            const now = new Date();
+            tasks.forEach(task => {
+                if (task.status === 'a-faire') {
+                    const endDate = new Date(task.endDate);
+                    if (endDate < now) {
+                        task.status = 'en-retard';
+                    }
+                }
+            });
+            saveTasks();
+        }
+
+        // ===== PLANNING =====
         function renderPlanning() {
             updateTasksStatus();
             const content = document.getElementById('planningContent');
@@ -1241,15 +1234,17 @@
             }
         }
 
+        // ===== VUE JOUR =====
         function renderDayView(container) {
             let hoursHtml = '<div class="day-hours">';
             let timelineHtml = '<div class="day-timeline">';
 
-            for (let h = WORK_START; h < WORK_END; h += 0.5) {
+            for (let h = WORK_START; h <= WORK_END; h += 0.5) {
                 const hourStr = Math.floor(h) + 'h' + (h % 1 === 0.5 ? '30' : '00');
                 const isLunch = h >= LUNCH_START && h < LUNCH_END;
-                hoursHtml += `<div class="hour-slot ${isLunch ? 'lunch' : ''}">${hourStr}</div>`;
-                timelineHtml += `<div class="timeline-slot ${isLunch ? 'lunch' : ''}"></div>`;
+                const isOffHours = h < WORK_START || h >= WORK_END;
+                hoursHtml += `<div class="hour-slot ${isLunch ? 'lunch' : ''} ${isOffHours ? 'off-hours' : ''}">${hourStr}</div>`;
+                timelineHtml += `<div class="timeline-slot ${isLunch ? 'lunch' : ''} ${isOffHours ? 'off-hours' : ''}"></div>`;
             }
 
             hoursHtml += '</div>';
@@ -1276,13 +1271,15 @@
                 el.textContent = task.name;
                 el.style.top = (topPercent * 100) + '%';
                 el.style.height = (heightPercent * 100) + '%';
-                el.onclick = () => openTaskModal(task.id);
+                el.style.minHeight = '40px';
+                el.onclick = (e) => { e.stopPropagation(); openTaskModal(task.id); };
                 makeTaskDraggable(el, task);
 
                 timeline.appendChild(el);
             });
         }
 
+        // ===== VUE SEMAINE =====
         function renderWeekView(container) {
             const monday = new Date(currentDate);
             monday.setDate(currentDate.getDate() - currentDate.getDay() + 1);
@@ -1297,7 +1294,7 @@
             headerHtml += '</div>';
 
             let bodyHtml = '<div class="week-body"><div class="week-hours">';
-            for (let h = WORK_START; h < WORK_END; h += 0.5) {
+            for (let h = WORK_START; h <= WORK_END; h += 0.5) {
                 const hourStr = Math.floor(h) + 'h' + (h % 1 === 0.5 ? '30' : '00');
                 bodyHtml += `<div class="hour-slot">${hourStr}</div>`;
             }
@@ -1305,7 +1302,7 @@
 
             for (let i = 0; i < 5; i++) {
                 bodyHtml += '<div class="week-column">';
-                for (let h = WORK_START; h < WORK_END; h += 0.5) {
+                for (let h = WORK_START; h <= WORK_END; h += 0.5) {
                     const isLunch = h >= LUNCH_START && h < LUNCH_END;
                     bodyHtml += `<div class="week-slot ${isLunch ? 'lunch' : ''}"></div>`;
                 }
@@ -1337,8 +1334,8 @@
                     el.className = `calendar-task ${task.status}`;
                     el.textContent = task.name;
                     el.style.top = (topPercent * 100) + '%';
-                    el.style.height = (task.duration / (WORK_END - WORK_START)) * 100 + '%';
-                    el.onclick = () => openTaskModal(task.id);
+                    el.style.height = Math.max(40, (task.duration / (WORK_END - WORK_START)) * 100) + '%';
+                    el.onclick = (e) => { e.stopPropagation(); openTaskModal(task.id); };
                     makeTaskDraggable(el, task);
 
                     column.appendChild(el);
@@ -1346,6 +1343,7 @@
             });
         }
 
+        // ===== VUE MOIS =====
         function renderMonthView(container) {
             const year = currentDate.getFullYear();
             const month = currentDate.getMonth();
@@ -1402,6 +1400,7 @@
             });
         }
 
+        // ===== DRAG & DROP =====
         function makeTaskDraggable(el, task) {
             el.addEventListener('mousedown', (e) => {
                 draggedTask = task;
@@ -1444,10 +1443,10 @@
             resizeHandle.style.position = 'absolute';
             resizeHandle.style.right = '0';
             resizeHandle.style.top = '0';
-            resizeHandle.style.width = '5px';
+            resizeHandle.style.width = '8px';
             resizeHandle.style.height = '100%';
             resizeHandle.style.cursor = 'ew-resize';
-            resizeHandle.style.background = 'transparent';
+            resizeHandle.style.background = 'rgba(0,0,0,0.1)';
             el.appendChild(resizeHandle);
 
             resizeHandle.addEventListener('mousedown', (e) => {
@@ -1481,10 +1480,12 @@
             });
         }
 
+        // ===== SYNC OUTLOOK =====
         function syncOutlook() {
             alert('⚠️ Synchronisation Outlook\n\nPour intégrer Outlook :\n1. Créer une app dans Azure AD\n2. Configurer les permissions Graph API\n3. Configurer OAuth 2.0\n\nPour l\'instant, testez avec des tâches locales !');
         }
 
+        // ===== INITIALISATION =====
         document.addEventListener('DOMContentLoaded', () => {
             loadTasks();
             renderSidebar();
