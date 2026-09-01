@@ -4,11 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chantier - Planning de Tâches</title>
-    <script src="https://alcdn.msauth.net/browser/2.26.0/js/msal-browser.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f5f5f5; padding: 20px; }
-        .container { max-width: 1600px; margin: 0 auto; }
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background: #f5f5f5; 
+            padding: 20px; 
+        }
+        .container { max-width: 1900px; margin: 0 auto; }
         
         header { 
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
@@ -23,6 +26,7 @@
             flex-wrap: wrap;
             gap: 15px;
         }
+        
         header h1 { font-size: 2em; }
         
         .header-controls {
@@ -32,7 +36,7 @@
             align-items: center;
         }
 
-        .btn-primary, .btn-secondary { 
+        .btn-primary, .btn-secondary, .btn-sync { 
             border: none; 
             padding: 12px 20px; 
             border-radius: 5px; 
@@ -46,7 +50,7 @@
             background: white; 
             color: #667eea;
         }
-        .btn-primary:hover { background: #f0f0f0; transform: translateY(-2px); }
+        .btn-primary:hover { background: #f0f0f0; }
 
         .btn-secondary {
             background: rgba(255,255,255,0.2);
@@ -59,7 +63,6 @@
             color: white;
         }
         .btn-sync:hover { background: #45a049; }
-        .btn-sync.syncing { opacity: 0.7; pointer-events: none; }
         
         .view-selector {
             display: flex;
@@ -84,23 +87,22 @@
             color: #667eea;
             font-weight: bold;
         }
-
-        .view-btn:hover { background: rgba(255,255,255,0.3); }
         
         .main-content {
             display: grid;
-            grid-template-columns: 28% 1fr;
+            grid-template-columns: 25% 1fr;
             gap: 20px;
         }
 
-        @media (max-width: 1100px) { .main-content { grid-template-columns: 1fr; } }
+        @media (max-width: 1200px) { 
+            .main-content { grid-template-columns: 1fr; } 
+        }
         
         .sidebar {
             background: white;
             padding: 20px;
             border-radius: 10px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            height: fit-content;
             max-height: 90vh;
             overflow-y: auto;
         }
@@ -108,19 +110,48 @@
         .sidebar h2 { 
             margin-bottom: 15px; 
             color: #333; 
-            font-size: 1.2em; 
+            font-size: 1.1em; 
             border-bottom: 2px solid #667eea; 
             padding-bottom: 10px; 
         }
 
-        .status-list { margin-bottom: 20px; }
+        /* ===== CHIFFRE D'AFFAIRES ===== */
+        .revenue-box {
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+            text-align: center;
+        }
+
+        .revenue-label {
+            font-size: 0.95em;
+            opacity: 0.9;
+            margin-bottom: 8px;
+        }
+
+        .revenue-amount {
+            font-size: 2.2em;
+            font-weight: bold;
+            font-family: 'Courier New', monospace;
+        }
+
+        .revenue-period {
+            font-size: 0.85em;
+            opacity: 0.8;
+            margin-top: 8px;
+        }
+
+        .status-section { margin-bottom: 20px; }
+        
         .status-title {
             font-weight: bold;
             padding: 10px;
             margin-bottom: 8px;
             border-radius: 5px;
             font-size: 0.9em;
-            cursor: pointer;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -134,7 +165,7 @@
 
         .status-count { font-size: 0.85em; background: rgba(0,0,0,0.1); padding: 2px 8px; border-radius: 3px; }
 
-        .task-list { margin-left: 5px; }
+        .task-list { margin-left: 0px; }
         .task-item {
             background: #f9f9f9;
             padding: 10px;
@@ -146,16 +177,19 @@
             font-size: 0.9em;
         }
 
-        .task-item:hover { background: #f0f0f0; transform: translateX(5px); }
+        .task-item:hover { background: #f0f0f0; }
 
         .task-item.subtask { 
             margin-left: 15px; 
-            border-left-color: #764ba2;
+            border-left-color: #5E35B1;
             font-size: 0.85em;
+            background: #f5f0fa;
         }
 
         .task-item-title { font-weight: bold; margin-bottom: 4px; }
         .task-item-meta { color: #666; font-size: 0.85em; }
+        .task-item-parent { color: #764ba2; font-size: 0.8em; font-style: italic; }
+        .task-item-cost { color: #4CAF50; font-size: 0.85em; font-weight: bold; }
 
         .planning-container {
             background: white;
@@ -190,21 +224,31 @@
 
         .planning-nav button:hover { background: #764ba2; }
 
-        .planning-date { font-size: 1.2em; font-weight: bold; color: #333; min-width: 250px; text-align: center; }
+        .planning-date { 
+            font-size: 1.1em; 
+            font-weight: bold; 
+            color: #333; 
+            min-width: 300px; 
+            text-align: center; 
+        }
 
-        /* VUE JOUR */
+        /* ===== VUE JOUR ===== */
         .day-view {
             display: grid;
-            grid-template-columns: 100px 1fr;
-            gap: 10px;
+            grid-template-columns: 80px 1fr;
+            gap: 0;
             min-height: 600px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            overflow: hidden;
         }
 
         .day-hours {
             display: flex;
             flex-direction: column;
-            border-right: 2px solid #ddd;
+            border-right: 1px solid #ccc;
             padding-right: 10px;
+            background: #fafafa;
         }
 
         .hour-slot { 
@@ -212,18 +256,23 @@
             display: flex; 
             align-items: center; 
             justify-content: flex-end; 
-            font-size: 0.9em; 
+            font-size: 0.85em; 
             color: #666; 
+            font-weight: 500;
+            border-bottom: 1px solid #eee;
+            padding-right: 5px;
         }
 
         .hour-slot.lunch { background: #f5f5f5; }
+        .hour-slot:last-child { border-bottom: none; }
 
         .day-timeline {
             position: relative;
             background: linear-gradient(to bottom, #fafafa 0%, #fff 100%);
-            border-radius: 5px;
-            padding: 5px;
-            border: 1px solid #ddd;
+            border-radius: 0;
+            padding: 0;
+            border: none;
+            min-height: 600px;
         }
 
         .timeline-slot {
@@ -233,13 +282,14 @@
         }
 
         .timeline-slot.lunch { background: #f5f5f5; }
+        .timeline-slot:last-child { border-bottom: none; }
 
         .calendar-task {
             position: absolute;
             left: 5px;
             right: 5px;
             padding: 8px;
-            border-radius: 5px;
+            border-radius: 3px;
             font-size: 0.85em;
             font-weight: bold;
             color: white;
@@ -249,75 +299,159 @@
             cursor: move;
             box-shadow: 0 2px 5px rgba(0,0,0,0.2);
             transition: box-shadow 0.2s;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
             z-index: 10;
+            border-left: 4px solid rgba(0,0,0,0.2);
         }
 
-        .calendar-task:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
+        .calendar-task:hover { 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            z-index: 11;
+        }
 
         .calendar-task.a-faire { background: #2196F3; }
         .calendar-task.en-cours { background: #FFC107; color: black; }
         .calendar-task.en-retard { background: #F44336; }
-        .calendar-task.subtask { background: #5E35B1; }
-        .calendar-task.outlook { background: #00BCD4; }
+        .calendar-task.subtask { background: #5E35B1; font-size: 0.8em; }
+        .calendar-task.outlook { background: #00BCD4; cursor: default; }
 
-        .calendar-task-label { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        .calendar-task-duration { font-size: 0.8em; margin-left: 5px; }
-
-        .task-resize-handle {
-            position: absolute;
-            right: 0;
-            top: 0;
-            bottom: 0;
-            width: 8px;
-            cursor: col-resize;
-            background: rgba(0,0,0,0.1);
+        /* ===== VUE SEMAINE ===== */
+        .week-view {
+            display: flex;
+            flex-direction: column;
+            min-height: 800px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            overflow: hidden;
         }
 
-        .task-resize-handle:hover { background: rgba(0,0,0,0.3); }
-
-        /* VUE SEMAINE */
-        .week-view {
+        .week-header {
             display: grid;
-            grid-template-columns: 100px repeat(5, 1fr);
-            gap: 10px;
-            min-height: 800px;
+            grid-template-columns: 80px repeat(5, 1fr);
+            gap: 0;
+            background: #667eea;
+            border-bottom: 1px solid #5568d3;
         }
 
         .week-day-header {
             text-align: center;
             font-weight: bold;
             padding: 15px;
-            background: #667eea;
             color: white;
-            border-radius: 5px;
+            border-right: 1px solid #5568d3;
+            font-size: 0.95em;
+        }
+
+        .week-day-header:last-child {
+            border-right: none;
+        }
+
+        .week-body {
+            display: grid;
+            grid-template-columns: 80px repeat(5, 1fr);
+            gap: 0;
+            flex: 1;
+            background: white;
         }
 
         .week-hours { 
             display: flex; 
             flex-direction: column;
-            border-right: 2px solid #ddd;
+            border-right: 1px solid #ccc;
+            background: #fafafa;
             padding-right: 10px;
+        }
+
+        .week-hours .hour-slot {
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 5px;
+            font-size: 0.85em;
+            color: #666;
+            border-bottom: 1px solid #eee;
+        }
+
+        .week-hours .hour-slot:last-child {
+            border-bottom: none;
         }
 
         .week-column {
             position: relative;
-            background: #fafafa;
-            border-radius: 5px;
-            padding: 5px;
-            border: 1px solid #ddd;
+            background: white;
+            border-right: 1px solid #ccc;
             min-height: 800px;
         }
 
-        .week-column.weekend { background: #f0f0f0; opacity: 0.6; }
+        .week-column:last-child {
+            border-right: none;
+        }
 
-        /* VUE MOIS */
+        .week-slot {
+            height: 60px;
+            border-bottom: 1px solid #eee;
+            position: relative;
+        }
+
+        .week-slot:last-child {
+            border-bottom: none;
+        }
+
+        .week-slot.lunch {
+            background: #f5f5f5;
+        }
+
+        /* ===== TÂCHES MULTI-JOURS ===== */
+        .multi-day-container {
+            position: relative;
+            height: 40px;
+            margin: 5px 0;
+            display: flex;
+            align-items: center;
+        }
+
+        .multi-day-task {
+            position: absolute;
+            padding: 8px 12px;
+            border-radius: 0;
+            font-size: 0.85em;
+            font-weight: bold;
+            color: white;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            cursor: move;
+            z-index: 20;
+            border-left: 4px solid rgba(0,0,0,0.2);
+            top: 0;
+        }
+
+        .multi-day-task.a-faire { background: #2196F3; }
+        .multi-day-task.en-cours { background: #FFC107; color: black; }
+        .multi-day-task.en-retard { background: #F44336; }
+        .multi-day-task.subtask { background: #5E35B1; }
+
+        .multi-day-task-start {
+            border-radius: 5px 0 0 5px;
+        }
+
+        .multi-day-task-end {
+            border-radius: 0 5px 5px 0;
+        }
+
+        /* ===== VUE MOIS ===== */
         .month-view {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
-            gap: 10px;
+            gap: 1px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            overflow: hidden;
+            background: #ccc;
         }
 
         .month-day-header {
@@ -326,27 +460,39 @@
             padding: 12px;
             background: #667eea;
             color: white;
-            border-radius: 5px;
+            border-right: 1px solid #ccc;
+        }
+
+        .month-day-header:nth-child(7n) {
+            border-right: none;
         }
 
         .month-day {
             background: white;
-            border: 1px solid #ddd;
-            border-radius: 5px;
+            border-right: 1px solid #ccc;
             padding: 10px;
             min-height: 120px;
             position: relative;
         }
 
+        .month-day:nth-child(7n) {
+            border-right: none;
+        }
+
         .month-day.other-month { background: #f5f5f5; opacity: 0.5; }
         .month-day.weekend { background: #f0f0f0; }
 
-        .month-day-date { font-weight: bold; color: #333; margin-bottom: 8px; font-size: 1em; }
+        .month-day-date { 
+            font-weight: bold; 
+            color: #333; 
+            margin-bottom: 8px; 
+            font-size: 0.95em; 
+        }
 
         .month-tasks {
             display: flex;
             flex-direction: column;
-            gap: 4px;
+            gap: 2px;
             font-size: 0.75em;
         }
 
@@ -354,11 +500,13 @@
             background: #2196F3;
             color: white;
             padding: 4px 6px;
-            border-radius: 3px;
+            border-radius: 2px;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
             cursor: pointer;
+            font-weight: bold;
+            border-left: 3px solid rgba(0,0,0,0.2);
         }
 
         .month-task.en-cours { background: #FFC107; color: black; }
@@ -366,7 +514,7 @@
         .month-task.subtask { background: #5E35B1; }
         .month-task.outlook { background: #00BCD4; }
 
-        /* MODALS */
+        /* ===== MODALS ===== */
         .modal {
             display: none;
             position: fixed;
@@ -376,19 +524,20 @@
             width: 100%;
             height: 100%;
             background-color: rgba(0,0,0,0.5);
+            justify-content: center;
+            align-items: center;
             overflow-y: auto;
         }
 
-        .modal.show { display: flex; justify-content: center; align-items: center; }
+        .modal.show { display: flex; }
 
         .modal-content {
             background-color: white;
             padding: 30px;
             border-radius: 10px;
             width: 90%;
-            max-width: 600px;
-            max-height: 90vh;
-            overflow-y: auto;
+            max-width: 700px;
+            margin: 50px auto;
             box-shadow: 0 10px 40px rgba(0,0,0,0.3);
         }
 
@@ -409,6 +558,9 @@
             color: #aaa;
             cursor: pointer;
             transition: 0.3s;
+            background: none;
+            border: none;
+            padding: 0;
         }
 
         .close:hover { color: #000; }
@@ -445,14 +597,8 @@
             gap: 15px;
         }
 
-        .checkbox-group {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .checkbox-group input[type="checkbox"] {
-            width: auto;
+        .form-row.three {
+            grid-template-columns: 1fr 1fr 1fr;
         }
 
         .button-group {
@@ -513,6 +659,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            border-left: 3px solid #5E35B1;
         }
 
         .subtask-item-name { font-weight: bold; }
@@ -549,12 +696,16 @@
 
         .recurrence-group h4 { margin-bottom: 12px; color: #1976D2; }
 
-        .scroll-container { overflow-x: auto; }
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+            font-weight: normal;
+            gap: 8px;
+        }
 
-        @media (max-width: 768px) {
-            header { padding: 15px; }
-            header h1 { font-size: 1.5em; }
-            .main-content { grid-template-columns: 1fr; }
+        .checkbox-label input {
+            width: auto !important;
+            margin: 0;
         }
     </style>
 </head>
@@ -563,13 +714,11 @@
         <header>
             <h1>📋 Chantier</h1>
             <div class="header-controls">
-                <button class="btn-secondary btn-sync" id="syncOutlook" onclick="syncOutlook()">
-                    🔄 Sync Outlook
-                </button>
+                <button class="btn-sync" onclick="syncOutlook()">🔄 Sync Outlook</button>
                 <div class="view-selector">
-                    <button class="view-btn active" onclick="switchView('jour')">Jour</button>
-                    <button class="view-btn" onclick="switchView('semaine')">Semaine</button>
-                    <button class="view-btn" onclick="switchView('mois')">Mois</button>
+                    <button class="view-btn active" onclick="switchView('jour')">📅 Jour</button>
+                    <button class="view-btn" onclick="switchView('semaine')">📊 Semaine</button>
+                    <button class="view-btn" onclick="switchView('mois')">📆 Mois</button>
                 </div>
                 <button class="btn-primary" onclick="openTaskModal()">+ Nouvelle Tâche</button>
             </div>
@@ -577,6 +726,13 @@
 
         <div class="main-content">
             <div class="sidebar">
+                <!-- CHIFFRE D'AFFAIRES -->
+                <div class="revenue-box" id="revenueBox">
+                    <div class="revenue-label">💰 Chiffre d'affaires prévisionnel</div>
+                    <div class="revenue-amount" id="revenueAmount">0 €</div>
+                    <div class="revenue-period" id="revenuePeriod"></div>
+                </div>
+
                 <h2>📋 Tâches</h2>
                 <div id="tasksList"></div>
 
@@ -592,7 +748,6 @@
                     </div>
                     <div class="planning-date" id="planningDate"></div>
                 </div>
-
                 <div id="planningContent"></div>
             </div>
         </div>
@@ -602,13 +757,13 @@
     <div id="taskModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2 id="taskModalTitle">Nouvelle Tâche</h2>
-                <span class="close" onclick="closeTaskModal()">&times;</span>
+                <h2 id="modalTitle">Nouvelle Tâche</h2>
+                <button class="close" onclick="closeTaskModal()">×</button>
             </div>
 
-            <form id="taskForm" onsubmit="saveTask(event)">
+            <form onsubmit="saveTask(event)">
                 <div class="form-group">
-                    <label for="taskName">Nom de la tâche *</label>
+                    <label for="taskName">Nom de la tâche</label>
                     <input type="text" id="taskName" required>
                 </div>
 
@@ -617,204 +772,212 @@
                     <textarea id="taskDescription" rows="3"></textarea>
                 </div>
 
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="taskStatus">Statut</label>
-                        <select id="taskStatus" onchange="updateTaskStatus()">
-                            <option value="a-faire">À faire</option>
-                            <option value="en-cours">En cours</option>
-                            <option value="en-retard">En retard</option>
-                            <option value="termine">Terminé</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="taskAFacturer">À facturer</label>
-                        <input type="checkbox" id="taskAFacturer" style="width: auto;">
-                    </div>
+                <div class="form-group">
+                    <label for="taskStatus">Statut</label>
+                    <select id="taskStatus">
+                        <option value="a-faire">À faire</option>
+                        <option value="en-cours">En cours</option>
+                        <option value="en-retard">En retard</option>
+                        <option value="termine">Terminé</option>
+                    </select>
                 </div>
 
                 <div class="form-row">
                     <div class="form-group">
-                        <label for="taskStartDate">Date début *</label>
-                        <input type="datetime-local" id="taskStartDate" required onchange="updateTaskDates()">
+                        <label for="taskStartDate">Date & Heure de début</label>
+                        <input type="datetime-local" id="taskStartDate" required>
                     </div>
                     <div class="form-group">
-                        <label for="taskEndDate">Date fin *</label>
-                        <input type="datetime-local" id="taskEndDate" required onchange="updateTaskDates()">
+                        <label for="taskEndDate">Date & Heure de fin</label>
+                        <input type="datetime-local" id="taskEndDate" required>
                     </div>
                 </div>
 
                 <div class="form-group">
-                    <label for="taskDuration">Durée (heures) *</label>
-                    <input type="number" id="taskDuration" min="0.5" step="0.5" required onchange="updateTaskDates()">
+                    <label for="taskDuration">Durée (heures)</label>
+                    <input type="number" id="taskDuration" step="0.5" min="0.5" required>
                 </div>
 
-                <div class="recurrence-group">
-                    <h4>Récurrence</h4>
-                    <div class="form-group">
-                        <label for="taskRecurrence">Type</label>
-                        <select id="taskRecurrence">
-                            <option value="none">Non récurrent</option>
-                            <option value="quotidien">Quotidien</option>
-                            <option value="hebdomadaire">Hebdomadaire</option>
-                            <option value="mensuel">Mensuel</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="taskRecurrenceEnd">Fin de récurrence</label>
-                        <input type="date" id="taskRecurrenceEnd">
-                    </div>
+                <!-- COÛT D'ÉTUDE -->
+                <div class="form-group">
+                    <label for="taskCost">💰 Coût d'étude (€)</label>
+                    <input type="number" id="taskCost" step="0.01" min="0" value="0">
                 </div>
 
-                <div class="subtask-list" id="subtaskListContainer" style="display:none;">
-                    <h4>Sous-tâches</h4>
-                    <div id="subtasksList"></div>
-                    <button type="button" class="btn-add-subtask" onclick="openSubtaskModal()">+ Ajouter une sous-tâche</button>
+                <div class="form-group">
+                    <label for="taskRecurrence">Récurrence</label>
+                    <select id="taskRecurrence">
+                        <option value="none">Aucune</option>
+                        <option value="daily">Quotidienne</option>
+                        <option value="weekly">Hebdomadaire</option>
+                        <option value="monthly">Mensuelle</option>
+                    </select>
                 </div>
 
+                <div class="checkbox-label">
+                    <input type="checkbox" id="taskAFacturer">
+                    <label for="taskAFacturer" style="font-weight: bold; margin: 0;">À facturer</label>
+                </div>
+
+                <!-- SOUS-TÂCHES -->
                 <div class="subtask-list">
                     <h4>Sous-tâches</h4>
                     <div id="subtasksList"></div>
-                    <button type="button" class="btn-add-subtask" onclick="openSubtaskModal()">+ Ajouter une sous-tâche</button>
+                    <button type="button" class="btn-add-subtask" onclick="addSubtaskInput()">+ Ajouter une sous-tâche</button>
                 </div>
 
                 <div class="button-group">
                     <button type="button" class="btn-cancel" onclick="closeTaskModal()">Annuler</button>
-                    <button type="button" class="btn-delete" id="btnDeleteTask" onclick="deleteTask()" style="display:none;">Supprimer</button>
+                    <button type="button" class="btn-delete" id="deleteBtn" style="display: none;" onclick="deleteTask()">Supprimer</button>
                     <button type="submit" class="btn-submit">Enregistrer</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- MODAL SOUS-TÂCHE -->
-    <div id="subtaskModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>Nouvelle Sous-tâche</h2>
-                <span class="close" onclick="closeSubtaskModal()">&times;</span>
-            </div>
-
-            <form id="subtaskForm" onsubmit="saveSubtask(event)">
-                <div class="form-group">
-                    <label for="subtaskName">Nom *</label>
-                    <input type="text" id="subtaskName" required>
-                </div>
-
-                <div class="form-group">
-                    <label for="subtaskDescription">Description</label>
-                    <textarea id="subtaskDescription" rows="2"></textarea>
-                </div>
-
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="subtaskStatus">Statut</label>
-                        <select id="subtaskStatus" onchange="updateSubtaskStatus()">
-                            <option value="a-faire">À faire</option>
-                            <option value="en-cours">En cours</option>
-                            <option value="en-retard">En retard</option>
-                            <option value="termine">Terminé</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="subtaskAFacturer">À facturer</label>
-                        <input type="checkbox" id="subtaskAFacturer" style="width: auto;">
-                    </div>
-                </div>
-
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="subtaskStartDate">Date début *</label>
-                        <input type="datetime-local" id="subtaskStartDate" required onchange="updateSubtaskDates()">
-                    </div>
-                    <div class="form-group">
-                        <label for="subtaskEndDate">Date fin *</label>
-                        <input type="datetime-local" id="subtaskEndDate" required onchange="updateSubtaskDates()">
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label for="subtaskDuration">Durée (heures) *</label>
-                    <input type="number" id="subtaskDuration" min="0.5" step="0.5" required onchange="updateSubtaskDates()">
-                </div>
-
-                <div class="button-group">
-                    <button type="button" class="btn-cancel" onclick="closeSubtaskModal()">Annuler</button>
-                    <button type="submit" class="btn-submit">Ajouter</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
     <script>
-        // ===== CONSTANTES =====
-        const WORK_START = 8.5;  // 8h30
-        const WORK_END = 18;     // 18h
+        // ===== CONSTANTS =====
+        const WORK_START = 8.5; // 8h30
+        const WORK_END = 18; // 18h
         const LUNCH_START = 12;
         const LUNCH_END = 14;
 
-        // ===== VARIABLES GLOBALES =====
+        // ===== STATE =====
         let tasks = [];
-        let outlookEvents = [];
         let currentDate = new Date();
         let currentView = 'jour';
         let currentEditingTaskId = null;
-        let currentEditingSubtaskIndex = null;
+        let draggedTask = null;
+        let dragOffsetY = 0;
 
-        // ===== STOCKAGE LOCAL =====
+        // ===== STORAGE =====
         function saveTasks() {
-            localStorage.setItem('tasks', JSON.stringify(tasks));
+            localStorage.setItem('chantierTasks', JSON.stringify(tasks));
         }
 
         function loadTasks() {
-            const data = localStorage.getItem('tasks');
-            tasks = data ? JSON.parse(data) : [];
+            const saved = localStorage.getItem('chantierTasks');
+            tasks = saved ? JSON.parse(saved) : [];
         }
 
-        // ===== MODAL TÂCHE =====
+        // ===== NAVIGATION =====
+        function switchView(view) {
+            currentView = view;
+            currentDate = new Date();
+            document.querySelectorAll('.view-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            renderPlanning();
+        }
+
+        function previousPeriod() {
+            if (currentView === 'jour') {
+                currentDate.setDate(currentDate.getDate() - 1);
+            } else if (currentView === 'semaine') {
+                currentDate.setDate(currentDate.getDate() - 7);
+            } else {
+                currentDate.setMonth(currentDate.getMonth() - 1);
+            }
+            renderPlanning();
+        }
+
+        function nextPeriod() {
+            if (currentView === 'jour') {
+                currentDate.setDate(currentDate.getDate() + 1);
+            } else if (currentView === 'semaine') {
+                currentDate.setDate(currentDate.getDate() + 7);
+            } else {
+                currentDate.setMonth(currentDate.getMonth() + 1);
+            }
+            renderPlanning();
+        }
+
+        // ===== CALCUL CHIFFRE D'AFFAIRES =====
+        function calculateMonthlyRevenue() {
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth();
+            
+            const revenue = tasks
+                .filter(t => {
+                    const taskDate = new Date(t.startDate);
+                    return taskDate.getFullYear() === year && 
+                           taskDate.getMonth() === month && 
+                           !t.aFacturer;
+                })
+                .reduce((sum, t) => sum + (t.cost || 0), 0);
+
+            return revenue;
+        }
+
+        function displayRevenue() {
+            const revenue = calculateMonthlyRevenue();
+            const monthName = currentDate.toLocaleDateString('fr-FR', { 
+                month: 'long', 
+                year: 'numeric' 
+            });
+
+            document.getElementById('revenueAmount').textContent = revenue.toFixed(2).replace('.', ',') + ' €';
+            document.getElementById('revenuePeriod').textContent = `Mois: ${monthName.charAt(0).toUpperCase() + monthName.slice(1)}`;
+        }
+
+        // ===== MODALE TÂCHE =====
         function openTaskModal(taskId = null) {
-            currentEditingTaskId = taskId;
             const modal = document.getElementById('taskModal');
-            const form = document.getElementById('taskForm');
+            const form = modal.querySelector('form');
+            const deleteBtn = document.getElementById('deleteBtn');
 
             if (taskId) {
+                currentEditingTaskId = taskId;
                 const task = tasks.find(t => t.id === taskId);
-                if (!task) return;
-
-                document.getElementById('taskModalTitle').textContent = 'Modifier la tâche';
+                
+                document.getElementById('modalTitle').textContent = 'Modifier la tâche';
                 document.getElementById('taskName').value = task.name;
                 document.getElementById('taskDescription').value = task.description || '';
                 document.getElementById('taskStatus').value = task.status;
-                document.getElementById('taskAFacturer').checked = task.aFacturer || false;
                 document.getElementById('taskStartDate').value = task.startDate;
                 document.getElementById('taskEndDate').value = task.endDate;
                 document.getElementById('taskDuration').value = task.duration;
+                document.getElementById('taskCost').value = task.cost || 0;
                 document.getElementById('taskRecurrence').value = task.recurrence || 'none';
-                document.getElementById('taskRecurrenceEnd').value = task.recurrenceEnd || '';
-                document.getElementById('btnDeleteTask').style.display = 'block';
+                document.getElementById('taskAFacturer').checked = task.aFacturer;
+
+                deleteBtn.style.display = 'block';
 
                 // Sous-tâches
-                renderSubtasksInModal(task.subtasks || []);
+                const subtasksList = document.getElementById('subtasksList');
+                subtasksList.innerHTML = '';
+                if (task.subtasks && task.subtasks.length > 0) {
+                    task.subtasks.forEach((st, idx) => {
+                        const el = document.createElement('div');
+                        el.className = 'subtask-item';
+                        el.innerHTML = `
+                            <div>
+                                <div class="subtask-item-name">${st.name}</div>
+                                <div class="subtask-item-duration">⏱️ ${st.duration}h</div>
+                            </div>
+                            <button type="button" class="btn-subtask-delete" onclick="removeSubtask(${idx})">Supprimer</button>
+                        `;
+                        subtasksList.appendChild(el);
+                    });
+                }
             } else {
+                currentEditingTaskId = null;
+                document.getElementById('modalTitle').textContent = 'Nouvelle Tâche';
                 form.reset();
-                document.getElementById('taskModalTitle').textContent = 'Nouvelle Tâche';
-                document.getElementById('btnDeleteTask').style.display = 'none';
-                
+                deleteBtn.style.display = 'none';
+
                 const now = new Date();
-                now.setHours(Math.max(WORK_START, now.getHours()));
-                now.setMinutes(0);
-                document.getElementById('taskStartDate').value = now.toISOString().slice(0, 16);
-                
                 const end = new Date(now);
-                end.setHours(end.getHours() + 1);
+                end.setHours(now.getHours() + 1);
+
+                document.getElementById('taskStartDate').value = now.toISOString().slice(0, 16);
                 document.getElementById('taskEndDate').value = end.toISOString().slice(0, 16);
                 document.getElementById('taskDuration').value = 1;
-                
+                document.getElementById('taskCost').value = 0;
+
                 document.getElementById('subtasksList').innerHTML = '';
             }
 
             modal.classList.add('show');
-            updateTaskStatus();
         }
 
         function closeTaskModal() {
@@ -822,76 +985,42 @@
             currentEditingTaskId = null;
         }
 
-        function updateTaskStatus() {
-            const status = document.getElementById('taskStatus').value;
-            const facturer = document.getElementById('taskAFacturer');
-            
-            if (status === 'termine') {
-                facturer.disabled = false;
-            } else {
-                facturer.checked = false;
-                facturer.disabled = true;
-            }
-        }
+        function saveTask(event) {
+            event.preventDefault();
 
-        function updateTaskDates() {
-            const start = new Date(document.getElementById('taskStartDate').value);
-            const end = new Date(document.getElementById('taskEndDate').value);
-            const duration = parseFloat(document.getElementById('taskDuration').value);
+            const taskData = {
+                name: document.getElementById('taskName').value,
+                description: document.getElementById('taskDescription').value,
+                status: document.getElementById('taskStatus').value,
+                aFacturer: document.getElementById('taskAFacturer').checked,
+                startDate: document.getElementById('taskStartDate').value,
+                endDate: document.getElementById('taskEndDate').value,
+                duration: parseFloat(document.getElementById('taskDuration').value),
+                cost: parseFloat(document.getElementById('taskCost').value) || 0,
+                recurrence: document.getElementById('taskRecurrence').value,
+                subtasks: []
+            };
 
-            if (isNaN(start) || isNaN(end)) return;
-
-            const diff = (end - start) / (1000 * 60 * 60);
-            document.getElementById('taskDuration').value = Math.max(0.5, Math.round(diff * 2) / 2);
-        }
-
-        function saveTask(e) {
-            e.preventDefault();
-
-            const name = document.getElementById('taskName').value;
-            const description = document.getElementById('taskDescription').value;
-            const status = document.getElementById('taskStatus').value;
-            const aFacturer = document.getElementById('taskAFacturer').checked && status === 'termine';
-            const startDate = document.getElementById('taskStartDate').value;
-            const endDate = document.getElementById('taskEndDate').value;
-            const duration = parseFloat(document.getElementById('taskDuration').value);
-            const recurrence = document.getElementById('taskRecurrence').value;
-            const recurrenceEnd = document.getElementById('taskRecurrenceEnd').value;
+            // Récupérer les sous-tâches
+            document.querySelectorAll('.subtask-item').forEach(el => {
+                const name = el.querySelector('.subtask-item-name').textContent;
+                const duration = parseFloat(el.querySelector('.subtask-item-duration').textContent.match(/[\d.]+/)[0]);
+                taskData.subtasks.push({ name, duration });
+            });
 
             if (currentEditingTaskId) {
                 const task = tasks.find(t => t.id === currentEditingTaskId);
-                if (task) {
-                    task.name = name;
-                    task.description = description;
-                    task.status = status;
-                    task.aFacturer = aFacturer;
-                    task.startDate = startDate;
-                    task.endDate = endDate;
-                    task.duration = duration;
-                    task.recurrence = recurrence;
-                    task.recurrenceEnd = recurrenceEnd;
-                }
+                Object.assign(task, taskData);
             } else {
-                const newTask = {
-                    id: Date.now(),
-                    name,
-                    description,
-                    status,
-                    aFacturer,
-                    startDate,
-                    endDate,
-                    duration,
-                    recurrence,
-                    recurrenceEnd,
-                    subtasks: []
-                };
-                tasks.push(newTask);
+                taskData.id = Date.now();
+                tasks.push(taskData);
             }
 
             saveTasks();
             closeTaskModal();
             renderSidebar();
             renderPlanning();
+            displayRevenue();
         }
 
         function deleteTask() {
@@ -901,511 +1030,385 @@
                 closeTaskModal();
                 renderSidebar();
                 renderPlanning();
+                displayRevenue();
             }
         }
 
-        // ===== SOUS-TÂCHES =====
-        function renderSubtasksInModal(subtasks) {
-            const container = document.getElementById('subtasksList');
-            if (!subtasks || subtasks.length === 0) {
-                container.innerHTML = '<p style="color: #999;">Aucune sous-tâche</p>';
-                return;
-            }
-
-            let html = '';
-            subtasks.forEach((st, idx) => {
-                html += `
-                    <div class="subtask-item">
-                        <div class="subtask-item-info">
-                            <div class="subtask-item-name">${st.name}</div>
-                            <div class="subtask-item-duration">🕐 ${st.duration}h | ${st.status}</div>
-                        </div>
-                        <button type="button" class="btn-subtask-delete" onclick="deleteSubtask(${idx})">Supprimer</button>
-                    </div>
-                `;
-            });
-            container.innerHTML = html;
+        function removeSubtask(idx) {
+            const subtasksList = document.getElementById('subtasksList');
+            subtasksList.children[idx].remove();
         }
 
-        function openSubtaskModal() {
-            if (!currentEditingTaskId) {
-                alert('Créez d\'abord la tâche principale');
-                return;
-            }
-            document.getElementById('subtaskModal').classList.add('show');
-            document.getElementById('subtaskForm').reset();
+        function addSubtaskInput() {
+            const subtaskName = prompt('Nom de la sous-tâche :');
+            if (!subtaskName) return;
 
-            const now = new Date();
-            now.setHours(Math.max(WORK_START, now.getHours()));
-            now.setMinutes(0);
-            document.getElementById('subtaskStartDate').value = now.toISOString().slice(0, 16);
-            
-            const end = new Date(now);
-            end.setHours(end.getHours() + 1);
-            document.getElementById('subtaskEndDate').value = end.toISOString().slice(0, 16);
-            document.getElementById('subtaskDuration').value = 1;
+            const subtaskDuration = parseFloat(prompt('Durée (heures) :') || '1');
+            if (isNaN(subtaskDuration)) return;
+
+            const el = document.createElement('div');
+            el.className = 'subtask-item';
+            el.innerHTML = `
+                <div>
+                    <div class="subtask-item-name">${subtaskName}</div>
+                    <div class="subtask-item-duration">⏱️ ${subtaskDuration}h</div>
+                </div>
+                <button type="button" class="btn-subtask-delete" onclick="this.parentElement.remove()">Supprimer</button>
+            `;
+
+            document.getElementById('subtasksList').appendChild(el);
         }
 
-        function closeSubtaskModal() {
-            document.getElementById('subtaskModal').classList.remove('show');
-        }
-
-        function updateSubtaskStatus() {
-            const status = document.getElementById('subtaskStatus').value;
-            const facturer = document.getElementById('subtaskAFacturer');
-            
-            if (status === 'termine') {
-                facturer.disabled = false;
-            } else {
-                facturer.checked = false;
-                facturer.disabled = true;
-            }
-        }
-
-        function updateSubtaskDates() {
-            const start = new Date(document.getElementById('subtaskStartDate').value);
-            const end = new Date(document.getElementById('subtaskEndDate').value);
-
-            if (isNaN(start) || isNaN(end)) return;
-
-            const diff = (end - start) / (1000 * 60 * 60);
-            document.getElementById('subtaskDuration').value = Math.max(0.5, Math.round(diff * 2) / 2);
-        }
-
-        function saveSubtask(e) {
-            e.preventDefault();
-
-            if (!currentEditingTaskId) {
-                alert('Erreur: tâche principale introuvable');
-                return;
-            }
-
-            const task = tasks.find(t => t.id === currentEditingTaskId);
-            if (!task) return;
-
-            const subtask = {
-                id: Date.now(),
-                name: document.getElementById('subtaskName').value,
-                description: document.getElementById('subtaskDescription').value,
-                startDate: document.getElementById('subtaskStartDate').value,
-                endDate: document.getElementById('subtaskEndDate').value,
-                duration: parseFloat(document.getElementById('subtaskDuration').value),
-                status: document.getElementById('subtaskStatus').value,
-                aFacturer: document.getElementById('subtaskAFacturer').checked &&
-                          document.getElementById('subtaskStatus').value === 'termine'
-            };
-
-            if (!task.subtasks) task.subtasks = [];
-            task.subtasks.push(subtask);
-
-            saveTasks();
-            closeSubtaskModal();
-            openTaskModal(currentEditingTaskId);
-            renderPlanning();
-        }
-
-        function deleteSubtask(index) {
-            if (confirm('Supprimer cette sous-tâche ?')) {
-                const task = tasks.find(t => t.id === currentEditingTaskId);
-                if (task && task.subtasks) {
-                    task.subtasks.splice(index, 1);
-                    saveTasks();
-                    openTaskModal(currentEditingTaskId);
-                    renderPlanning();
-                }
-            }
-        }
-
-        // ===== AFFICHAGE =====
+        // ===== AFFICHAGE SIDEBAR =====
         function renderSidebar() {
+            const tasksList = document.getElementById('tasksList');
+            const billableList = document.getElementById('billableList');
+            tasksList.innerHTML = '';
+            billableList.innerHTML = '';
+
             const statuses = ['a-faire', 'en-cours', 'en-retard', 'termine'];
-            const statusNames = {
-                'a-faire': '🔵 À faire',
-                'en-cours': '🟡 En cours',
+            const statusNames = { 
+                'a-faire': '🔵 À faire', 
+                'en-cours': '🟡 En cours', 
                 'en-retard': '🔴 En retard',
                 'termine': '🟢 Terminé'
             };
 
-            let html = '';
-
             statuses.forEach(status => {
-                const statusTasks = tasks.filter(t => t.status === status && !t.aFacturer);
-                const count = statusTasks.length;
+                const tasksInStatus = tasks.filter(t => t.status === status && !t.aFacturer);
+                
+                if (tasksInStatus.length > 0) {
+                    const section = document.createElement('div');
+                    section.className = 'status-section';
 
-                html += `
-                    <div class="status-list">
-                        <div class="status-title ${status}">
-                            ${statusNames[status]}
-                            <span class="status-count">${count}</span>
-                        </div>
-                        <div class="task-list">
-                `;
+                    const title = document.createElement('div');
+                    title.className = `status-title ${status}`;
+                    title.innerHTML = `${statusNames[status]} <span class="status-count">${tasksInStatus.length}</span>`;
+                    section.appendChild(title);
 
-                statusTasks.forEach(task => {
-                    html += `
-                        <div class="task-item" onclick="openTaskModal(${task.id})">
+                    const list = document.createElement('div');
+                    list.className = 'task-list';
+
+                    tasksInStatus.forEach(task => {
+                        const taskEl = document.createElement('div');
+                        taskEl.className = 'task-item';
+                        taskEl.onclick = () => openTaskModal(task.id);
+                        taskEl.innerHTML = `
                             <div class="task-item-title">${task.name}</div>
-                            <div class="task-item-meta">
-                                🕐 ${task.duration}h | ${formatDate(task.startDate)}
-                                ${task.recurrence !== 'none' ? ' 🔄' : ''}
-                            </div>
-                        </div>
-                    `;
+                            <div class="task-item-meta">⏱️ ${task.duration}h</div>
+                            <div class="task-item-meta">📅 ${new Date(task.startDate).toLocaleDateString('fr-FR')}</div>
+                            <div class="task-item-cost">💰 ${task.cost ? task.cost.toFixed(2) + ' €' : 'Non facturé'}</div>
+                        `;
+                        list.appendChild(taskEl);
 
-                    if (task.subtasks && task.subtasks.length > 0) {
-                        task.subtasks.filter(st => !st.aFacturer).forEach(st => {
-                            html += `
-                                <div class="task-item subtask" onclick="openTaskModal(${task.id})">
-                                    <div class="task-item-title">└─ ${st.name}</div>
-                                    <div class="task-item-meta">🕐 ${st.duration}h</div>
-                                </div>
-                            `;
-                        });
-                    }
-                });
+                        // Sous-tâches
+                        if (task.subtasks && task.subtasks.length > 0) {
+                            task.subtasks.forEach(st => {
+                                const subEl = document.createElement('div');
+                                subEl.className = 'task-item subtask';
+                                subEl.innerHTML = `
+                                    <div class="task-item-title">📌 ${st.name}</div>
+                                    <div class="task-item-meta">⏱️ ${st.duration}h</div>
+                                    <div class="task-item-parent">De: ${task.name}</div>
+                                `;
+                                list.appendChild(subEl);
+                            });
+                        }
+                    });
 
-                html += '</div></div>';
+                    section.appendChild(list);
+                    tasksList.appendChild(section);
+                }
             });
 
-            document.getElementById('tasksList').innerHTML = html;
-
-            // Liste À Facturer
+            // Liste à facturer
             const billableTasks = tasks.filter(t => t.aFacturer);
-            let billableHtml = '';
+            if (billableTasks.length > 0) {
+                const section = document.createElement('div');
+                section.className = 'status-section';
 
-            if (billableTasks.length === 0) {
-                billableHtml = '<p style="color: #999; text-align: center; padding: 20px;">Aucune tâche à facturer</p>';
-            } else {
-                billableHtml = '<div class="task-list">';
+                const title = document.createElement('div');
+                title.className = 'status-title a-facturer';
+                title.innerHTML = `💰 À facturer <span class="status-count">${billableTasks.length}</span>`;
+                section.appendChild(title);
+
+                const list = document.createElement('div');
+                list.className = 'task-list';
+
                 billableTasks.forEach(task => {
-                    billableHtml += `
-                        <div class="task-item" style="border-left-color: #6A1B9A;" onclick="openTaskModal(${task.id})">
-                            <div class="task-item-title">${task.name}</div>
-                            <div class="task-item-meta">💰 ${task.duration}h</div>
-                        </div>
+                    const taskEl = document.createElement('div');
+                    taskEl.className = 'task-item';
+                    taskEl.onclick = () => openTaskModal(task.id);
+                    taskEl.innerHTML = `
+                        <div class="task-item-title">${task.name}</div>
+                        <div class="task-item-meta">⏱️ ${task.duration}h</div>
+                        <div class="task-item-meta">📅 ${new Date(task.startDate).toLocaleDateString('fr-FR')}</div>
+                        <div class="task-item-cost">💰 ${task.cost ? task.cost.toFixed(2) + ' €' : 'Non facturé'}</div>
                     `;
-
-                    if (task.subtasks && task.subtasks.length > 0) {
-                        task.subtasks.filter(st => st.aFacturer).forEach(st => {
-                            billableHtml += `
-                                <div class="task-item subtask" onclick="openTaskModal(${task.id})">
-                                    <div class="task-item-title">└─ ${st.name}</div>
-                                    <div class="task-item-meta">💰 ${st.duration}h</div>
-                                </div>
-                            `;
-                        });
-                    }
+                    list.appendChild(taskEl);
                 });
-                billableHtml += '</div>';
+
+                section.appendChild(list);
+                billableList.appendChild(section);
             }
 
-            document.getElementById('billableList').innerHTML = billableHtml;
+            displayRevenue();
+        }
+
+        // ===== AFFICHAGE PLANNING =====
+        function renderPlanning() {
+            const content = document.getElementById('planningContent');
+            content.innerHTML = '';
+
+            if (currentView === 'jour') {
+                renderDayView(content);
+            } else if (currentView === 'semaine') {
+                renderWeekView(content);
+            } else {
+                renderMonthView(content);
+            }
+
+            updatePlanningDate();
+        }
+
+        function updatePlanningDate() {
+            const dateEl = document.getElementById('planningDate');
+            const options = { year: 'numeric', month: 'long', day: 'numeric' };
+
+            if (currentView === 'jour') {
+                dateEl.textContent = currentDate.toLocaleDateString('fr-FR', options);
+            } else if (currentView === 'semaine') {
+                const monday = new Date(currentDate);
+                monday.setDate(currentDate.getDate() - currentDate.getDay() + 1);
+                const friday = new Date(monday);
+                friday.setDate(monday.getDate() + 4);
+                dateEl.textContent = `${monday.toLocaleDateString('fr-FR')} - ${friday.toLocaleDateString('fr-FR')}`;
+            } else {
+                const monthName = currentDate.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
+                dateEl.textContent = monthName.charAt(0).toUpperCase() + monthName.slice(1);
+            }
         }
 
         // ===== VUE JOUR =====
-        function renderDayView() {
-            const date = new Date(currentDate);
-            const day = date.toLocaleDateString('fr-FR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-            document.getElementById('planningDate').textContent = day.charAt(0).toUpperCase() + day.slice(1);
+        function renderDayView(container) {
+            const html = '<div class="day-view">';
+            let hoursHtml = '<div class="day-hours">';
+            let timelineHtml = '<div class="day-timeline">';
 
-            let html = '<div class="day-view">';
-            html += '<div class="day-hours">';
-
-            // Heures
-            for (let h = WORK_START; h < WORK_END; h += 0.5) {
-                const hours = Math.floor(h);
-                const mins = (h % 1) * 60;
-                const timeStr = `${String(hours).padStart(2, '0')}:${String(mins).padStart(2, '0')}`;
-                html += `<div class="hour-slot ${h >= LUNCH_START && h < LUNCH_END ? 'lunch' : ''}">${timeStr}</div>`;
-            }
-
-            html += '</div><div class="day-timeline">';
-
-            // Créneaux horaires
-            for (let h = WORK_START; h < WORK_END; h += 0.5) {
+            for (let h = WORK_START; h < WORK_END; h++) {
+                const hourStr = Math.floor(h) + 'h' + (h % 1 === 0.5 ? '30' : '00');
                 const isLunch = h >= LUNCH_START && h < LUNCH_END;
-                html += `<div class="timeline-slot ${isLunch ? 'lunch' : ''}"></div>`;
+                hoursHtml += `<div class="hour-slot ${isLunch ? 'lunch' : ''}">${hourStr}</div>`;
+                timelineHtml += `<div class="timeline-slot ${isLunch ? 'lunch' : ''}"></div>`;
             }
+
+            hoursHtml += '</div>';
+            timelineHtml += '</div>';
+
+            container.innerHTML = html + hoursHtml + timelineHtml + '</div>';
 
             // Ajouter les tâches
-            const dayTasks = getTasksForDate(date);
+            const dayTasks = tasks.filter(t => {
+                const taskDate = new Date(t.startDate).toDateString();
+                const currentDateStr = currentDate.toDateString();
+                return taskDate === currentDateStr && !t.aFacturer && t.status !== 'termine';
+            });
+
+            const timeline = container.querySelector('.day-timeline');
+
             dayTasks.forEach(task => {
-                html += createTaskElement(task, date);
+                const start = new Date(task.startDate);
+                const topPercent = ((start.getHours() + start.getMinutes() / 60) - WORK_START) / (WORK_END - WORK_START);
+                const heightPercent = (task.duration / (WORK_END - WORK_START)) / 24;
+
+                const el = document.createElement('div');
+                el.className = `calendar-task ${task.status}`;
+                el.textContent = task.name;
+                el.style.top = (topPercent * 100) + '%';
+                el.style.height = (heightPercent * 100 * 24) + 'px';
+                el.onclick = () => openTaskModal(task.id);
+                makeTaskDraggable(el, task);
+
+                timeline.appendChild(el);
             });
-
-            // RDV Outlook
-            const dayOutlook = outlookEvents.filter(e => isSameDay(new Date(e.start), date));
-            dayOutlook.forEach(event => {
-                html += createOutlookElement(event);
-            });
-
-            html += '</div></div>';
-            document.getElementById('planningContent').innerHTML = html;
-
-            enableDragAndDrop();
-            enableResize();
         }
 
         // ===== VUE SEMAINE =====
-        function renderWeekView() {
-            const date = new Date(currentDate);
-            const startOfWeek = new Date(date);
-            startOfWeek.setDate(date.getDate() - date.getDay() + 1);
+        function renderWeekView(container) {
+            const monday = new Date(currentDate);
+            monday.setDate(currentDate.getDate() - currentDate.getDay() + 1);
 
-            const endOfWeek = new Date(startOfWeek);
-            endOfWeek.setDate(startOfWeek.getDate() + 4);
-
-            const weekStr = startOfWeek.toLocaleDateString('fr-FR') + ' - ' + endOfWeek.toLocaleDateString('fr-FR');
-            document.getElementById('planningDate').textContent = 'Semaine du ' + weekStr;
-
-            let html = '<div class="scroll-container"><div class="week-view">';
-
-            // En-têtes
-            html += '<div></div>';
+            let headerHtml = '<div class="week-header"><div class="week-day-header"></div>';
             for (let i = 0; i < 5; i++) {
-                const dayDate = new Date(startOfWeek);
-                dayDate.setDate(startOfWeek.getDate() + i);
-                const dayName = dayDate.toLocaleDateString('fr-FR', { weekday: 'short' });
-                const dayNum = dayDate.getDate();
-                html += `<div class="week-day-header">${dayName.toUpperCase()} ${dayNum}</div>`;
+                const day = new Date(monday);
+                day.setDate(monday.getDate() + i);
+                const dayName = day.toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric' });
+                headerHtml += `<div class="week-day-header">${dayName}</div>`;
             }
+            headerHtml += '</div>';
 
-            // Heures
-            html += '<div class="week-hours">';
-            for (let h = WORK_START; h < WORK_END; h += 0.5) {
-                const hours = Math.floor(h);
-                const mins = (h % 1) * 60;
-                const timeStr = `${String(hours).padStart(2, '0')}:${String(mins).padStart(2, '0')}`;
-                html += `<div class="hour-slot">${timeStr}</div>`;
+            let bodyHtml = '<div class="week-body"><div class="week-hours">';
+            for (let h = WORK_START; h < WORK_END; h++) {
+                const hourStr = Math.floor(h) + 'h' + (h % 1 === 0.5 ? '30' : '00');
+                bodyHtml += `<div class="hour-slot">${hourStr}</div>`;
             }
-            html += '</div>';
+            bodyHtml += '</div>';
 
-            // Colonnes
             for (let i = 0; i < 5; i++) {
-                const dayDate = new Date(startOfWeek);
-                dayDate.setDate(startOfWeek.getDate() + i);
-                
-                html += `<div class="week-column">`;
-
-                const dayTasks = getTasksForDate(dayDate);
-                dayTasks.forEach(task => {
-                    html += createTaskElement(task, dayDate);
-                });
-
-                const dayOutlook = outlookEvents.filter(e => isSameDay(new Date(e.start), dayDate));
-                dayOutlook.forEach(event => {
-                    html += createOutlookElement(event);
-                });
-
-                html += '</div>';
+                bodyHtml += '<div class="week-column">';
+                for (let h = WORK_START; h < WORK_END; h++) {
+                    const isLunch = h >= LUNCH_START && h < LUNCH_END;
+                    bodyHtml += `<div class="week-slot ${isLunch ? 'lunch' : ''}"></div>`;
+                }
+                bodyHtml += '</div>';
             }
 
-            html += '</div></div>';
-            document.getElementById('planningContent').innerHTML = html;
+            bodyHtml += '</div>';
 
-            enableDragAndDrop();
-            enableResize();
+            const html = '<div class="week-view">' + headerHtml + bodyHtml + '</div>';
+            container.innerHTML = html;
+
+            // Ajouter les tâches
+            const weekView = container.querySelector('.week-view');
+            const columns = weekView.querySelectorAll('.week-column');
+
+            // Tâches multi-jours
+            const multiDayTasks = tasks.filter(t => {
+                const start = new Date(t.startDate);
+                const end = new Date(t.endDate);
+                const daysDiff = (end - start) / (1000 * 60 * 60 * 24);
+                return daysDiff >= 1 && !t.aFacturer && t.status !== 'termine';
+            });
+
+            multiDayTasks.forEach(task => {
+                const start = new Date(task.startDate);
+                const end = new Date(task.endDate);
+                const startDay = Math.max(0, Math.floor((start - monday) / (1000 * 60 * 60 * 24)));
+                const endDay = Math.min(4, Math.floor((end - monday) / (1000 * 60 * 60 * 24)));
+
+                if (startDay <= 4 && endDay >= 0) {
+                    const container = document.createElement('div');
+                    container.className = 'multi-day-container';
+                    container.style.gridColumn = `${startDay + 2} / span ${endDay - startDay + 1}`;
+
+                    const taskEl = document.createElement('div');
+                    taskEl.className = `multi-day-task ${task.status}`;
+                    if (startDay === 0) taskEl.classList.add('multi-day-task-start');
+                    if (endDay === 4) taskEl.classList.add('multi-day-task-end');
+                    taskEl.textContent = task.name;
+                    taskEl.onclick = (e) => {
+                        e.stopPropagation();
+                        openTaskModal(task.id);
+                    };
+
+                    container.appendChild(taskEl);
+                    weekView.appendChild(container);
+                }
+            });
+
+            // Tâches simples
+            const singleDayTasks = tasks.filter(t => {
+                const daysDiff = (new Date(t.endDate) - new Date(t.startDate)) / (1000 * 60 * 60 * 24);
+                return daysDiff < 1 && !t.aFacturer && t.status !== 'termine';
+            });
+
+            singleDayTasks.forEach(task => {
+                const start = new Date(task.startDate);
+                const dayIndex = Math.floor((start - monday) / (1000 * 60 * 60 * 24));
+
+                if (dayIndex >= 0 && dayIndex < 5) {
+                    const column = columns[dayIndex];
+                    const topPercent = ((start.getHours() + start.getMinutes() / 60) - WORK_START) / (WORK_END - WORK_START);
+
+                    const el = document.createElement('div');
+                    el.className = `calendar-task ${task.status}`;
+                    el.textContent = task.name;
+                    el.style.top = (topPercent * 100) + '%';
+                    el.style.height = (task.duration / (WORK_END - WORK_START)) * 100 + '%';
+                    el.onclick = () => openTaskModal(task.id);
+                    makeTaskDraggable(el, task);
+
+                    column.appendChild(el);
+                }
+            });
         }
 
         // ===== VUE MOIS =====
-        function renderMonthView() {
-            const date = new Date(currentDate);
-            const year = date.getFullYear();
-            const month = date.getMonth();
-
-            document.getElementById('planningDate').textContent = 
-                date.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' }).toUpperCase();
+        function renderMonthView(container) {
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth();
+            const firstDay = new Date(year, month, 1);
+            const lastDay = new Date(year, month + 1, 0);
+            const startDate = new Date(firstDay);
+            startDate.setDate(startDate.getDate() - firstDay.getDay() + 1);
 
             let html = '<div class="month-view">';
 
-            // Headers
-            const dayNames = ['LUN', 'MAR', 'MER', 'JEU', 'VEN', 'SAM', 'DIM'];
+            // En-têtes jours
+            const dayNames = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
             dayNames.forEach(day => {
                 html += `<div class="month-day-header">${day}</div>`;
             });
 
-            const firstDay = new Date(year, month, 1);
-            const lastDay = new Date(year, month + 1, 0);
+            // Jours du mois
+            for (let i = 0; i < 42; i++) {
+                const d = new Date(startDate);
+                d.setDate(startDate.getDate() + i);
 
-            const startDate = new Date(firstDay);
-            startDate.setDate(startDate.getDate() - firstDay.getDay() + 1);
+                const isCurrentMonth = d.getMonth() === month;
+                const isWeekend = d.getDay() === 0 || d.getDay() === 6;
+                const classes = ['month-day'];
+                if (!isCurrentMonth) classes.push('other-month');
+                if (isWeekend) classes.push('weekend');
 
-            const totalDays = Math.ceil((lastDay.getDate() + (firstDay.getDay() - 1)) / 7) * 7;
-
-            for (let i = 0; i < totalDays; i++) {
-                const currentDay = new Date(startDate);
-                currentDay.setDate(startDate.getDate() + i);
-
-                const isOtherMonth = currentDay.getMonth() !== month;
-                const isWeekend = currentDay.getDay() === 0 || currentDay.getDay() === 6;
-
-                html += `<div class="month-day ${isOtherMonth ? 'other-month' : ''} ${isWeekend ? 'weekend' : ''}">`;
-                html += `<div class="month-day-date">${currentDay.getDate()}</div>`;
-                html += '<div class="month-tasks">';
-
-                const dayTasks = getTasksForDate(currentDay);
-                dayTasks.slice(0, 3).forEach(task => {
-                    html += `
-                        <div class="month-task ${task.status}" 
-                             onclick="openTaskModal(${task.id})"
-                             title="${task.name}">
-                            ${task.name}
-                        </div>
-                    `;
-                });
-
-                if (dayTasks.length > 3) {
-                    html += `<div class="month-task" style="background: #999;">+${dayTasks.length - 3}</div>`;
-                }
-
-                const dayOutlook = outlookEvents.filter(e => isSameDay(new Date(e.start), currentDay));
-                dayOutlook.forEach(event => {
-                    html += `<div class="month-task outlook" title="${event.title}">📅 ${event.title}</div>`;
-                });
-
-                html += '</div></div>';
+                html += `<div class="${classes.join(' ')}">
+                    <div class="month-day-date">${d.getDate()}</div>
+                    <div class="month-tasks"></div>
+                </div>`;
             }
 
             html += '</div>';
-            document.getElementById('planningContent').innerHTML = html;
-        }
+            container.innerHTML = html;
 
-        // ===== HELPERS =====
-        function getTasksForDate(date) {
-            return tasks.filter(task => {
-                if (task.status === 'termine' || task.aFacturer) return false;
-                const taskStart = new Date(task.startDate);
-                return isSameDay(taskStart, date);
+            // Ajouter les tâches
+            const monthDays = container.querySelectorAll('.month-day');
+            monthDays.forEach((dayEl, idx) => {
+                const d = new Date(startDate);
+                d.setDate(startDate.getDate() + idx);
+
+                const dayTasks = tasks.filter(t => {
+                    const taskDate = new Date(t.startDate).toDateString();
+                    const dayStr = d.toDateString();
+                    return taskDate === dayStr && !t.aFacturer && t.status !== 'termine';
+                });
+
+                const tasksContainer = dayEl.querySelector('.month-tasks');
+                dayTasks.forEach(task => {
+                    const el = document.createElement('div');
+                    el.className = `month-task ${task.status}`;
+                    el.textContent = task.name;
+                    el.onclick = () => openTaskModal(task.id);
+                    tasksContainer.appendChild(el);
+                });
             });
-        }
-
-        function isSameDay(d1, d2) {
-            return d1.getFullYear() === d2.getFullYear() &&
-                   d1.getMonth() === d2.getMonth() &&
-                   d1.getDate() === d2.getDate();
-        }
-
-        function formatDate(dateStr) {
-            const date = new Date(dateStr);
-            return date.toLocaleDateString('fr-FR', { month: 'short', day: 'numeric' });
-        }
-
-        function createTaskElement(task, dateContext) {
-            const start = new Date(task.startDate);
-            const end = new Date(task.endDate);
-            const startHour = start.getHours() + start.getMinutes() / 60;
-            const duration = (end - start) / (1000 * 60 * 60);
-
-            const topPercent = ((startHour - WORK_START) / (WORK_END - WORK_START)) * 100;
-            const heightPercent = (duration / (WORK_END - WORK_START)) * 100;
-
-            return `
-                <div class="calendar-task ${task.subtasks && task.subtasks.length > 0 ? 'subtask' : task.status}" 
-                     draggable="true"
-                     data-task-id="${task.id}"
-                     style="top: ${topPercent}%; height: ${heightPercent}%;"
-                     ondblclick="openTaskModal(${task.id})"
-                     title="${task.name}">
-                    <div class="calendar-task-label">${task.name}</div>
-                    <div class="calendar-task-duration">${task.duration}h</div>
-                    <div class="task-resize-handle"></div>
-                </div>
-            `;
-        }
-
-        function createOutlookElement(event) {
-            const start = new Date(event.start);
-            const end = new Date(event.end);
-            const startHour = start.getHours() + start.getMinutes() / 60;
-            const duration = (end - start) / (1000 * 60 * 60);
-
-            const topPercent = ((startHour - WORK_START) / (WORK_END - WORK_START)) * 100;
-            const heightPercent = (duration / (WORK_END - WORK_START)) * 100;
-
-            return `
-                <div class="calendar-task outlook" 
-                     style="top: ${topPercent}%; height: ${heightPercent}%; cursor: default;"
-                     title="📅 ${event.title}">
-                    <div class="calendar-task-label">📅 ${event.title}</div>
-                    <div class="calendar-task-duration">${duration.toFixed(1)}h</div>
-                </div>
-            `;
-        }
-
-        function switchView(view) {
-            currentView = view;
-            document.querySelectorAll('.view-btn').forEach(btn => btn.classList.remove('active'));
-            event.target.classList.add('active');
-            renderPlanning();
-        }
-
-        function previousPeriod() {
-            if (currentView === 'jour') currentDate.setDate(currentDate.getDate() - 1);
-            else if (currentView === 'semaine') currentDate.setDate(currentDate.getDate() - 7);
-            else currentDate.setMonth(currentDate.getMonth() - 1);
-            renderPlanning();
-        }
-
-        function nextPeriod() {
-            if (currentView === 'jour') currentDate.setDate(currentDate.getDate() + 1);
-            else if (currentView === 'semaine') currentDate.setDate(currentDate.getDate() + 7);
-            else currentDate.setMonth(currentDate.getMonth() + 1);
-            renderPlanning();
-        }
-
-        function renderPlanning() {
-            if (currentView === 'jour') renderDayView();
-            else if (currentView === 'semaine') renderWeekView();
-            else renderMonthView();
         }
 
         // ===== DRAG & DROP =====
-        let draggingTask = null;
-        let resizingTask = null;
+        function makeTaskDraggable(el, task) {
+            el.addEventListener('mousedown', (e) => {
+                draggedTask = task;
+                dragOffsetY = e.clientY - el.getBoundingClientRect().top;
 
-        function enableDragAndDrop() {
-            document.querySelectorAll('.calendar-task').forEach(task => {
-                task.addEventListener('dragstart', (e) => {
-                    draggingTask = task.dataset.taskId;
-                    e.dataTransfer.effectAllowed = 'move';
-                });
+                const handleMouseMove = (moveEvent) => {
+                    if (currentView === 'jour') {
+                        const timeline = document.querySelector('.day-timeline');
+                        const rect = timeline.getBoundingClientRect();
+                        const y = moveEvent.clientY - rect.top;
+                        const percent = y / rect.height;
+                        const hours = WORK_START + (percent * (WORK_END - WORK_START));
 
-                task.addEventListener('dragend', () => {
-                    draggingTask = null;
-                });
-
-                // Resize
-                const handle = task.querySelector('.task-resize-handle');
-                if (handle) {
-                    handle.addEventListener('mousedown', (e) => {
-                        e.stopPropagation();
-                        resizeTask(task, e);
-                    });
-                }
-            });
-
-            document.querySelectorAll('.day-timeline, .week-column').forEach(zone => {
-                zone.addEventListener('dragover', (e) => {
-                    e.preventDefault();
-                    e.dataTransfer.dropEffect = 'move';
-                });
-
-                zone.addEventListener('drop', (e) => {
-                    e.preventDefault();
-                    if (!draggingTask) return;
-
-                    const rect = zone.getBoundingClientRect();
-                    const y = e.clientY - rect.top;
-                    const heightPercent = (y / rect.height) * 100;
-                    const hoursFromStart = (heightPercent / 100) * (WORK_END - WORK_START);
-                    const newHour = WORK_START + hoursFromStart;
-
-                    const task = tasks.find(t => t.id === parseInt(draggingTask));
-                    if (task) {
-                        const oldStart = new Date(task.startDate);
-                        const newStart = new Date(oldStart);
-                        newStart.setHours(Math.floor(newHour));
-                        newStart.setMinutes((newHour % 1) * 60);
+                        const newStart = new Date(currentDate);
+                        newStart.setHours(Math.floor(hours), Math.round((hours % 1) * 60), 0);
 
                         const newEnd = new Date(newStart);
                         newEnd.setHours(newEnd.getHours() + task.duration);
@@ -1415,109 +1418,66 @@
 
                         saveTasks();
                         renderPlanning();
-                        renderSidebar();
                     }
+                };
 
-                    draggingTask = null;
-                });
+                const handleMouseUp = () => {
+                    document.removeEventListener('mousemove', handleMouseMove);
+                    document.removeEventListener('mouseup', handleMouseUp);
+                    draggedTask = null;
+                };
+
+                document.addEventListener('mousemove', handleMouseMove);
+                document.addEventListener('mouseup', handleMouseUp);
+
+                e.preventDefault();
+            });
+
+            // Redimensionnement par le bord droit
+            const resizeHandle = document.createElement('div');
+            resizeHandle.style.position = 'absolute';
+            resizeHandle.style.right = '0';
+            resizeHandle.style.top = '0';
+            resizeHandle.style.width = '5px';
+            resizeHandle.style.height = '100%';
+            resizeHandle.style.cursor = 'ew-resize';
+            resizeHandle.style.background = 'transparent';
+            el.appendChild(resizeHandle);
+
+            resizeHandle.addEventListener('mousedown', (e) => {
+                const startX = e.clientX;
+                const startDuration = task.duration;
+
+                const handleMouseMove = (moveEvent) => {
+                    const deltaX = moveEvent.clientX - startX;
+                    const hoursPerPixel = (WORK_END - WORK_START) / 200;
+                    const additionalHours = deltaX * hoursPerPixel / 20;
+
+                    const newDuration = Math.max(0.5, startDuration + additionalHours);
+                    task.duration = Math.round(newDuration * 2) / 2;
+
+                    const newEnd = new Date(task.startDate);
+                    newEnd.setHours(newEnd.getHours() + task.duration);
+                    task.endDate = newEnd.toISOString().slice(0, 16);
+
+                    saveTasks();
+                    renderPlanning();
+                };
+
+                const handleMouseUp = () => {
+                    document.removeEventListener('mousemove', handleMouseMove);
+                    document.removeEventListener('mouseup', handleMouseUp);
+                };
+
+                document.addEventListener('mousemove', handleMouseMove);
+                document.addEventListener('mouseup', handleMouseUp);
+
+                e.preventDefault();
             });
         }
 
-        function resizeTask(taskElement, e) {
-            const taskId = parseInt(taskElement.dataset.taskId);
-            const task = tasks.find(t => t.id === taskId);
-            if (!task) return;
-
-            const startX = e.clientX;
-            const startHeight = taskElement.offsetHeight;
-            const container = taskElement.parentElement;
-            const containerHeight = container.offsetHeight;
-
-            function onMouseMove(moveEvent) {
-                const deltaX = moveEvent.clientX - startX;
-                const deltaPercent = (deltaX / containerHeight) * 100;
-                const container = taskElement.parentElement;
-                const hoursPerPixel = (WORK_END - WORK_START) / container.offsetHeight;
-                const additionalHours = (moveEvent.clientY - e.clientY) * hoursPerPixel;
-
-                const newDuration = Math.max(0.5, task.duration + (additionalHours / 60));
-                task.duration = Math.round(newDuration * 2) / 2;
-
-                const start = new Date(task.startDate);
-                const newEnd = new Date(start);
-                newEnd.setHours(newEnd.getHours() + task.duration);
-
-                task.endDate = newEnd.toISOString().slice(0, 16);
-
-                saveTasks();
-                renderPlanning();
-            }
-
-            function onMouseUp() {
-                document.removeEventListener('mousemove', onMouseMove);
-                document.removeEventListener('mouseup', onMouseUp);
-                renderSidebar();
-            }
-
-            document.addEventListener('mousemove', onMouseMove);
-            document.addEventListener('mouseup', onMouseUp);
-        }
-
-        function enableResize() {
-            document.querySelectorAll('.task-resize-handle').forEach(handle => {
-                handle.addEventListener('mousedown', (e) => {
-                    e.stopPropagation();
-                    const taskElement = handle.closest('.calendar-task');
-                    const taskId = parseInt(taskElement.dataset.taskId);
-                    const task = tasks.find(t => t.id === taskId);
-                    if (!task) return;
-
-                    const startY = e.clientY;
-                    const startEndDate = new Date(task.endDate);
-
-                    function onMouseMove(moveEvent) {
-                        const deltaY = moveEvent.clientY - startY;
-                        const container = taskElement.parentElement;
-                        const hoursPerPixel = (WORK_END - WORK_START) / container.offsetHeight;
-                        const additionalHours = deltaY * hoursPerPixel;
-
-                        const newEnd = new Date(startEndDate);
-                        newEnd.setHours(newEnd.getHours() + (additionalHours / 60));
-
-                        const newDuration = (newEnd - new Date(task.startDate)) / (1000 * 60 * 60);
-                        task.duration = Math.max(0.5, Math.round(newDuration * 2) / 2);
-                        task.endDate = newEnd.toISOString().slice(0, 16);
-
-                        saveTasks();
-                        renderPlanning();
-                    }
-
-                    function onMouseUp() {
-                        document.removeEventListener('mousemove', onMouseMove);
-                        document.removeEventListener('mouseup', onMouseUp);
-                        renderSidebar();
-                    }
-
-                    document.addEventListener('mousemove', onMouseMove);
-                    document.addEventListener('mouseup', onMouseUp);
-                });
-            });
-        }
-
-        // ===== OUTLOOK SYNC =====
         function syncOutlook() {
-            alert('⚠️ La synchronisation Outlook nécessite une configuration API Microsoft 365.\n\nPour l\'intégrer complètement, vous devez :\n\n1. Créer une application dans Azure AD\n2. Configurer les permissions Graph API\n3. Utiliser MSAL.js pour l\'authentification\n\nPour l\'instant, l\'app fonctionne localement avec stockage localStorage.');
-            
-            // Simulation : Ajouter un exemple d\'événement Outlook
-            outlookEvents.push({
-                id: 'outlook-' + Date.now(),
-                title: 'Réunion client',
-                start: new Date().toISOString(),
-                end: new Date(Date.now() + 3600000).toISOString(),
-                isOutlook: true
-            });
-
-            renderPlanning();
+            alert('⚠️ Synchronisation Outlook\n\nPour intégrer Outlook :\n1. Créer une app dans Azure AD\n2. Configurer les permissions Graph API\n3. Configurer OAuth 2.0\n\nPour l\'instant, testez avec des tâches locales !');
         }
 
         // ===== INIT =====
@@ -1528,10 +1488,6 @@
 
             document.getElementById('taskModal').addEventListener('click', (e) => {
                 if (e.target.id === 'taskModal') closeTaskModal();
-            });
-
-            document.getElementById('subtaskModal').addEventListener('click', (e) => {
-                if (e.target.id === 'subtaskModal') closeSubtaskModal();
             });
         });
     </script>
