@@ -3,164 +3,179 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chantier - Gestion de Tâches et Planning</title>
+    <title>Chantier - Planning de Tâches</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f5f5f5; padding: 20px; }
-        .container { max-width: 1800px; margin: 0 auto; }
-        header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; border-radius: 12px; margin-bottom: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); display: flex; justify-content: space-between; align-items: center; }
-        header h1 { font-size: 2.5em; margin: 0; }
-        .btn-new-task { background: white; color: #667eea; border: none; padding: 12px 25px; border-radius: 8px; font-size: 1em; font-weight: bold; cursor: pointer; transition: all 0.3s; }
-        .btn-new-task:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0,0,0,0.2); }
-        .main-layout { display: grid; grid-template-columns: 35% 65%; gap: 20px; }
-        @media (max-width: 1200px) { .main-layout { grid-template-columns: 1fr; } }
-        .todo-section { background: white; border-radius: 12px; padding: 25px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); max-height: 80vh; overflow-y: auto; }
-        .todo-section h2 { color: #333; margin-bottom: 20px; font-size: 1.5em; }
-        .status-columns { display: flex; flex-direction: column; gap: 15px; }
-        .status-column { border: 2px solid #e0e0e0; border-radius: 8px; padding: 15px; min-height: 100px; background: #fafafa; }
-        .status-column h3 { margin-bottom: 10px; font-size: 1.1em; }
-        .status-column.a-faire { border-top: 4px solid #2196F3; background: #e3f2fd; }
-        .status-column.en-cours { border-top: 4px solid #FFC107; background: #fff8e1; }
-        .status-column.en-retard { border-top: 4px solid #F44336; background: #ffebee; }
-        .status-column.termine { border-top: 4px solid #4CAF50; background: #e8f5e9; }
-        .task-item { background: white; padding: 12px; margin: 8px 0; border-radius: 6px; cursor: pointer; border-left: 4px solid #667eea; box-shadow: 0 2px 8px rgba(0,0,0,0.1); transition: all 0.2s; }
-        .task-item:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.15); transform: translateY(-2px); }
-        .task-name { font-weight: bold; color: #333; margin-bottom: 5px; }
-        .planning-section { background: white; border-radius: 12px; padding: 25px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
-        .planning-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
-        .nav-buttons { display: flex; gap: 10px; flex-wrap: wrap; }
-        button { background: #667eea; color: white; border: none; padding: 10px 15px; border-radius: 6px; cursor: pointer; transition: all 0.3s; }
-        button:hover { background: #764ba2; transform: translateY(-2px); }
-        .nav-mode-btn { background: #e0e0e0; color: #333; }
-        .nav-mode-btn.active { background: #667eea; color: white; }
-        .calendar-view { display: none; }
-        .calendar-view.active { display: block; }
-        .day-container { margin: 20px 0; }
-        .day-header { background: #667eea; color: white; padding: 12px; border-radius: 6px 6px 0 0; font-weight: bold; }
-        .timeline { position: relative; height: 60px; background: #f9f9f9; border: 1px solid #e0e0e0; border-bottom: none; display: flex; align-items: center; padding: 5px; }
-        .timeline:last-child { border-bottom: 1px solid #e0e0e0; border-radius: 0 0 6px 6px; }
-        .timeline-label { width: 60px; font-weight: bold; font-size: 0.9em; padding-right: 10px; border-right: 1px solid #ddd; }
-        .task-bar { position: relative; height: 40px; border-radius: 4px; display: flex; align-items: center; padding: 0 8px; color: white; font-size: 0.85em; font-weight: bold; cursor: move; margin: 0 5px; user-select: none; border: 2px solid transparent; transition: all 0.2s; }
-        .task-bar:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
-        .task-bar.a-faire { background: #2196F3; }
+        body { font-family: Arial, sans-serif; background: #f5f5f5; padding: 20px; }
+        .container { max-width: 1400px; margin: 0 auto; }
+        header { background: #667eea; color: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
+        .btn-new { background: white; color: #667eea; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; }
+        .btn-new:hover { background: #f0f0f0; }
+        .main-grid { display: grid; grid-template-columns: 30% 70%; gap: 20px; }
+        .todo-section, .planning-section { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .todo-section h2, .planning-section h2 { margin-bottom: 15px; color: #333; }
+        .status-column { margin-bottom: 15px; border: 2px solid #ddd; border-radius: 5px; padding: 10px; min-height: 80px; }
+        .status-column h3 { font-size: 0.95em; margin-bottom: 10px; padding: 5px; background: #f0f0f0; border-radius: 3px; }
+        .status-column.a-faire { border-left: 4px solid #2196F3; }
+        .status-column.en-cours { border-left: 4px solid #FFC107; }
+        .status-column.en-retard { border-left: 4px solid #F44336; }
+        .status-column.termine { border-left: 4px solid #4CAF50; }
+        .task-item { background: #f9f9f9; padding: 10px; margin: 5px 0; border-radius: 4px; cursor: pointer; border-left: 3px solid #667eea; }
+        .task-item:hover { background: #f0f0f0; }
+        .task-item-name { font-weight: bold; }
+        .task-item-info { font-size: 0.85em; color: #666; }
+
+        .planning-controls { margin-bottom: 15px; display: flex; gap: 10px; flex-wrap: wrap; }
+        .planning-controls button { background: #667eea; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; }
+        .planning-controls button:hover { background: #5568d3; }
+        .planning-controls button.active { background: #333; }
+
+        .timeline { margin: 10px 0; }
+        .time-label { font-weight: bold; color: #333; margin-bottom: 5px; }
+        .day-tasks { display: flex; gap: 5px; flex-wrap: wrap; align-items: center; min-height: 40px; padding: 5px; background: #f9f9f9; border-radius: 4px; }
+        
+        .task-bar { 
+            height: 35px; 
+            background: #2196F3; 
+            color: white; 
+            padding: 5px 8px; 
+            border-radius: 3px; 
+            cursor: move; 
+            display: flex; 
+            align-items: center; 
+            font-size: 0.85em; 
+            white-space: nowrap; 
+            overflow: hidden; 
+            text-overflow: ellipsis;
+            user-select: none;
+            position: relative;
+            border: 2px solid transparent;
+            min-width: 80px;
+        }
+
         .task-bar.en-cours { background: #FFC107; color: #333; }
         .task-bar.en-retard { background: #F44336; }
-        .task-bar.termine { background: #4CAF50; opacity: 0.6; }
-        .task-bar.dragging { opacity: 0.7; border: 2px solid #fff; }
-        .task-bar.resize-handle { cursor: ew-resize; }
-        .resize-handle::after { content: ''; position: absolute; right: 0; top: 0; bottom: 0; width: 8px; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.5)); cursor: ew-resize; }
-        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); align-items: center; justify-content: center; }
-        .modal.active { display: flex; }
-        .modal-content { background: white; padding: 30px; border-radius: 12px; width: 90%; max-width: 500px; box-shadow: 0 15px 40px rgba(0,0,0,0.3); max-height: 90vh; overflow-y: auto; }
+        .task-bar.termine { background: #4CAF50; opacity: 0.7; }
+        .task-bar.dragging { opacity: 0.6; border: 2px dashed white; }
+        .task-bar::after { content: ''; position: absolute; right: 0; top: 0; width: 10px; height: 100%; cursor: ew-resize; }
+
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; }
+        .modal.show { display: flex; }
+        .modal-content { background: white; padding: 25px; border-radius: 8px; width: 90%; max-width: 500px; box-shadow: 0 10px 40px rgba(0,0,0,0.3); }
         .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .close-btn { background: none; color: #999; font-size: 1.5em; cursor: pointer; border: none; padding: 0; }
+        .modal-header h3 { margin: 0; }
+        .close-btn { background: none; border: none; font-size: 1.5em; cursor: pointer; color: #999; }
         .form-group { margin-bottom: 15px; }
-        .form-group label { display: block; margin-bottom: 5px; color: #333; font-weight: bold; }
-        .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 0.95em; }
-        .form-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+        .form-group label { display: block; font-weight: bold; margin-bottom: 5px; }
+        .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
         .form-buttons { display: flex; gap: 10px; margin-top: 20px; }
-        .form-buttons button { flex: 1; padding: 12px; }
+        .form-buttons button { flex: 1; padding: 10px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        .btn-save { background: #4CAF50; color: white; }
         .btn-cancel { background: #ccc; }
-        .btn-cancel:hover { background: #aaa; }
-        .btn-delete { background: #F44336; }
-        .btn-delete:hover { background: #D32F2F; }
+        .btn-delete { background: #F44336; color: white; }
+
+        .day-view { margin: 20px 0; border: 1px solid #ddd; border-radius: 5px; overflow: hidden; }
+        .day-header { background: #667eea; color: white; padding: 10px; font-weight: bold; }
+        .week-view { display: grid; grid-template-columns: repeat(7, 1fr); gap: 10px; }
+        .week-day { border: 1px solid #ddd; border-radius: 5px; }
+        .week-day-header { background: #667eea; color: white; padding: 8px; font-size: 0.9em; text-align: center; }
+        .week-day-tasks { padding: 8px; min-height: 300px; }
+
+        .month-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; }
+        .month-day { border: 1px solid #ddd; padding: 8px; min-height: 100px; border-radius: 3px; font-size: 0.9em; }
+        .month-day.other { background: #f5f5f5; color: #ccc; }
+        .month-day-num { font-weight: bold; margin-bottom: 5px; }
+        .month-task { background: #e3f2fd; padding: 2px 4px; margin: 2px 0; border-radius: 2px; font-size: 0.8em; cursor: pointer; }
     </style>
 </head>
 <body>
     <div class="container">
         <header>
             <h1>📋 Chantier</h1>
-            <button class="btn-new-task" onclick="openTaskModal()">+ Nouvelle Tâche</button>
+            <button class="btn-new" onclick="openModal()">+ Nouvelle Tâche</button>
         </header>
 
-        <div class="main-layout">
+        <div class="main-grid">
+            <!-- TO DO LIST -->
             <div class="todo-section">
-                <h2>📝 To Do List</h2>
-                <div class="status-columns">
-                    <div class="status-column a-faire">
-                        <h3>🔵 À Faire</h3>
-                        <div id="column-a-faire"></div>
-                    </div>
-                    <div class="status-column en-cours">
-                        <h3>🟡 En Cours</h3>
-                        <div id="column-en-cours"></div>
-                    </div>
-                    <div class="status-column en-retard">
-                        <h3>🔴 En Retard</h3>
-                        <div id="column-en-retard"></div>
-                    </div>
-                    <div class="status-column termine">
-                        <h3>🟢 Terminé</h3>
-                        <div id="column-termine"></div>
-                    </div>
+                <h2>📝 À Faire</h2>
+                <div class="status-column a-faire">
+                    <h3>🔵 À Faire</h3>
+                    <div id="col-a-faire"></div>
+                </div>
+                <div class="status-column en-cours">
+                    <h3>🟡 En Cours</h3>
+                    <div id="col-en-cours"></div>
+                </div>
+                <div class="status-column en-retard">
+                    <h3>🔴 En Retard</h3>
+                    <div id="col-en-retard"></div>
+                </div>
+                <div class="status-column termine">
+                    <h3>🟢 Terminé</h3>
+                    <div id="col-termine"></div>
                 </div>
             </div>
 
+            <!-- PLANNING -->
             <div class="planning-section">
-                <div class="planning-header">
-                    <h2>📅 Planning</h2>
-                    <div class="nav-buttons">
-                        <button class="nav-mode-btn active" onclick="switchMode('day')">Jour</button>
-                        <button class="nav-mode-btn" onclick="switchMode('week')">Semaine</button>
-                        <button class="nav-mode-btn" onclick="switchMode('month')">Mois</button>
-                        <button onclick="previousDate()">← Précédent</button>
-                        <button onclick="nextDate()">Suivant →</button>
-                    </div>
+                <h2>📅 Planning</h2>
+                <div class="planning-controls">
+                    <button onclick="previousDate()">← Précédent</button>
+                    <button class="active" onclick="setView('day')">Jour</button>
+                    <button onclick="setView('week')">Semaine</button>
+                    <button onclick="setView('month')">Mois</button>
+                    <button onclick="nextDate()">Suivant →</button>
                 </div>
-
-                <div id="day-view" class="calendar-view active">
-                    <div id="day-content"></div>
-                </div>
-                <div id="week-view" class="calendar-view">
-                    <div id="week-content"></div>
-                </div>
-                <div id="month-view" class="calendar-view">
-                    <div id="month-content"></div>
-                </div>
+                <div id="planning-view"></div>
             </div>
         </div>
     </div>
 
+    <!-- MODAL -->
     <div id="taskModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
                 <h3 id="modalTitle">Nouvelle Tâche</h3>
-                <button class="close-btn" onclick="closeTaskModal()">×</button>
+                <button class="close-btn" onclick="closeModal()">×</button>
             </div>
-            <form id="taskForm">
+            <form id="taskForm" onsubmit="saveTask(event)">
                 <div class="form-group">
-                    <label>Nom de la Tâche *</label>
+                    <label>Nom de la tâche *</label>
                     <input type="text" id="taskName" required>
                 </div>
                 <div class="form-group">
                     <label>Description</label>
-                    <textarea id="taskDescription"></textarea>
+                    <textarea id="taskDesc" rows="3"></textarea>
                 </div>
                 <div class="form-group">
-                    <label>Statut *</label>
-                    <select id="taskStatus" required>
+                    <label>Statut</label>
+                    <select id="taskStatus">
                         <option value="a-faire">🔵 À Faire</option>
                         <option value="en-cours">🟡 En Cours</option>
                         <option value="en-retard">🔴 En Retard</option>
                         <option value="termine">🟢 Terminé</option>
                     </select>
                 </div>
-                <div class="form-group">
-                    <label>Date & Heure de Début *</label>
-                    <input type="datetime-local" id="taskStartDate" required onchange="calculateDuration()">
-                </div>
-                <div class="form-group">
-                    <label>Date & Heure de Fin</label>
-                    <input type="datetime-local" id="taskEndDate" onchange="calculateDuration()">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Date/Heure début *</label>
+                        <input type="datetime-local" id="taskStart" required onchange="autoCalculate()">
+                    </div>
+                    <div class="form-group">
+                        <label>Date/Heure fin</label>
+                        <input type="datetime-local" id="taskEnd" onchange="autoCalculate()">
+                    </div>
                 </div>
                 <div class="form-group">
                     <label>Durée (heures)</label>
-                    <input type="number" id="taskDuration" min="0" step="0.5" onchange="calculateEndDate()">
+                    <input type="number" id="taskDuration" min="0.5" step="0.5" onchange="autoCalculate()">
                 </div>
                 <div class="form-buttons">
-                    <button type="button" class="btn-cancel" onclick="closeTaskModal()">Annuler</button>
-                    <button type="button" class="btn-delete" id="deleteBtn" style="display:none;" onclick="deleteTask()">Supprimer</button>
-                    <button type="submit">Enregistrer</button>
+                    <button type="button" class="btn-cancel" onclick="closeModal()">Annuler</button>
+                    <button type="button" class="btn-delete" id="btnDelete" style="display:none;" onclick="deleteTask()">Supprimer</button>
+                    <button type="submit" class="btn-save">Enregistrer</button>
                 </div>
             </form>
         </div>
@@ -168,337 +183,302 @@
 
     <script>
         let tasks = [];
-        let currentEditId = null;
-        let currentMode = 'day';
+        let currentView = 'day';
         let currentDate = new Date();
+        let editingId = null;
         let draggedTask = null;
-        let resizeTask = null;
 
-        function saveData() {
+        // === STORAGE ===
+        function saveTasks() {
             localStorage.setItem('chantier-tasks', JSON.stringify(tasks));
+            render();
         }
 
-        function loadData() {
+        function loadTasks() {
             const saved = localStorage.getItem('chantier-tasks');
             tasks = saved ? JSON.parse(saved) : [];
         }
 
-        function calculateDuration() {
-            const startDate = document.getElementById('taskStartDate').value;
-            const endDate = document.getElementById('taskEndDate').value;
-            const durationInput = document.getElementById('taskDuration');
-
-            if (startDate && endDate) {
-                const start = new Date(startDate);
-                const end = new Date(endDate);
-                const diff = (end - start) / (1000 * 60 * 60);
-                durationInput.value = Math.max(0, diff.toFixed(1));
-            }
-        }
-
-        function calculateEndDate() {
-            const startDate = document.getElementById('taskStartDate').value;
-            const duration = parseFloat(document.getElementById('taskDuration').value);
-            const endDateInput = document.getElementById('taskEndDate');
-
-            if (startDate && duration) {
-                const start = new Date(startDate);
-                const end = new Date(start.getTime() + duration * 60 * 60 * 1000);
-                endDateInput.value = end.toISOString().slice(0, 16);
-            }
-        }
-
-        function openTaskModal(taskId = null) {
-            const modal = document.getElementById('taskModal');
+        // === MODAL ===
+        function openModal(id = null) {
+            editingId = id;
             const form = document.getElementById('taskForm');
-            const deleteBtn = document.getElementById('deleteBtn');
+            const btnDelete = document.getElementById('btnDelete');
+            const title = document.getElementById('modalTitle');
 
-            if (taskId) {
-                currentEditId = taskId;
-                const task = tasks.find(t => t.id === taskId);
-                document.getElementById('modalTitle').textContent = 'Modifier Tâche';
+            if (id) {
+                title.textContent = 'Modifier Tâche';
+                btnDelete.style.display = 'block';
+                const task = tasks.find(t => t.id === id);
                 document.getElementById('taskName').value = task.name;
-                document.getElementById('taskDescription').value = task.description || '';
+                document.getElementById('taskDesc').value = task.description || '';
                 document.getElementById('taskStatus').value = task.status;
-                document.getElementById('taskStartDate').value = task.startDate;
-                document.getElementById('taskEndDate').value = task.endDate || '';
+                document.getElementById('taskStart').value = task.start;
+                document.getElementById('taskEnd').value = task.end || '';
                 document.getElementById('taskDuration').value = task.duration || '';
-                deleteBtn.style.display = 'block';
             } else {
-                currentEditId = null;
+                title.textContent = 'Nouvelle Tâche';
+                btnDelete.style.display = 'none';
                 form.reset();
-                document.getElementById('modalTitle').textContent = 'Nouvelle Tâche';
-                deleteBtn.style.display = 'none';
-                document.getElementById('taskStartDate').value = new Date().toISOString().slice(0, 16);
+                document.getElementById('taskStart').value = new Date().toISOString().slice(0, 16);
             }
-
-            modal.classList.add('active');
+            document.getElementById('taskModal').classList.add('show');
         }
 
-        function closeTaskModal() {
-            document.getElementById('taskModal').classList.remove('active');
-            currentEditId = null;
+        function closeModal() {
+            document.getElementById('taskModal').classList.remove('show');
+            editingId = null;
         }
 
-        document.getElementById('taskForm').addEventListener('submit', function(e) {
+        function autoCalculate() {
+            const start = document.getElementById('taskStart').value;
+            const end = document.getElementById('taskEnd').value;
+            const duration = document.getElementById('taskDuration').value;
+
+            if (start && end) {
+                const startDate = new Date(start);
+                const endDate = new Date(end);
+                const diff = (endDate - startDate) / (1000 * 60 * 60);
+                document.getElementById('taskDuration').value = Math.max(0.5, diff).toFixed(1);
+            } else if (start && duration) {
+                const startDate = new Date(start);
+                const endDate = new Date(startDate.getTime() + parseFloat(duration) * 60 * 60 * 1000);
+                document.getElementById('taskEnd').value = endDate.toISOString().slice(0, 16);
+            }
+        }
+
+        function saveTask(e) {
             e.preventDefault();
-
             const task = {
-                id: currentEditId || Date.now().toString(),
+                id: editingId || Date.now().toString(),
                 name: document.getElementById('taskName').value,
-                description: document.getElementById('taskDescription').value,
+                description: document.getElementById('taskDesc').value,
                 status: document.getElementById('taskStatus').value,
-                startDate: document.getElementById('taskStartDate').value,
-                endDate: document.getElementById('taskEndDate').value || null,
-                duration: parseFloat(document.getElementById('taskDuration').value) || null,
+                start: document.getElementById('taskStart').value,
+                end: document.getElementById('taskEnd').value || '',
+                duration: parseFloat(document.getElementById('taskDuration').value) || 0
             };
 
-            if (currentEditId) {
-                const index = tasks.findIndex(t => t.id === currentEditId);
-                tasks[index] = task;
+            if (editingId) {
+                const idx = tasks.findIndex(t => t.id === editingId);
+                tasks[idx] = task;
             } else {
                 tasks.push(task);
             }
 
-            saveData();
-            updateAllViews();
-            closeTaskModal();
-        });
+            saveTasks();
+            closeModal();
+        }
 
         function deleteTask() {
             if (confirm('Supprimer cette tâche ?')) {
-                tasks = tasks.filter(t => t.id !== currentEditId);
-                saveData();
-                updateAllViews();
-                closeTaskModal();
+                tasks = tasks.filter(t => t.id !== editingId);
+                saveTasks();
+                closeModal();
             }
         }
 
-        function updateAllViews() {
-            updateTodoList();
-            renderCalendar();
+        // === RENDER ===
+        function render() {
+            renderTodo();
+            renderPlanning();
         }
 
-        function updateTodoList() {
-            const statuses = ['a-faire', 'en-cours', 'en-retard', 'termine'];
-            statuses.forEach(status => {
-                const column = document.getElementById(`column-${status}`);
-                const tasksInStatus = tasks.filter(t => t.status === status);
-                
-                column.innerHTML = tasksInStatus.map(task => `
-                    <div class="task-item" onclick="openTaskModal('${task.id}')">
-                        <div class="task-name">${task.name}</div>
-                        <div class="task-details">${task.startDate.slice(0, 10)} | ${task.duration ? task.duration + 'h' : 'N/A'}</div>
+        function renderTodo() {
+            ['a-faire', 'en-cours', 'en-retard', 'termine'].forEach(status => {
+                const col = document.getElementById(`col-${status}`);
+                const statusTasks = tasks.filter(t => t.status === status);
+                col.innerHTML = statusTasks.map(t => `
+                    <div class="task-item" onclick="openModal('${t.id}')">
+                        <div class="task-item-name">${t.name}</div>
+                        <div class="task-item-info">${t.start.slice(0, 10)} | ${t.duration}h</div>
                     </div>
                 `).join('');
             });
         }
 
-        function renderCalendar() {
-            if (currentMode === 'day') renderDayView();
-            else if (currentMode === 'week') renderWeekView();
-            else if (currentMode === 'month') renderMonthView();
+        function renderPlanning() {
+            const view = document.getElementById('planning-view');
+            if (currentView === 'day') view.innerHTML = renderDayView();
+            else if (currentView === 'week') view.innerHTML = renderWeekView();
+            else if (currentView === 'month') view.innerHTML = renderMonthView();
         }
 
         function renderDayView() {
-            const dayContent = document.getElementById('day-content');
-            const dateStr = currentDate.toLocaleDateString('fr-FR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-            const dayTasks = tasks.filter(t => new Date(t.startDate).toDateString() === currentDate.toDateString());
-            
-            let html = `<div class="day-container"><div class="day-header">${dateStr}</div>`;
-            
+            const date = currentDate.toLocaleDateString('fr-FR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+            const dayTasks = tasks.filter(t => new Date(t.start).toDateString() === currentDate.toDateString());
+
+            let html = `<div class="day-view"><div class="day-header">${date}</div>`;
             for (let h = 8; h <= 18; h++) {
-                html += `<div class="timeline"><div class="timeline-label">${h}:00</div><div class="timeline-tasks" id="timeline-${h}" style="flex: 1; display: flex; gap: 5px;"></div></div>`;
+                html += `<div class="timeline">
+                    <div class="time-label">${h}:00</div>
+                    <div class="day-tasks" id="hour-${h}"></div>
+                </div>`;
             }
             html += '</div>';
-            
-            dayContent.innerHTML = html;
-            
-            dayTasks.forEach(task => {
-                const hour = new Date(task.startDate).getHours();
-                const timeline = document.getElementById(`timeline-${hour}`);
-                if (timeline) {
-                    const bar = document.createElement('div');
-                    bar.className = `task-bar ${task.status} resize-handle`;
-                    bar.textContent = task.name;
-                    bar.style.width = ((task.duration || 1) * 60) + 'px';
-                    bar.style.minWidth = '80px';
-                    bar.draggable = true;
-                    bar.id = `task-${task.id}`;
-                    
-                    bar.addEventListener('dragstart', (e) => startDrag(e, task.id));
-                    bar.addEventListener('dragend', (e) => endDrag(e, task.id));
-                    bar.addEventListener('mousedown', (e) => handleMouseDown(e, task.id, bar, hour));
-                    
-                    timeline.appendChild(bar);
+
+            setTimeout(() => {
+                dayTasks.forEach(task => {
+                    const hour = new Date(task.start).getHours();
+                    const container = document.getElementById(`hour-${hour}`);
+                    if (container) {
+                        const bar = document.createElement('div');
+                        bar.className = `task-bar ${task.status}`;
+                        bar.textContent = task.name;
+                        bar.style.width = (task.duration * 60) + 'px';
+                        bar.style.minWidth = '80px';
+                        bar.draggable = true;
+                        bar.id = `task-${task.id}`;
+                        bar.onclick = (e) => { e.stopPropagation(); openModal(task.id); };
+                        
+                        bar.ondragstart = (e) => { draggedTask = task.id; bar.classList.add('dragging'); };
+                        bar.ondragend = () => { bar.classList.remove('dragging'); draggedTask = null; };
+                        
+                        // Resize
+                        bar.onmousedown = (e) => handleResize(e, task, bar);
+                        
+                        container.appendChild(bar);
+                    }
+                });
+            }, 0);
+
+            return html;
+        }
+
+        function handleResize(e, task, element) {
+            if (e.button !== 0) return;
+            const rect = element.getBoundingClientRect();
+            if (e.clientX < rect.right - 15) return; // Pas au bord
+
+            let isDragging = true;
+            const startX = e.clientX;
+
+            function move(e) {
+                if (!isDragging) return;
+                const delta = (e.clientX - startX) / 60; // 60px = 1h
+                const newDuration = Math.max(0.5, task.duration + delta);
+                element.style.width = (newDuration * 60) + 'px';
+                task.duration = parseFloat(newDuration.toFixed(1));
+                if (task.start) {
+                    const start = new Date(task.start);
+                    task.end = new Date(start.getTime() + task.duration * 60 * 60 * 1000).toISOString().slice(0, 16);
                 }
-            });
+            }
+
+            function stop() {
+                isDragging = false;
+                saveTasks();
+                document.removeEventListener('mousemove', move);
+                document.removeEventListener('mouseup', stop);
+            }
+
+            e.preventDefault();
+            document.addEventListener('mousemove', move);
+            document.addEventListener('mouseup', stop);
         }
 
         function renderWeekView() {
-            const weekContent = document.getElementById('week-content');
-            const startDate = new Date(currentDate);
-            startDate.setDate(currentDate.getDate() - currentDate.getDay() + 1);
+            const start = new Date(currentDate);
+            start.setDate(currentDate.getDate() - currentDate.getDay() + 1);
 
-            let html = '';
+            let html = '<div class="week-view">';
             for (let i = 0; i < 7; i++) {
-                const d = new Date(startDate);
+                const d = new Date(start);
                 d.setDate(d.getDate() + i);
-                const dateStr = d.toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric' });
+                const dayName = d.toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric' });
+                const dayTasks = tasks.filter(t => new Date(t.start).toDateString() === d.toDateString());
                 
-                const dayTasks = tasks.filter(t => new Date(t.startDate).toDateString() === d.toDateString());
-                
-                html += `<div class="day-container">
-                    <div class="day-header">${dateStr}</div>`;
-                
-                for (let h = 8; h <= 18; h++) {
-                    html += `<div class="timeline" style="margin: 2px 0;"><div class="timeline-label" style="font-size: 0.8em;">${h}</div><div class="timeline-tasks" id="week-${i}-${h}" style="flex: 1; display: flex; gap: 3px;"></div></div>`;
-                }
-                html += '</div>';
-            }
-            weekContent.innerHTML = html;
+                html += `<div class="week-day">
+                    <div class="week-day-header">${dayName}</div>
+                    <div class="week-day-tasks" id="week-${i}"></div>
+                </div>`;
 
-            tasks.forEach(task => {
-                const taskDate = new Date(task.startDate);
-                const taskHour = taskDate.getHours();
-                
-                for (let i = 0; i < 7; i++) {
-                    const d = new Date(startDate);
-                    d.setDate(d.getDate() + i);
-                    if (taskDate.toDateString() === d.toDateString()) {
-                        const timeline = document.getElementById(`week-${i}-${taskHour}`);
-                        if (timeline) {
+                setTimeout(() => {
+                    const container = document.getElementById(`week-${i}`);
+                    if (container) {
+                        dayTasks.forEach(task => {
                             const bar = document.createElement('div');
                             bar.className = `task-bar ${task.status}`;
                             bar.textContent = task.name;
-                            bar.style.width = ((task.duration || 1) * 40) + 'px';
-                            bar.style.minWidth = '60px';
-                            bar.draggable = true;
-                            bar.id = `task-${task.id}`;
-                            bar.addEventListener('dragstart', (e) => startDrag(e, task.id));
-                            bar.addEventListener('dragend', (e) => endDrag(e, task.id));
-                            timeline.appendChild(bar);
-                        }
+                            bar.style.width = (task.duration * 40) + 'px';
+                            bar.style.marginBottom = '5px';
+                            bar.onclick = (e) => { e.stopPropagation(); openModal(task.id); };
+                            container.appendChild(bar);
+                        });
                     }
-                }
-            });
+                }, 0);
+            }
+            html += '</div>';
+            return html;
         }
 
         function renderMonthView() {
-            const monthContent = document.getElementById('month-content');
             const year = currentDate.getFullYear();
             const month = currentDate.getMonth();
-            const firstDay = new Date(year, month, 1);
-            const lastDay = new Date(year, month + 1, 0);
-            const startDate = firstDay.getDay() - 1;
+            const first = new Date(year, month, 1);
+            const last = new Date(year, month + 1, 0);
+            const startDay = first.getDay() - 1;
 
-            let html = '<div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px;">';
-            const days = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
-            days.forEach(d => html += `<div style="font-weight: bold; text-align: center; padding: 8px; background: #f0f0f0;">${d}</div>`);
+            let html = '<div class="month-grid">';
+            ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'].forEach(d => {
+                html += `<div style="font-weight: bold; text-align: center; padding: 8px; background: #f0f0f0;">${d}</div>`;
+            });
 
-            for (let i = startDate; i > 0; i--) html += '<div style="padding: 8px; background: #f9f9f9; color: #ccc; border-radius: 6px;"></div>';
-
-            for (let day = 1; day <= lastDay.getDate(); day++) {
-                const d = new Date(year, month, day);
-                const dayTasks = tasks.filter(t => new Date(t.startDate).toDateString() === d.toDateString());
-                html += `<div style="padding: 8px; border: 1px solid #e0e0e0; border-radius: 4px; min-height: 80px; cursor: pointer;" onclick="currentDate = new Date(${d.getTime()}); switchMode('day');"><strong>${day}</strong>`;
-                dayTasks.slice(0, 2).forEach(t => html += `<div style="font-size: 0.75em; background: #e3f2fd; padding: 2px; margin: 2px 0; border-radius: 2px;">${t.name.slice(0, 12)}</div>`);
-                if (dayTasks.length > 2) html += `<div style="font-size: 0.75em; color: #666;">+${dayTasks.length - 2} autre(s)</div>`;
-                html += '</div>';
+            // Jours du mois précédent
+            for (let i = startDay; i > 0; i--) {
+                html += '<div class="month-day other"></div>';
             }
 
-            for (let i = 1; i <= 42 - lastDay.getDate() - startDate; i++) html += '<div style="padding: 8px; background: #f9f9f9; border-radius: 6px;"></div>';
+            // Jours du mois courant
+            for (let day = 1; day <= last.getDate(); day++) {
+                const d = new Date(year, month, day);
+                const dayTasks = tasks.filter(t => new Date(t.start).toDateString() === d.toDateString());
+                html += `<div class="month-day" onclick="currentDate = new Date(${d.getTime()}); setView('day')">
+                    <div class="month-day-num">${day}</div>
+                    ${dayTasks.slice(0, 2).map(t => `<div class="month-task">${t.name.slice(0, 10)}</div>`).join('')}
+                    ${dayTasks.length > 2 ? `<div class="month-task">+${dayTasks.length - 2}</div>` : ''}
+                </div>`;
+            }
+
+            // Jours du mois suivant
+            const remainingDays = 42 - last.getDate() - startDay;
+            for (let i = 1; i <= remainingDays; i++) {
+                html += '<div class="month-day other"></div>';
+            }
 
             html += '</div>';
-            monthContent.innerHTML = html;
+            return html;
         }
 
-        function startDrag(e, taskId) {
-            draggedTask = { id: taskId, startX: e.clientX };
-            e.dataTransfer.effectAllowed = 'move';
-        }
-
-        function endDrag(e, taskId) {
-            if (!draggedTask) return;
-            draggedTask = null;
-        }
-
-        function handleMouseDown(e, taskId, element, currentHour) {
-            if (e.button !== 0) return; // Left click only
-            
-            const rect = element.getBoundingClientRect();
-            const rightEdge = rect.right - e.clientX;
-            
-            // Si on clique près du bord droit, c'est un resize
-            if (rightEdge < 15) {
-                resizeTask = { id: taskId, startX: e.clientX, element: element };
-                e.preventDefault();
-            }
-        }
-
-        document.addEventListener('mousemove', (e) => {
-            if (resizeTask) {
-                const task = tasks.find(t => t.id === resizeTask.id);
-                if (!task) return;
-
-                const deltaX = e.clientX - resizeTask.startX;
-                const newWidth = resizeTask.element.offsetWidth + deltaX;
-                const newDuration = Math.max(0.5, newWidth / 60); // 60px = 1h
-                
-                task.duration = parseFloat(newDuration.toFixed(1));
-                
-                // Recalculate end date
-                if (task.startDate) {
-                    const start = new Date(task.startDate);
-                    const end = new Date(start.getTime() + task.duration * 60 * 60 * 1000);
-                    task.endDate = end.toISOString().slice(0, 16);
-                }
-                
-                resizeTask.element.style.width = newWidth + 'px';
-                resizeTask.startX = e.clientX;
-                
-                saveData();
-            }
-        });
-
-        document.addEventListener('mouseup', () => {
-            if (resizeTask) {
-                resizeTask = null;
-                updateAllViews();
-            }
-        });
-
-        function switchMode(mode) {
-            currentMode = mode;
-            document.querySelectorAll('.nav-mode-btn').forEach(b => b.classList.remove('active'));
+        function setView(view) {
+            currentView = view;
+            document.querySelectorAll('.planning-controls button').forEach(b => b.classList.remove('active'));
             event.target.classList.add('active');
-            document.querySelectorAll('.calendar-view').forEach(v => v.classList.remove('active'));
-            document.getElementById(`${mode}-view`).classList.add('active');
-            renderCalendar();
+            render();
         }
 
         function previousDate() {
-            if (currentMode === 'month') currentDate.setMonth(currentDate.getMonth() - 1);
-            else if (currentMode === 'week') currentDate.setDate(currentDate.getDate() - 7);
+            if (currentView === 'month') currentDate.setMonth(currentDate.getMonth() - 1);
+            else if (currentView === 'week') currentDate.setDate(currentDate.getDate() - 7);
             else currentDate.setDate(currentDate.getDate() - 1);
-            renderCalendar();
+            render();
         }
 
         function nextDate() {
-            if (currentMode === 'month') currentDate.setMonth(currentDate.getMonth() + 1);
-            else if (currentMode === 'week') currentDate.setDate(currentDate.getDate() + 7);
+            if (currentView === 'month') currentDate.setMonth(currentDate.getMonth() + 1);
+            else if (currentView === 'week') currentDate.setDate(currentDate.getDate() + 7);
             else currentDate.setDate(currentDate.getDate() + 1);
-            renderCalendar();
+            render();
         }
 
-        document.addEventListener('DOMContentLoaded', function() {
-            loadData();
-            updateAllViews();
-            window.addEventListener('click', function(e) {
-                const modal = document.getElementById('taskModal');
-                if (e.target === modal) closeTaskModal();
-            });
+        // === INIT ===
+        window.addEventListener('click', (e) => {
+            const modal = document.getElementById('taskModal');
+            if (e.target === modal) closeModal();
         });
+
+        loadTasks();
+        render();
     </script>
 </body>
 </html>
