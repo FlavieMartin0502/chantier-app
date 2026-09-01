@@ -1,843 +1,987 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Chantier — planification ingénierie structure</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Zilla+Slab:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-<style>
-  :root{
-    --ink:#16241F;
-    --paper:#F3EFE4;
-    --paper-line:#DCD5C0;
-    --board:#1F3B34;
-    --white:#FFFDF8;
-    --slate:#5B6B79;
-    /* couleurs fonctionnelles de statut (planning) */
-    --todo:#1F6FB2;
-    --progress:#D69A00;
-    --late:#C0392B;
-    --done:#7C8B7F;
-    --invoice:#7C5CBF;
-    --outlook:#8A8478;
-  }
-  *{box-sizing:border-box;}
-  body{ margin:0; font-family:'IBM Plex Sans', sans-serif; background:var(--paper); color:var(--ink); height:100vh; overflow:hidden; }
-  .app{ display:grid; grid-template-columns:250px 1fr; height:100vh; }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chantier - Gestion de Tâches</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-  /* ---------- SIDEBAR ---------- */
-  .board{ background:var(--board); color:var(--white); padding:20px 16px; display:flex; flex-direction:column; gap:20px; overflow-y:auto; }
-  .brand{ font-family:'Zilla Slab', serif; font-size:24px; font-weight:700; line-height:1.1; }
-  .brand small{ display:block; font-family:'IBM Plex Mono', monospace; font-size:10.5px; font-weight:400; color:#B9CFC7; margin-top:4px; letter-spacing:0.4px; }
-  .stat-row{ display:flex; flex-direction:column; gap:8px; border-top:1px solid rgba(255,255,255,0.15); border-bottom:1px solid rgba(255,255,255,0.15); padding:14px 0; }
-  .stat{ display:flex; justify-content:space-between; align-items:baseline; font-size:12.5px; }
-  .stat b{ font-family:'IBM Plex Mono', monospace; font-size:17px; color:#D69A00; }
-  .stat.late b{ color:#E38066; }
-  .stat.invoice b{ color:#B7A2E3; }
-  .section-title{ font-size:11px; color:#9FB8AF; margin-bottom:8px; }
-  .project-list{ display:flex; flex-direction:column; gap:2px; }
-  .project-row{ display:flex; align-items:center; gap:9px; padding:6px 7px; cursor:pointer; font-size:13px; color:#EDEAE0; }
-  .project-row:hover{ background:rgba(255,255,255,0.08); }
-  .project-row.off{ opacity:0.4; }
-  .swatch{ width:9px; height:9px; flex:none; }
-  .project-row .pname{ flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-  .project-row .pcount{ font-family:'IBM Plex Mono', monospace; font-size:10.5px; color:#9FB8AF; }
-  .add-project{ margin-top:5px; background:none; border:1px dashed rgba(255,255,255,0.3); color:#C9D9D2; font-size:12px; padding:6px 8px; cursor:pointer; font-family:'IBM Plex Sans', sans-serif; }
-  .add-project:hover{ border-color:rgba(255,255,255,0.6); color:#fff; }
-  .capacity-row{ font-size:12px; color:#C9D9D2; display:flex; justify-content:space-between; align-items:center; cursor:pointer; padding:6px 7px; border:1px solid rgba(255,255,255,0.15); }
-  .capacity-row:hover{ border-color:rgba(255,255,255,0.5); }
-  .capacity-row b{ font-family:'IBM Plex Mono', monospace; color:#fff; }
-  .board-footer{ margin-top:auto; display:flex; flex-direction:column; gap:7px; }
-  .ghost-btn{ background:none; border:1px solid rgba(255,255,255,0.35); color:#EDEAE0; font-family:'IBM Plex Sans', sans-serif; font-size:12px; padding:8px 9px; cursor:pointer; text-align:left; }
-  .ghost-btn:hover{ background:rgba(255,255,255,0.1); }
-  .import-hint{ font-size:11px; color:#9FB8AF; line-height:1.5; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
 
-  /* ---------- MAIN ---------- */
-  .main{ display:flex; flex-direction:column; overflow:hidden; }
-  .topbar{ display:flex; align-items:center; justify-content:space-between; padding:18px 26px 10px; border-bottom:1px solid var(--paper-line); flex-wrap:wrap; gap:10px; }
-  .month-title{ font-family:'Zilla Slab', serif; font-size:27px; font-weight:600; display:flex; align-items:baseline; gap:9px; }
-  .month-title .year{ font-family:'IBM Plex Mono', monospace; font-size:14px; color:var(--slate); font-weight:400; }
-  .nav-controls{ display:flex; gap:7px; align-items:center; }
-  .icon-btn{ background:var(--white); border:1px solid var(--paper-line); width:30px; height:30px; display:flex; align-items:center; justify-content:center; cursor:pointer; font-family:'IBM Plex Mono', monospace; font-size:14px; }
-  .icon-btn:hover{ border-color:var(--ink); }
-  .text-btn{ background:var(--white); border:1px solid var(--paper-line); padding:0 10px; height:30px; font-family:'IBM Plex Sans'; font-size:12px; cursor:pointer; }
-  .view-toggle{ display:flex; border:1px solid var(--paper-line); overflow:hidden; }
-  .view-toggle button{ background:var(--white); border:none; padding:8px 13px; font-family:'IBM Plex Sans', sans-serif; font-size:12px; cursor:pointer; color:var(--slate); border-left:1px solid var(--paper-line); }
-  .view-toggle button:first-child{ border-left:none; }
-  .view-toggle button.active{ background:var(--board); color:var(--white); }
-  .primary-btn{ background:#D69A00; border:none; color:var(--ink); font-family:'IBM Plex Sans', sans-serif; font-weight:600; font-size:12.5px; padding:8px 15px; cursor:pointer; }
-  .primary-btn:hover{ background:#c08a00; }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
 
-  .legend{ display:flex; gap:14px; padding:8px 26px 0; font-size:11px; color:var(--slate); }
-  .legend span{ display:inline-flex; align-items:center; gap:5px; }
-  .legend i{ width:9px; height:9px; display:inline-block; }
+        header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
 
-  .view-wrap{ flex:1; overflow-y:auto; padding:10px 26px 28px; }
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
 
-  /* Planning */
-  .weekday-row{ display:grid; grid-template-columns:repeat(7,1fr); margin-bottom:3px; }
-  .weekday-row div{ font-family:'IBM Plex Mono', monospace; font-size:10.5px; color:var(--slate); padding:4px 7px; }
-  .month-grid{ display:grid; grid-template-columns:repeat(7,1fr); grid-auto-rows:minmax(112px, auto); border-top:1px solid var(--paper-line); border-left:1px solid var(--paper-line); }
-  .day-cell{ border-right:1px solid var(--paper-line); border-bottom:1px solid var(--paper-line); padding:5px 6px; background:var(--white); display:flex; flex-direction:column; gap:3px; min-width:0; }
-  .day-cell.outside{ background:#EDE9DC; color:#B3AC98; }
-  .day-cell.dragover{ background:#FDF3D9; }
-  .day-num{ font-family:'IBM Plex Mono', monospace; font-size:11.5px; color:var(--slate); display:flex; justify-content:space-between; }
-  .day-cell.today .day-num span:first-child{ background:var(--board); color:var(--white); padding:0 5px; }
-  .day-cap{ font-size:9.5px; color:#B3AC98; }
-  .chip{ font-size:10.5px; padding:2px 5px; display:flex; flex-direction:column; gap:0; background:var(--white); border-left:3px solid var(--todo); border:1px solid var(--paper-line); border-left-width:3px; overflow:hidden; cursor:grab; line-height:1.3; }
-  .chip .ct{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis; font-weight:500; }
-  .chip .cp{ font-size:9px; color:var(--slate); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-  .chip.st-a_faire{ border-left-color:var(--todo); }
-  .chip.st-en_cours{ border-left-color:var(--progress); }
-  .chip.st-late{ border-left-color:var(--late); background:#FBEAE7; }
-  .chip.outlook-chip{ border-left-color:var(--outlook); background:#F1EFE9; cursor:default; font-style:italic; }
-  .more-link{ font-size:9.5px; color:var(--slate); font-family:'IBM Plex Mono', monospace; }
+        header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
 
-  /* Liste (kanban) */
-  .kanban{ display:grid; grid-template-columns:repeat(3,1fr); gap:16px; align-items:start; }
-  .kcol h3{ font-family:'IBM Plex Mono', monospace; font-size:12px; font-weight:600; color:var(--slate); border-bottom:2px solid var(--paper-line); padding-bottom:7px; margin:0 0 10px; display:flex; justify-content:space-between; }
-  .kcol.col-a_faire h3{ border-bottom-color:var(--todo); }
-  .kcol.col-en_cours h3{ border-bottom-color:var(--progress); }
-  .kcol.col-termine h3{ border-bottom-color:var(--done); }
-  .tcard{ background:var(--white); border:1px solid var(--paper-line); padding:10px 11px; margin-bottom:8px; cursor:pointer; }
-  .tcard.late{ border-color:var(--late); }
-  .tcard.sub{ margin-left:16px; border-left:3px solid var(--slate); }
-  .tcard .ttitle{ font-size:13.5px; font-weight:500; margin-bottom:3px; }
-  .tcard .tparent{ font-size:10.5px; color:var(--slate); margin-bottom:4px; }
-  .tcard .tmeta{ display:flex; justify-content:space-between; font-size:11px; color:var(--slate); font-family:'IBM Plex Mono', monospace; }
-  .tcard .tmeta.late-text{ color:var(--late); font-weight:600; }
-  .tcard .tproj{ font-size:10.5px; color:var(--slate); margin-top:3px; }
-  .invoice-check{ margin-top:8px; display:flex; align-items:center; gap:6px; font-size:11.5px; padding-top:7px; border-top:1px dashed var(--paper-line); }
-  .invoice-check input{ cursor:pointer; }
-  .empty-msg{ color:var(--slate); font-size:13px; padding:10px 2px; }
+        .main-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
 
-  /* Facturer */
-  .invoice-summary{ background:var(--white); border:1px solid var(--paper-line); padding:14px 18px; margin-bottom:16px; display:flex; justify-content:space-between; align-items:center; }
-  .invoice-summary .big{ font-family:'Zilla Slab', serif; font-size:26px; }
-  .invoice-list .tcard{ display:flex; justify-content:space-between; align-items:center; gap:10px; }
-  .invoice-list .tcard .left{ flex:1; }
-  .uncheck-btn{ background:none; border:1px solid var(--paper-line); font-size:11px; padding:6px 9px; cursor:pointer; font-family:'IBM Plex Sans'; }
+        .section {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
 
-  /* ---------- MODAL ---------- */
-  .overlay{ position:fixed; inset:0; background:rgba(22,36,31,0.35); display:flex; align-items:center; justify-content:center; z-index:50; }
-  .modal{ background:var(--white); width:460px; max-width:92vw; max-height:90vh; overflow-y:auto; padding:22px 24px; box-shadow:0 12px 32px rgba(0,0,0,0.18); }
-  .modal h2{ font-family:'Zilla Slab', serif; font-size:20px; margin:0 0 16px; }
-  .field{ margin-bottom:12px; display:flex; flex-direction:column; gap:4px; }
-  .field label{ font-size:11.5px; color:var(--slate); }
-  .field input, .field select, .field textarea{ font-family:'IBM Plex Sans', sans-serif; font-size:13.5px; padding:8px 9px; border:1px solid var(--paper-line); background:var(--paper); color:var(--ink); }
-  .field textarea{ resize:vertical; min-height:48px; }
-  .row2{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
-  .row3{ display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; }
-  .checkbox-line{ display:flex; align-items:center; gap:7px; font-size:13px; margin:10px 0; }
-  .recur-fields{ display:none; gap:10px; grid-template-columns:1fr 1fr; margin-top:6px; }
-  .recur-fields.show{ display:grid; }
-  .modal-actions{ display:flex; justify-content:space-between; margin-top:16px; gap:10px; }
-  .link-btn{ background:none; border:none; color:var(--late); font-size:12px; cursor:pointer; padding:0; font-family:'IBM Plex Sans', sans-serif; }
-  .modal-actions .right{ display:flex; gap:8px; }
-  .secondary-btn{ background:none; border:1px solid var(--paper-line); padding:8px 13px; font-size:12.5px; cursor:pointer; font-family:'IBM Plex Sans', sans-serif; }
+        .section h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+        }
 
-  .toast{ position:fixed; bottom:20px; left:50%; transform:translateX(-50%); background:var(--board); color:var(--white); padding:10px 17px; font-size:12.5px; z-index:60; opacity:0; transition:opacity 0.25s; pointer-events:none; max-width:80vw; text-align:center; }
-  .toast.show{ opacity:1; }
-</style>
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            color: #333;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        input[type="text"],
+        input[type="date"],
+        input[type="number"],
+        select,
+        textarea {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 0.95em;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus,
+        input[type="date"]:focus,
+        input[type="number"]:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 5px rgba(102, 126, 234, 0.3);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 60px;
+        }
+
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 6px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s;
+            width: 100%;
+        }
+
+        button:hover {
+            background: #764ba2;
+        }
+
+        button.secondary {
+            background: #6c757d;
+        }
+
+        button.secondary:hover {
+            background: #5a6268;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #ddd;
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            padding: 10px 15px;
+            background: none;
+            border: none;
+            color: #666;
+            font-weight: 600;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+            width: auto;
+        }
+
+        .tab-btn.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+        }
+
+        .tab-btn:hover {
+            color: #667eea;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .chantier-card {
+            background: #f8f9fa;
+            border-left: 5px solid #667eea;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .chantier-card:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .chantier-card.collapsed {
+            border-left-color: #ddd;
+        }
+
+        .chantier-card.collapsed .chantier-content {
+            display: none;
+        }
+
+        .chantier-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .chantier-title {
+            cursor: pointer;
+            flex: 1;
+        }
+
+        .chantier-toggle {
+            background: none;
+            border: none;
+            color: #667eea;
+            font-size: 1.2em;
+            cursor: pointer;
+            padding: 0 10px;
+            width: auto;
+        }
+
+        .chantier-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .chantier-actions button {
+            padding: 6px 12px;
+            font-size: 0.85em;
+            width: auto;
+        }
+
+        .task-list {
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid #ddd;
+        }
+
+        .task-item {
+            background: white;
+            padding: 12px;
+            margin-bottom: 10px;
+            border-radius: 4px;
+            border-left: 4px solid #667eea;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .task-item.todo {
+            border-left-color: #007bff;
+        }
+
+        .task-item.in-progress {
+            border-left-color: #ffc107;
+        }
+
+        .task-item.completed {
+            border-left-color: #28a745;
+            opacity: 0.7;
+        }
+
+        .task-item.to-bill {
+            border-left-color: #ff6b6b;
+        }
+
+        .task-item.overdue {
+            border-left-color: #dc3545;
+            background: #ffe5e5;
+        }
+
+        .task-info {
+            flex: 1;
+        }
+
+        .task-title {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 4px;
+        }
+
+        .task-details {
+            font-size: 0.85em;
+            color: #666;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .task-status {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 3px;
+            font-size: 0.8em;
+            font-weight: 600;
+            margin-top: 4px;
+        }
+
+        .status-todo {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+
+        .status-in-progress {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-completed {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-to-bill {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .task-actions {
+            display: flex;
+            gap: 5px;
+        }
+
+        .task-actions button {
+            padding: 4px 8px;
+            font-size: 0.75em;
+            width: auto;
+            margin: 0;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+
+        .modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            max-width: 500px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-header h2 {
+            color: #333;
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 1.5em;
+            color: #999;
+            cursor: pointer;
+            width: auto;
+            padding: 0;
+        }
+
+        .close-modal:hover {
+            color: #333;
+            background: none;
+        }
+
+        .empty-message {
+            text-align: center;
+            color: #999;
+            padding: 20px;
+            font-style: italic;
+        }
+
+        .color-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 2px;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+
+        .color-todo {
+            background: #007bff;
+        }
+
+        .color-in-progress {
+            background: #ffc107;
+        }
+
+        .color-completed {
+            background: #28a745;
+        }
+
+        .color-to-bill {
+            background: #ff6b6b;
+        }
+
+        .color-overdue {
+            background: #dc3545;
+        }
+
+        .legend {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            font-size: 0.9em;
+        }
+
+        .legend-item {
+            margin-bottom: 8px;
+        }
+
+        .legend-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .full-width {
+            grid-column: 1 / -1;
+        }
+
+        .subtask-item {
+            background: #f0f0f0;
+            padding: 10px;
+            margin-left: 20px;
+            margin-top: 5px;
+            border-radius: 4px;
+            font-size: 0.9em;
+            border-left: 3px solid #667eea;
+        }
+
+        .subtask-title {
+            font-weight: 500;
+            color: #333;
+        }
+
+        .subtask-time {
+            color: #666;
+            font-size: 0.85em;
+            margin-top: 3px;
+        }
+
+        @media (max-width: 1024px) {
+            .main-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .drag-handle {
+            cursor: grab;
+            color: #999;
+            user-select: none;
+            width: auto;
+            background: none;
+            border: none;
+            padding: 0 5px;
+        }
+
+        .drag-handle:active {
+            cursor: grabbing;
+        }
+    </style>
 </head>
 <body>
+    <div class="container">
+        <header>
+            <h1>🏗️ Chantier</h1>
+            <p>Gestion de chantiers et tâches</p>
+        </header>
 
-<div class="app">
-  <div class="board">
-    <div class="brand">Chantier<small>ING. STRUCTURE — INDÉPENDANTE</small></div>
+        <div class="main-layout">
+            <!-- Section Ajouter un Chantier -->
+            <div class="section">
+                <h2>Ajouter un Chantier</h2>
+                <form id="addChantierForm">
+                    <div class="form-group">
+                        <label for="chantierName">Nom du Chantier *</label>
+                        <input type="text" id="chantierName" required placeholder="Ex: Rénovation cuisine">
+                    </div>
+                    <div class="form-group">
+                        <label for="chantierDescription">Description</label>
+                        <textarea id="chantierDescription" placeholder="Détails du chantier..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="chantierDeadline">Date limite</label>
+                        <input type="date" id="chantierDeadline">
+                    </div>
+                    <button type="submit">Créer le Chantier</button>
+                </form>
+            </div>
 
-    <div class="stat-row">
-      <div class="stat"><span>À faire / en cours</span><b id="stat-open">0</b></div>
-      <div class="stat late"><span>En retard</span><b id="stat-late">0</b></div>
-      <div class="stat invoice"><span>À facturer</span><b id="stat-invoice">0</b></div>
-    </div>
-
-    <div>
-      <div class="section-title">Dossiers / clients</div>
-      <div class="project-list" id="project-list"></div>
-      <button class="add-project" id="btn-add-project">+ nouveau dossier</button>
-    </div>
-
-    <div class="capacity-row" id="capacity-row">
-      <span>Capacité de travail</span><b id="capacity-value">7 h/j</b>
-    </div>
-
-    <div class="board-footer">
-      <button class="ghost-btn" id="btn-replan">Replanifier automatiquement</button>
-      <button class="ghost-btn" id="btn-sync">Demander une synchro à Claude</button>
-      <button class="ghost-btn" id="btn-export">Exporter vers Outlook (.ics)</button>
-      <button class="ghost-btn" id="btn-import">Importer un .ics Outlook</button>
-      <input type="file" id="file-import" accept=".ics" style="display:none">
-      <div class="import-hint">Les RDV importés apparaissent en gris dans le planning et réduisent la capacité disponible ce jour-là.</div>
-    </div>
-  </div>
-
-  <div class="main">
-    <div class="topbar">
-      <div class="nav-controls">
-        <button class="icon-btn" id="btn-prev">‹</button>
-        <div class="month-title" id="month-title"></div>
-        <button class="icon-btn" id="btn-next">›</button>
-        <button class="text-btn" id="btn-today">Aujourd'hui</button>
-      </div>
-      <div style="display:flex; gap:10px; align-items:center;">
-        <div class="view-toggle">
-          <button id="tab-planning" class="active">Planning</button>
-          <button id="tab-liste">Liste des tâches</button>
-          <button id="tab-facturer">À facturer</button>
+            <!-- Section Ajouter une Tâche -->
+            <div class="section">
+                <h2>Ajouter une Tâche</h2>
+                <form id="addTaskForm">
+                    <div class="form-group">
+                        <label for="taskChantier">Chantier *</label>
+                        <select id="taskChantier" required>
+                            <option value="">-- Sélectionner un chantier --</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="taskName">Nom de la Tâche *</label>
+                        <input type="text" id="taskName" required placeholder="Ex: Enlever carrelage">
+                    </div>
+                    <div class="form-group">
+                        <label for="taskDescription">Description</label>
+                        <textarea id="taskDescription" placeholder="Détails de la tâche..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="taskDeadline">Date limite</label>
+                        <input type="date" id="taskDeadline">
+                    </div>
+                    <div class="form-group">
+                        <label for="taskEstimatedTime">Temps estimé (heures)</label>
+                        <input type="number" id="taskEstimatedTime" min="0" step="0.5" placeholder="2.5">
+                    </div>
+                    <div class="form-group">
+                        <label for="taskRecurrence">Récurrence</label>
+                        <select id="taskRecurrence">
+                            <option value="none">Aucune</option>
+                            <option value="daily">Quotidienne</option>
+                            <option value="weekly">Hebdomadaire</option>
+                            <option value="monthly">Mensuelle</option>
+                        </select>
+                    </div>
+                    <button type="submit">Ajouter la Tâche</button>
+                </form>
+            </div>
         </div>
-        <button class="primary-btn" id="btn-new-task">+ Tâche</button>
-      </div>
+
+        <!-- Affichage des Chantiers et Tâches -->
+        <div class="section full-width">
+            <div class="tabs">
+                <button class="tab-btn active" data-tab="todo-list">📋 To-Do List</button>
+                <button class="tab-btn" data-tab="planning">📅 Planning</button>
+                <button class="tab-btn" data-tab="to-bill">💰 À Facturer</button>
+            </div>
+
+            <!-- Onglet To-Do List -->
+            <div id="todo-list" class="tab-content active">
+                <div class="legend">
+                    <div class="legend-item"><span class="color-indicator color-todo"></span>À faire</div>
+                    <div class="legend-item"><span class="color-indicator color-in-progress"></span>En cours</div>
+                    <div class="legend-item"><span class="color-indicator color-completed"></span>Terminé</div>
+                    <div class="legend-item"><span class="color-indicator color-overdue"></span>En retard</div>
+                </div>
+                <div id="todoListContent"></div>
+            </div>
+
+            <!-- Onglet Planning -->
+            <div id="planning" class="tab-content">
+                <div class="legend">
+                    <div class="legend-item"><span class="color-indicator color-todo"></span>À faire (bleu)</div>
+                    <div class="legend-item"><span class="color-indicator color-in-progress"></span>En cours (jaune)</div>
+                    <div class="legend-item"><span class="color-indicator color-overdue"></span>En retard (rouge)</div>
+                </div>
+                <div id="planningContent"></div>
+            </div>
+
+            <!-- Onglet À Facturer -->
+            <div id="to-bill" class="tab-content">
+                <div id="toBillContent"></div>
+            </div>
+        </div>
     </div>
 
-    <div class="legend" id="legend-planning">
-      <span><i style="background:var(--todo)"></i>À faire</span>
-      <span><i style="background:var(--progress)"></i>En cours</span>
-      <span><i style="background:var(--late)"></i>En retard</span>
-      <span><i style="background:var(--outlook)"></i>RDV Outlook</span>
+    <!-- Modal pour détails -->
+    <div id="detailsModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Détails de la Tâche</h2>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div id="modalBody"></div>
+        </div>
     </div>
 
-    <div class="view-wrap" id="view-planning">
-      <div class="weekday-row"><div>Lun</div><div>Mar</div><div>Mer</div><div>Jeu</div><div>Ven</div><div>Sam</div><div>Dim</div></div>
-      <div class="month-grid" id="month-grid"></div>
-    </div>
+    <script>
+        // Données stockées localement
+        let data = {
+            chantiers: [],
+            tasks: []
+        };
 
-    <div class="view-wrap" id="view-liste" style="display:none;">
-      <div class="kanban" id="kanban"></div>
-    </div>
+        // Charger les données du localStorage
+        function loadData() {
+            const stored = localStorage.getItem('chantierData');
+            if (stored) {
+                data = JSON.parse(stored);
+            }
+        }
 
-    <div class="view-wrap" id="view-facturer" style="display:none;">
-      <div class="invoice-summary">
-        <div><div style="font-size:12px;color:var(--slate);">Temps total à facturer</div><div class="big" id="invoice-total">0 h</div></div>
-        <div style="font-size:11.5px;color:var(--slate);max-width:260px;">Basé sur le temps estimé des tâches et sous-tâches cochées « à facturer ».</div>
-      </div>
-      <div class="invoice-list" id="invoice-list"></div>
-    </div>
-  </div>
-</div>
+        // Sauvegarder les données
+        function saveData() {
+            localStorage.setItem('chantierData', JSON.stringify(data));
+            updateAllViews();
+        }
 
-<div class="toast" id="toast"></div>
+        // Ajouter un chantier
+        document.getElementById('addChantierForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const name = document.getElementById('chantierName').value;
+            const description = document.getElementById('chantierDescription').value;
+            const deadline = document.getElementById('chantierDeadline').value;
 
-<script>
-(function(){
-  "use strict";
+            const chantier = {
+                id: Date.now(),
+                name: name,
+                description: description,
+                deadline: deadline,
+                createdAt: new Date().toISOString()
+            };
 
-  const STATUS = {
-    a_faire:  { label:"À faire",  color:"var(--todo)" },
-    en_cours: { label:"En cours", color:"var(--progress)" },
-    termine:  { label:"Terminé",  color:"var(--done)" },
-    a_facturer:{ label:"À facturer", color:"var(--invoice)" }
-  };
-  const PROJECT_COLORS = ["#1F6FB2","#D69A00","#7C5CBF","#3E7C74","#B14B32","#5B6B79","#2C6E8C"];
-  const STORAGE_KEY = "chantier-v2-data";
-  const OLD_STORAGE_KEY = "chantier-data";
+            data.chantiers.push(chantier);
+            saveData();
 
-  let data = { projects:[], tasks:[], outlookEvents:[], settings:{ dailyCapacity:7 }, activeFilters:null };
-  let currentDate = new Date();
-  let currentView = "planning";
-  let dragTaskId = null;
-
-  const $ = (sel) => document.querySelector(sel);
-  const uid = () => Math.random().toString(36).slice(2,10);
-  const todayKey = () => fmtKey(new Date());
-  function fmtKey(d){ return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
-  function parseKey(k){ return new Date(k+"T00:00:00"); }
-  function addDays(d,n){ const r=new Date(d); r.setDate(r.getDate()+n); return r; }
-  function isWeekend(d){ const day=d.getDay(); return day===0 || day===6; }
-  function escapeHtml(s){ return (s||"").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
-  function capitalize(s){ return s.charAt(0).toUpperCase()+s.slice(1); }
-
-  // ---------- STORAGE ----------
-  async function loadData(){
-    try{
-      const value = localStorage.getItem(STORAGE_KEY);
-      if(value){ data = normalize(JSON.parse(value)); return; }
-    }catch(e){ /* pas encore de données v2 */ }
-    // tentative de migration depuis l'ancienne version
-    try{
-      const oldValue = localStorage.getItem(OLD_STORAGE_KEY);
-      if(oldValue){
-        const o = JSON.parse(oldValue);
-        data = normalize({
-          projects: o.projects || [],
-          tasks: (o.tasks||[]).map(t=>({
-            id:t.id, title:t.title, projectId:t.projectId, deadline:t.due||null,
-            estimatedHours:2, status: t.status==="fait" ? "termine" : "a_faire",
-            notes:t.notes||"", parentId:null, scheduledDate:t.due||null, manualSchedule:true
-          })),
-          outlookEvents:[], settings:{dailyCapacity:7}, activeFilters:null
+            this.reset();
+            updateChantierSelect();
         });
-        await saveData();
-        return;
-      }
-    }catch(e){ /* pas d'ancienne donnée non plus */ }
-    data = normalize({
-      projects:[{id:uid(), name:"Dossier général", color:PROJECT_COLORS[0]}],
-      tasks:[], outlookEvents:[], settings:{dailyCapacity:7}, activeFilters:null
-    });
-    await saveData();
-  }
 
-  function normalize(d){
-    d.projects = d.projects || [];
-    d.tasks = d.tasks || [];
-    d.outlookEvents = d.outlookEvents || [];
-    d.settings = d.settings || { dailyCapacity:7 };
-    if(!d.settings.dailyCapacity) d.settings.dailyCapacity = 7;
-    d.tasks.forEach(t=>{
-      if(t.estimatedHours==null) t.estimatedHours = 2;
-      if(!t.status) t.status = "a_faire";
-      if(t.manualSchedule==null) t.manualSchedule = false;
-    });
-    return d;
-  }
+        // Ajouter une tâche
+        document.getElementById('addTaskForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const chantierId = document.getElementById('taskChantier').value;
+            const name = document.getElementById('taskName').value;
+            const description = document.getElementById('taskDescription').value;
+            const deadline = document.getElementById('taskDeadline').value;
+            const estimatedTime = document.getElementById('taskEstimatedTime').value;
+            const recurrence = document.getElementById('taskRecurrence').value;
 
-  async function saveData(){
-    try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); }
-    catch(e){ console.error("Erreur de sauvegarde", e); showToast("Erreur de sauvegarde — tes changements restent en mémoire pour cette session."); }
-    runScheduler();
-  }
+            const task = {
+                id: Date.now(),
+                chantierId: parseInt(chantierId),
+                name: name,
+                description: description,
+                deadline: deadline,
+                estimatedTime: parseFloat(estimatedTime) || 0,
+                recurrence: recurrence,
+                status: 'todo', // à faire, in-progress, completed, to-bill
+                subtasks: [],
+                createdAt: new Date().toISOString()
+            };
 
-  function showToast(msg){
-    const t = $("#toast"); t.textContent = msg; t.classList.add("show");
-    clearTimeout(t._timer); t._timer = setTimeout(()=> t.classList.remove("show"), 3400);
-  }
+            data.tasks.push(task);
+            saveData();
 
-  // ---------- HELPERS ----------
-  function projectById(id){ return data.projects.find(p=>p.id===id); }
-  function taskById(id){ return data.tasks.find(t=>t.id===id); }
-  function isVisibleProject(id){ return !data.activeFilters || data.activeFilters.includes(id); }
-  function isOverdue(t){ return t.deadline && t.deadline < todayKey() && t.status!=="termine" && t.status!=="a_facturer"; }
-  function outlookHoursOn(key){
-    return data.outlookEvents.filter(e=>e.date===key && e.hours).reduce((s,e)=>s+e.hours,0);
-  }
+            this.reset();
+        });
 
-  // ---------- AUTOMATIC SCHEDULER ----------
-  // Recalcule scheduledDate pour toutes les tâches non verrouillées manuellement (statut a_faire/en_cours).
-  function runScheduler(){
-    const cap = data.settings.dailyCapacity;
-    const usedByDay = {}; // key -> heures déjà occupées (RDV + tâches épinglées)
-
-    function used(key){ return usedByDay[key] || 0; }
-    function add(key, h){ usedByDay[key] = used(key) + h; }
-
-    // 1. les RDV Outlook occupent le planning en premier
-    // (déjà comptés via outlookHoursOn, ajoutés à la demande dans remaining())
-    function remaining(key){
-      const d = parseKey(key);
-      if(isWeekend(d)) return 0;
-      return Math.max(0, cap - used(key) - outlookHoursOn(key));
-    }
-
-    const schedulable = data.tasks.filter(t=> t.status==="a_faire" || t.status==="en_cours");
-
-    // les tâches épinglées manuellement gardent leur date et réservent leur capacité
-    schedulable.filter(t=>t.manualSchedule && t.scheduledDate).forEach(t=>{
-      add(t.scheduledDate, t.estimatedHours || 0);
-    });
-
-    // les tâches automatiques sont replanifiées, triées par échéance (les sans échéance en dernier)
-    const auto = schedulable.filter(t=>!t.manualSchedule)
-      .sort((a,b)=>{
-        const da = a.deadline || "9999-12-31";
-        const db = b.deadline || "9999-12-31";
-        return da.localeCompare(db);
-      });
-
-    const horizonStart = new Date(); horizonStart.setHours(0,0,0,0);
-
-    auto.forEach(t=>{
-      const hours = t.estimatedHours || 1;
-      const deadlineDate = t.deadline ? parseKey(t.deadline) : addDays(horizonStart, 120);
-      let placed = null;
-      let cursor = new Date(horizonStart);
-      let guard = 0;
-      while(cursor <= deadlineDate && guard < 400){
-        const key = fmtKey(cursor);
-        if(remaining(key) >= hours - 0.001){ placed = key; break; }
-        cursor = addDays(cursor,1);
-        guard++;
-      }
-      if(!placed){
-        // pas de créneau suffisant avant l'échéance : on place au mieux sur le dernier jour ouvré disponible
-        let fallback = new Date(deadlineDate);
-        let g2 = 0;
-        while(isWeekend(fallback) && g2 < 10){ fallback = addDays(fallback,-1); g2++; }
-        placed = fmtKey(fallback);
-      }
-      t.scheduledDate = placed;
-      add(placed, hours);
-    });
-  }
-
-  // ---------- SIDEBAR ----------
-  function renderSidebar(){
-    const list = $("#project-list");
-    list.innerHTML = "";
-    data.projects.forEach(p=>{
-      const count = data.tasks.filter(t=>t.projectId===p.id && (t.status==="a_faire"||t.status==="en_cours")).length;
-      const isOff = data.activeFilters && !data.activeFilters.includes(p.id);
-      const row = document.createElement("div");
-      row.className = "project-row" + (isOff ? " off" : "");
-      row.innerHTML = `<div class="swatch" style="background:${p.color}"></div><div class="pname">${escapeHtml(p.name)}</div><div class="pcount">${count}</div>`;
-      row.addEventListener("click", ()=>{
-        if(!data.activeFilters) data.activeFilters = data.projects.map(x=>x.id);
-        if(data.activeFilters.includes(p.id)) data.activeFilters = data.activeFilters.filter(id=>id!==p.id);
-        else data.activeFilters.push(p.id);
-        saveData(); render();
-      });
-      row.addEventListener("dblclick",(e)=>{
-        e.stopPropagation();
-        const name = prompt("Renommer le dossier :", p.name);
-        if(name && name.trim()){ p.name = name.trim(); saveData(); render(); }
-      });
-      list.appendChild(row);
-    });
-
-    $("#capacity-value").textContent = data.settings.dailyCapacity + " h/j";
-
-    const tKey = todayKey();
-    let open=0, late=0, invoice=0;
-    data.tasks.forEach(t=>{
-      if(t.status==="a_faire" || t.status==="en_cours") open++;
-      if(isOverdue(t)) late++;
-      if(t.status==="a_facturer") invoice++;
-    });
-    $("#stat-open").textContent = open;
-    $("#stat-late").textContent = late;
-    $("#stat-invoice").textContent = invoice;
-  }
-
-  // ---------- PLANNING ----------
-  function renderPlanning(){
-    const y = currentDate.getFullYear(), m = currentDate.getMonth();
-    $("#month-title").innerHTML = capitalize(currentDate.toLocaleDateString("fr-FR",{month:"long"})) + ` <span class="year">${y}</span>`;
-
-    const grid = $("#month-grid");
-    grid.innerHTML = "";
-    const firstOfMonth = new Date(y,m,1);
-    let startOffset = firstOfMonth.getDay()-1; if(startOffset<0) startOffset=6;
-    const gridStart = new Date(y,m,1-startOffset);
-    const tKey = todayKey();
-    const cap = data.settings.dailyCapacity;
-
-    for(let i=0;i<42;i++){
-      const cellDate = addDays(gridStart,i);
-      const key = fmtKey(cellDate);
-      const outside = cellDate.getMonth()!==m;
-      const cell = document.createElement("div");
-      cell.className = "day-cell" + (outside?" outside":"") + (key===tKey?" today":"");
-      cell.dataset.key = key;
-
-      const usedH = data.tasks.filter(t=>t.scheduledDate===key && (t.status==="a_faire"||t.status==="en_cours")).reduce((s,t)=>s+(t.estimatedHours||0),0) + outlookHoursOn(key);
-      cell.innerHTML = `<div class="day-num"><span>${cellDate.getDate()}</span></div>` + (isWeekend(cellDate)?"":`<div class="day-cap">${usedH.toFixed(1)}/${cap} h</div>`);
-
-      const dayTasks = data.tasks.filter(t=>t.scheduledDate===key && (t.status==="a_faire"||t.status==="en_cours") && isVisibleProject(t.projectId));
-      const dayEvents = data.outlookEvents.filter(e=>e.date===key);
-
-      let shown = 0;
-      const maxShow = 3;
-      dayTasks.forEach(t=>{
-        if(shown>=maxShow) return;
-        const proj = projectById(t.projectId);
-        const parent = t.parentId ? taskById(t.parentId) : null;
-        const late = isOverdue(t);
-        const chip = document.createElement("div");
-        chip.className = "chip " + (late ? "st-late" : "st-"+t.status);
-        chip.draggable = true;
-        chip.innerHTML = `<span class="ct">${escapeHtml(t.title)}</span>` + (parent?`<span class="cp">↳ ${escapeHtml(parent.title)}</span>`:"") + (proj?`<span class="cp">${escapeHtml(proj.name)} · ${t.estimatedHours}h</span>`:"");
-        chip.addEventListener("click", ()=> openTaskModal(t.id));
-        chip.addEventListener("dragstart", (e)=>{ dragTaskId = t.id; e.dataTransfer.effectAllowed="move"; });
-        cell.appendChild(chip);
-        shown++;
-      });
-      dayEvents.forEach(ev=>{
-        if(shown>=maxShow) return;
-        const chip = document.createElement("div");
-        chip.className = "chip outlook-chip";
-        chip.innerHTML = `<span class="ct">${escapeHtml(ev.title)}</span><span class="cp">${ev.allDay ? "toute la journée" : (ev.startTime||"")}</span>`;
-        chip.title = "Importé depuis Outlook";
-        cell.appendChild(chip);
-        shown++;
-      });
-      const total = dayTasks.length + dayEvents.length;
-      if(total > shown){
-        const more = document.createElement("div");
-        more.className = "more-link";
-        more.textContent = `+${total-shown} autre(s)`;
-        cell.appendChild(more);
-      }
-
-      cell.addEventListener("click", (e)=>{ if(e.target===cell || e.target.classList.contains("day-num") || e.target.tagName==="SPAN" && e.target.parentElement.classList.contains("day-num")) openTaskModal(null,key); });
-      cell.addEventListener("dragover",(e)=>{ e.preventDefault(); cell.classList.add("dragover"); });
-      cell.addEventListener("dragleave",()=> cell.classList.remove("dragover"));
-      cell.addEventListener("drop",(e)=>{
-        e.preventDefault(); cell.classList.remove("dragover");
-        if(!dragTaskId) return;
-        const t = taskById(dragTaskId);
-        if(t){ t.scheduledDate = key; t.manualSchedule = true; saveData(); render(); }
-        dragTaskId = null;
-      });
-
-      grid.appendChild(cell);
-    }
-  }
-
-  // ---------- LISTE (KANBAN) ----------
-  function renderKanban(){
-    const kanban = $("#kanban");
-    kanban.innerHTML = "";
-    ["a_faire","en_cours","termine"].forEach(status=>{
-      const col = document.createElement("div");
-      col.className = "kcol col-"+status;
-      const tasks = data.tasks.filter(t=>t.status===status && isVisibleProject(t.projectId))
-        .sort((a,b)=>(a.deadline||"9999").localeCompare(b.deadline||"9999"));
-      col.innerHTML = `<h3><span>${STATUS[status].label}</span><span>${tasks.length}</span></h3>`;
-      if(tasks.length===0){
-        const e = document.createElement("div"); e.className="empty-msg"; e.textContent = "Aucune tâche.";
-        col.appendChild(e);
-      }
-      tasks.forEach(t=> col.appendChild(makeTaskCard(t, status==="termine")));
-      kanban.appendChild(col);
-    });
-  }
-
-  function makeTaskCard(t, showInvoiceCheck){
-    const proj = projectById(t.projectId);
-    const parent = t.parentId ? taskById(t.parentId) : null;
-    const late = isOverdue(t);
-    const card = document.createElement("div");
-    card.className = "tcard" + (late?" late":"") + (parent?" sub":"");
-    card.innerHTML = `
-      <div class="ttitle">${escapeHtml(t.title)}</div>
-      ${parent ? `<div class="tparent">↳ sous-tâche de « ${escapeHtml(parent.title)} »</div>` : ""}
-      <div class="tmeta ${late?"late-text":""}">
-        <span>${t.deadline ? "Délai : "+formatShort(t.deadline) : "Sans délai"}</span>
-        <span>${t.estimatedHours} h estimées</span>
-      </div>
-      ${proj ? `<div class="tproj">${escapeHtml(proj.name)}</div>` : ""}
-    `;
-    card.addEventListener("click",(e)=>{
-      if(e.target.tagName==="INPUT") return;
-      openTaskModal(t.id);
-    });
-    if(showInvoiceCheck){
-      const line = document.createElement("div");
-      line.className = "invoice-check";
-      line.innerHTML = `<input type="checkbox" id="inv-${t.id}"><label for="inv-${t.id}">Marquer « à facturer »</label>`;
-      line.querySelector("input").addEventListener("change", async (e)=>{
-        if(e.target.checked){ t.status = "a_facturer"; await saveData(); render(); showToast("Tâche déplacée vers « à facturer »."); }
-      });
-      card.appendChild(line);
-    }
-    return card;
-  }
-
-  function formatShort(key){ return parseKey(key).toLocaleDateString("fr-FR",{day:"2-digit",month:"short"}); }
-
-  // ---------- À FACTURER ----------
-  function renderInvoice(){
-    const list = $("#invoice-list");
-    list.innerHTML = "";
-    const tasks = data.tasks.filter(t=>t.status==="a_facturer" && isVisibleProject(t.projectId))
-      .sort((a,b)=>(b.deadline||"").localeCompare(a.deadline||""));
-    $("#invoice-total").textContent = tasks.reduce((s,t)=>s+(t.estimatedHours||0),0).toFixed(1) + " h";
-    if(tasks.length===0){
-      list.innerHTML = `<div class="empty-msg">Aucune tâche à facturer pour le moment. Coche « à facturer » sur une tâche terminée pour qu'elle apparaisse ici.</div>`;
-      return;
-    }
-    tasks.forEach(t=>{
-      const proj = projectById(t.projectId);
-      const parent = t.parentId ? taskById(t.parentId) : null;
-      const row = document.createElement("div");
-      row.className = "tcard";
-      row.innerHTML = `
-        <div class="left">
-          <div class="ttitle">${escapeHtml(t.title)}</div>
-          ${parent ? `<div class="tparent">↳ sous-tâche de « ${escapeHtml(parent.title)} »</div>` : ""}
-          <div class="tproj">${proj?escapeHtml(proj.name):""} · ${t.estimatedHours} h</div>
-        </div>
-        <button class="uncheck-btn">Revenir à « terminé »</button>
-      `;
-      row.querySelector(".uncheck-btn").addEventListener("click", async (e)=>{
-        e.stopPropagation();
-        t.status = "termine"; await saveData(); render();
-      });
-      row.addEventListener("click", ()=> openTaskModal(t.id));
-      list.appendChild(row);
-    });
-  }
-
-  // ---------- TASK MODAL ----------
-  function openTaskModal(taskId, prefillDate, prefillParentId){
-    const task = taskId ? taskById(taskId) : null;
-    const overlay = document.createElement("div");
-    overlay.className = "overlay";
-    overlay.innerHTML = `
-      <div class="modal">
-        <h2>${task ? "Modifier la tâche" : "Nouvelle tâche"}</h2>
-        <div class="field"><label>Titre</label>
-          <input type="text" id="f-title" value="${task?escapeHtml(task.title):""}" placeholder="Ex. Note de calcul — plancher R+1">
-        </div>
-        <div class="row2">
-          <div class="field"><label>Dossier / client</label><select id="f-project"></select></div>
-          <div class="field"><label>Sous-tâche de (optionnel)</label><select id="f-parent"><option value="">— aucune —</option></select></div>
-        </div>
-        <div class="row2">
-          <div class="field"><label>Délai (échéance)</label><input type="date" id="f-deadline" value="${task?(task.deadline||""):""}"></div>
-          <div class="field"><label>Temps estimé (h)</label><input type="number" min="0.5" step="0.5" id="f-hours" value="${task?task.estimatedHours:2}"></div>
-        </div>
-        <div class="field"><label>Statut</label>
-          <select id="f-status">
-            <option value="a_faire">À faire</option>
-            <option value="en_cours">En cours</option>
-            <option value="termine">Terminé</option>
-            <option value="a_facturer">À facturer</option>
-          </select>
-        </div>
-        <div class="checkbox-line"><input type="checkbox" id="f-manual" ${task&&task.manualSchedule?"checked":""}><label for="f-manual">Verrouiller la date dans le planning (ne pas replanifier automatiquement)</label></div>
-        ${!task ? `
-        <div class="checkbox-line"><input type="checkbox" id="f-recur"><label for="f-recur">Tâche récurrente</label></div>
-        <div class="recur-fields" id="recur-fields">
-          <div class="field"><label>Fréquence</label>
-            <select id="f-recur-freq"><option value="weekly">Chaque semaine</option><option value="monthly">Chaque mois</option><option value="daily">Chaque jour ouvré</option></select>
-          </div>
-          <div class="field"><label>Nombre d'occurrences</label><input type="number" min="2" max="52" value="4" id="f-recur-count"></div>
-        </div>` : ""}
-        <div class="field"><label>Notes</label><textarea id="f-notes">${task?escapeHtml(task.notes||""):""}</textarea></div>
-        <div class="modal-actions">
-          <div>${task?'<button class="link-btn" id="btn-delete">Supprimer</button>':''}${task?'<button class="link-btn" id="btn-add-sub" style="margin-left:14px;color:var(--slate);">+ sous-tâche</button>':''}</div>
-          <div class="right">
-            <button class="secondary-btn" id="btn-cancel">Annuler</button>
-            <button class="primary-btn" id="btn-save">Enregistrer</button>
-          </div>
-        </div>
-      </div>`;
-    document.body.appendChild(overlay);
-
-    const selProj = overlay.querySelector("#f-project");
-    data.projects.forEach(p=>{
-      const o=document.createElement("option"); o.value=p.id; o.textContent=p.name;
-      if(task && task.projectId===p.id) o.selected=true;
-      selProj.appendChild(o);
-    });
-    const addProjOpt = document.createElement("option"); addProjOpt.value="__new__"; addProjOpt.textContent="+ Nouveau dossier…";
-    selProj.appendChild(addProjOpt);
-    selProj.addEventListener("change", ()=>{
-      if(selProj.value==="__new__"){
-        const name = prompt("Nom du nouveau dossier :");
-        if(name && name.trim()){
-          const np = { id:uid(), name:name.trim(), color:PROJECT_COLORS[data.projects.length % PROJECT_COLORS.length] };
-          data.projects.push(np);
-          const o=document.createElement("option"); o.value=np.id; o.textContent=np.name; o.selected=true;
-          selProj.insertBefore(o, addProjOpt);
-        } else { selProj.value = data.projects[0]?data.projects[0].id:""; }
-      }
-    });
-
-    const selParent = overlay.querySelector("#f-parent");
-    data.tasks.filter(t=>!task || t.id!==task.id).forEach(t=>{
-      const o=document.createElement("option"); o.value=t.id; o.textContent=t.title;
-      if(task && task.parentId===t.id) o.selected=true;
-      if(prefillParentId && prefillParentId===t.id) o.selected=true;
-      selParent.appendChild(o);
-    });
-
-    overlay.querySelector("#f-status").value = task ? task.status : "a_faire";
-    if(prefillDate && !task) overlay.querySelector("#f-deadline").value = prefillDate;
-
-    if(!task){
-      const recurCb = overlay.querySelector("#f-recur");
-      recurCb.addEventListener("change", ()=> overlay.querySelector("#recur-fields").classList.toggle("show", recurCb.checked));
-    }
-
-    overlay.addEventListener("click",(e)=>{ if(e.target===overlay) overlay.remove(); });
-    overlay.querySelector("#btn-cancel").addEventListener("click", ()=> overlay.remove());
-
-    if(task){
-      overlay.querySelector("#btn-add-sub").addEventListener("click", ()=>{
-        overlay.remove();
-        openTaskModal(null, null, task.id);
-      });
-      overlay.querySelector("#btn-delete").addEventListener("click", async ()=>{
-        if(confirm("Supprimer cette tâche ? (les sous-tâches liées seront conservées mais détachées)")){
-          data.tasks.forEach(t=>{ if(t.parentId===task.id) t.parentId=null; });
-          data.tasks = data.tasks.filter(t=>t.id!==task.id);
-          await saveData(); overlay.remove(); render();
+        // Mettre à jour le sélecteur de chantiers
+        function updateChantierSelect() {
+            const select = document.getElementById('taskChantier');
+            select.innerHTML = '<option value="">-- Sélectionner un chantier --</option>';
+            data.chantiers.forEach(chantier => {
+                const option = document.createElement('option');
+                option.value = chantier.id;
+                option.textContent = chantier.name;
+                select.appendChild(option);
+            });
         }
-      });
-    }
 
-    overlay.querySelector("#btn-save").addEventListener("click", async ()=>{
-      const title = overlay.querySelector("#f-title").value.trim();
-      if(!title){ showToast("Le titre est obligatoire."); return; }
-      const payload = {
-        title,
-        projectId: selProj.value,
-        parentId: selParent.value || null,
-        deadline: overlay.querySelector("#f-deadline").value || null,
-        estimatedHours: parseFloat(overlay.querySelector("#f-hours").value) || 1,
-        status: overlay.querySelector("#f-status").value,
-        manualSchedule: overlay.querySelector("#f-manual").checked,
-        notes: overlay.querySelector("#f-notes").value.trim()
-      };
-      if(task){
-        Object.assign(task, payload);
-        await saveData(); overlay.remove(); render();
-      } else {
-        const recurCb = overlay.querySelector("#f-recur");
-        if(recurCb && recurCb.checked && payload.deadline){
-          const freq = overlay.querySelector("#f-recur-freq").value;
-          const count = parseInt(overlay.querySelector("#f-recur-count").value) || 4;
-          const recGroup = uid();
-          let base = parseKey(payload.deadline);
-          for(let i=0;i<count;i++){
-            let d = new Date(base);
-            if(freq==="weekly") d = addDays(base, 7*i);
-            else if(freq==="monthly"){ d = new Date(base); d.setMonth(d.getMonth()+i); }
-            else { d = addDays(base, i); while(isWeekend(d)) d = addDays(d,1); }
-            data.tasks.push({ id:uid(), ...payload, deadline: fmtKey(d), scheduledDate:null, manualSchedule:false, recurrenceGroup:recGroup });
-          }
-        } else {
-          data.tasks.push({ id:uid(), ...payload, scheduledDate:null });
+        // Afficher tous les chantiers et tâches (To-Do List)
+        function renderTodoList() {
+            const content = document.getElementById('todoListContent');
+            
+            if (data.chantiers.length === 0) {
+                content.innerHTML = '<div class="empty-message">Aucun chantier créé</div>';
+                return;
+            }
+
+            let html = '';
+            data.chantiers.forEach(chantier => {
+                const chantierTasks = data.tasks.filter(t => t.chantierId === chantier.id);
+                
+                html += `
+                    <div class="chantier-card">
+                        <div class="chantier-header">
+                            <span class="chantier-title">${chantier.name}</span>
+                            <div class="chantier-actions">
+                                <button class="secondary" onclick="editChantier(${chantier.id})">Éditer</button>
+                                <button class="secondary" onclick="deleteChantier(${chantier.id})">Supprimer</button>
+                            </div>
+                        </div>
+                        <div class="chantier-content">
+                `;
+
+                if (chantier.description) {
+                    html += `<p style="color: #666; font-size: 0.9em; margin-bottom: 10px;">${chantier.description}</p>`;
+                }
+
+                if (chantier.deadline) {
+                    html += `<p style="color: #999; font-size: 0.85em; margin-bottom: 10px;">Deadline: ${new Date(chantier.deadline).toLocaleDateString()}</p>`;
+                }
+
+                // Grouper les tâches par statut
+                const statuses = ['todo', 'in-progress', 'completed', 'to-bill'];
+                statuses.forEach(status => {
+                    const statusTasks = chantierTasks.filter(t => t.status === status);
+                    if (statusTasks.length > 0) {
+                        html += `<div style="margin-top: 10px;"><strong style="color: #667eea; font-size: 0.9em;">${getStatusLabel(status)}</strong>`;
+                        statusTasks.forEach(task => {
+                            html += renderTaskItem(task);
+                        });
+                        html += '</div>';
+                    }
+                });
+
+                html += `
+                        </div>
+                    </div>
+                `;
+            });
+
+            content.innerHTML = html;
         }
-        await saveData(); overlay.remove(); render();
-      }
-    });
-  }
 
-  // ---------- ICS EXPORT ----------
-  function exportIcs(){
-    const lines = ["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//Chantier//FR"];
-    data.tasks.filter(t=>t.scheduledDate && (t.status==="a_faire"||t.status==="en_cours")).forEach(t=>{
-      const dt = t.scheduledDate.replace(/-/g,"");
-      lines.push("BEGIN:VEVENT");
-      lines.push("UID:"+t.id+"@chantier");
-      lines.push("DTSTART;VALUE=DATE:"+dt);
-      lines.push("DTEND;VALUE=DATE:"+dt);
-      lines.push("SUMMARY:"+icsEscape(t.title));
-      const proj = projectById(t.projectId);
-      const desc = (proj?"Dossier: "+proj.name+". ":"") + "Temps estimé: "+t.estimatedHours+"h." + (t.notes?" "+t.notes:"");
-      lines.push("DESCRIPTION:"+icsEscape(desc));
-      lines.push("END:VEVENT");
-    });
-    lines.push("END:VCALENDAR");
-    const blob = new Blob([lines.join("\r\n")], {type:"text/calendar"});
-    const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "chantier-taches.ics";
-    document.body.appendChild(a); a.click(); a.remove();
-    showToast("Fichier .ics téléchargé — importe-le dans Outlook via « Ajouter un calendrier ».");
-  }
-  function icsEscape(s){ return (s||"").replace(/[,;]/g,"\\$&").replace(/\n/g," "); }
+        // Afficher le planning
+        function renderPlanning() {
+            const content = document.getElementById('planningContent');
+            
+            // Filtrer les tâches à afficher (non terminées et non facturées)
+            const visibleTasks = data.tasks.filter(t => 
+                t.status !== 'completed' && t.status !== 'to-bill'
+            );
 
-  // ---------- ICS IMPORT ----------
-  function importIcs(text){
-    const blocks = text.split("BEGIN:VEVENT").slice(1);
-    let count = 0;
-    blocks.forEach(ev=>{
-      const summaryMatch = ev.match(/SUMMARY:(.*)/);
-      const dtStart = ev.match(/DTSTART[^:]*:(\d{8})(T(\d{6}))?/);
-      const dtEnd = ev.match(/DTEND[^:]*:(\d{8})(T(\d{6}))?/);
-      if(!summaryMatch || !dtStart) return;
-      const raw = dtStart[1];
-      const date = raw.slice(0,4)+"-"+raw.slice(4,6)+"-"+raw.slice(6,8);
-      let allDay = !dtStart[3];
-      let hours = null, startTime=null;
-      if(!allDay){
-        const sh = parseInt(dtStart[3].slice(0,2)), sm = parseInt(dtStart[3].slice(2,4));
-        startTime = String(sh).padStart(2,"0")+":"+String(sm).padStart(2,"0");
-        if(dtEnd && dtEnd[3]){
-          const eh = parseInt(dtEnd[3].slice(0,2)), em = parseInt(dtEnd[3].slice(2,4));
-          hours = Math.max(0.25, (eh*60+em - (sh*60+sm))/60);
-        } else { hours = 1; }
-      }
-      data.outlookEvents.push({
-        id: uid(),
-        title: summaryMatch[1].trim().replace(/\\,/g,",").replace(/\\;/g,";"),
-        date, allDay, startTime, hours
-      });
-      count++;
-    });
-    return count;
-  }
+            if (visibleTasks.length === 0) {
+                content.innerHTML = '<div class="empty-message">Aucune tâche à planifier</div>';
+                return;
+            }
 
-  // ---------- RENDER ----------
-  function render(){
-    renderSidebar();
-    if(currentView==="planning") renderPlanning();
-    else if(currentView==="liste") renderKanban();
-    else renderInvoice();
-  }
+            // Trier par deadline
+            visibleTasks.sort((a, b) => {
+                if (!a.deadline) return 1;
+                if (!b.deadline) return -1;
+                return new Date(a.deadline) - new Date(b.deadline);
+            });
 
-  // ---------- EVENTS ----------
-  function bindEvents(){
-    $("#btn-prev").addEventListener("click", ()=>{ currentDate.setMonth(currentDate.getMonth()-1); renderPlanning(); });
-    $("#btn-next").addEventListener("click", ()=>{ currentDate.setMonth(currentDate.getMonth()+1); renderPlanning(); });
-    $("#btn-today").addEventListener("click", ()=>{ currentDate = new Date(); renderPlanning(); });
-    $("#btn-new-task").addEventListener("click", ()=> openTaskModal(null, currentView==="planning"?todayKey():null));
+            let html = '';
+            visibleTasks.forEach(task => {
+                const chantier = data.chantiers.find(c => c.id === task.chantierId);
+                const isOverdue = task.deadline && new Date(task.deadline) < new Date();
+                const statusClass = isOverdue && task.status !== 'completed' ? 'overdue' : task.status;
 
-    function switchView(view){
-      currentView = view;
-      ["planning","liste","facturer"].forEach(v=>{
-        $("#tab-"+v).classList.toggle("active", v===view);
-        $("#view-"+v).style.display = (v===view) ? "block" : "none";
-      });
-      $("#legend-planning").style.display = view==="planning" ? "flex" : "none";
-      render();
-    }
-    $("#tab-planning").addEventListener("click", ()=> switchView("planning"));
-    $("#tab-liste").addEventListener("click", ()=> switchView("liste"));
-    $("#tab-facturer").addEventListener("click", ()=> switchView("facturer"));
+                html += `
+                    <div class="task-item ${statusClass}" draggable="true" ondragstart="dragStart(event, ${task.id})">
+                        <span class="drag-handle">⋮⋮</span>
+                        <div class="task-info">
+                            <div class="task-title">${task.name}</div>
+                            <div class="task-details">
+                                <span>📍 ${chantier?.name || 'Chantier supprimé'}</span>
+                                ${task.deadline ? `<span>📅 ${new Date(task.deadline).toLocaleDateString()}</span>` : ''}
+                                ${task.estimatedTime ? `<span>⏱️ ${task.estimatedTime}h</span>` : ''}
+                            </div>
+                            <div class="task-status ${getStatusClass(statusClass)}">${getStatusLabel(task.status)}</div>
+                        </div>
+                        <div class="task-actions">
+                            <button class="secondary" onclick="updateTaskStatus(${task.id}, 'in-progress')">En cours</button>
+                            <button class="secondary" onclick="updateTaskStatus(${task.id}, 'completed')">Terminer</button>
+                            <button class="secondary" onclick="showDetails(${task.id})">Détails</button>
+                        </div>
+                    </div>
+                `;
+            });
 
-    $("#btn-add-project").addEventListener("click", async ()=>{
-      const name = prompt("Nom du nouveau dossier :");
-      if(name && name.trim()){
-        data.projects.push({ id:uid(), name:name.trim(), color:PROJECT_COLORS[data.projects.length % PROJECT_COLORS.length] });
-        await saveData(); render();
-      }
-    });
+            content.innerHTML = html;
+        }
 
-    $("#capacity-row").addEventListener("click", async ()=>{
-      const val = prompt("Nombre d'heures de travail par jour :", data.settings.dailyCapacity);
-      const n = parseFloat(val);
-      if(!isNaN(n) && n>0){ data.settings.dailyCapacity = n; await saveData(); render(); }
-    });
+        // Afficher la liste à facturer
+        function renderToBill() {
+            const content = document.getElementById('toBillContent');
+            const toBillTasks = data.tasks.filter(t => t.status === 'to-bill');
 
-    $("#btn-replan").addEventListener("click", async ()=>{
-      data.tasks.forEach(t=>{ if(t.status==="a_faire"||t.status==="en_cours") t.manualSchedule=false; });
-      await saveData(); render();
-      showToast("Planning recalculé automatiquement.");
-    });
+            if (toBillTasks.length === 0) {
+                content.innerHTML = '<div class="empty-message">Aucune tâche à facturer</div>';
+                return;
+            }
 
-    $("#btn-export").addEventListener("click", exportIcs);
-    $("#btn-import").addEventListener("click", ()=> $("#file-import").click());
-    $("#file-import").addEventListener("change", async (e)=>{
-      const file = e.target.files[0]; if(!file) return;
-      const text = await file.text();
-      const count = importIcs(text);
-      await saveData(); render();
-      showToast(count>0 ? `${count} événement(s) Outlook importé(s).` : "Aucun événement trouvé dans ce fichier.");
-      e.target.value = "";
-    });
+            let html = '';
+            toBillTasks.forEach(task => {
+                const chantier = data.chantiers.find(c => c.id === task.chantierId);
+                html += `
+                    <div class="task-item to-bill">
+                        <div class="task-info">
+                            <div class="task-title">${task.name}</div>
+                            <div class="task-details">
+                                <span>📍 ${chantier?.name || 'Chantier supprimé'}</span>
+                                ${task.deadline ? `<span>📅 ${new Date(task.deadline).toLocaleDateString()}</span>` : ''}
+                                ${task.estimatedTime ? `<span>⏱️ ${task.estimatedTime}h</span>` : ''}
+                            </div>
+                        </div>
+                        <div class="task-actions">
+                            <button class="secondary" onclick="removeFromBill(${task.id})">Retirer</button>
+                            <button class="secondary" onclick="showDetails(${task.id})">Détails</button>
+                        </div>
+                    </div>
+                `;
+            });
 
-    $("#btn-sync").addEventListener("click", ()=>{
-      if(typeof sendPrompt === "function"){
-        sendPrompt("Peux-tu vérifier mes rendez-vous Outlook des 2 prochaines semaines (via le connecteur Microsoft 365) et me donner la liste (titre, date, heure de début et de fin) pour que je les ajoute à mon planning Chantier ?");
-      } else {
-        showToast("Ouvre cette conversation dans le chat pour demander la synchro à Claude.");
-      }
-    });
-  }
+            content.innerHTML = html;
+        }
 
-  async function init(){
-    await loadData();
-    runScheduler();
-    bindEvents();
-    render();
-  }
-  init();
-})();
-</script>
-<script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/v3d52b47920f24c319d37e2661827c42b1787588026925" integrity="sha512-d9sL6GJLXn6fInD1+TVXhTcQOsmxeHfmHAvwGDIxp5TO+uo1fiWW7mHomMj4MLRlCsJDTqXzWLHJFFlPCEIj/A==" data-cf-beacon='{"version":"2024.11.0","token":"8607d2a720d14b038279025b2b5a82e5"}' crossorigin="anonymous"></script>
+        // Rendre un élément de tâche
+        function renderTaskItem(task) {
+            const isOverdue = task.deadline && new Date(task.deadline) < new Date();
+            const statusClass = isOverdue && task.status !== 'completed' ? 'overdue' : task.status;
+
+            let html = `
+                <div class="task-item ${statusClass}">
+                    <div class="task-info">
+                        <div class="task-title">${task.name}</div>
+                        <div class="task-details">
+                            ${task.deadline ? `<span>📅 ${new Date(task.deadline).toLocaleDateString()}</span>` : ''}
+                            ${task.estimatedTime ? `<span>⏱️ ${task.estimatedTime}h</span>` : ''}
+                        </div>
+                        <div class="task-status ${getStatusClass(statusClass)}">${getStatusLabel(task.status)}</div>
+                    </div>
+                    <div class="task-actions">
+                        <button class="secondary" onclick="updateTaskStatus(${task.id}, 'in-progress')">En cours</button>
+                        <button class="secondary" onclick="updateTaskStatus(${task.id}, 'completed')">Terminer</button>
+                        ${task.status === 'completed' ? `<button class="secondary" onclick="updateTaskStatus(${task.id}, 'to-bill')">À facturer</button>` : ''}
+                        <button class="secondary" onclick="deleteTask(${task.id})">Supprimer</button>
+                    </div>
+                </div>
+            `;
+
+            return html;
+        }
+
+        // Mettre à jour le statut d'une tâche
+        function updateTaskStatus(taskId, newStatus) {
+            const task = data.tasks.find(t => t.id === taskId);
+            if (task) {
+                task.status = newStatus;
+                saveData();
+            }
+        }
+
+        // Retirer de la facturation
+        function removeFromBill(taskId) {
+            const task = data.tasks.find(t => t.id === taskId);
+            if (task) {
+                task.status = 'completed';
+                saveData();
+            }
+        }
+
+        // Supprimer une tâche
+        function deleteTask(taskId) {
+            if (confirm('Êtes-vous sûr de vouloir supprimer cette tâche ?')) {
+                data.tasks = data.tasks.filter(t => t.id !== taskId);
+                saveData();
+            }
+        }
+
+        // Supprimer un chantier
+        function deleteChantier(chantierId) {
+            if (confirm('Êtes-vous sûr de vouloir supprimer ce chantier et toutes ses tâches ?')) {
+                data.chantiers = data.chantiers.filter(c => c.id !== chantierId);
+                data.tasks = data.tasks.filter(t => t.chantierId !== chantierId);
+                saveData();
+            }
+        }
+
+        // Éditer un chantier
+        function editChantier(chantierId) {
+            const chantier = data.chantiers.find(c => c.id === chantierId);
+            if (chantier) {
+                const newName = prompt('Nouveau nom :', chantier.name);
+                if (newName) {
+                    chantier.name = newName;
+                    saveData();
+                }
+            }
+        }
+
+        // Afficher les détails
+        function showDetails(taskId) {
+            const task = data.tasks.find(t => t.id === taskId);
+            const chantier = data.chantiers.find(c => c.id === task.chantierId);
+            const modal = document.getElementById('detailsModal');
+            const modalBody = document.getElementById('modalBody');
+
+            let html = `
+                <div class="form-group">
+                    <label>Chantier:</label>
+                    <p>${chantier?.name || 'Supprimé'}</p>
+                </div>
+                <div class="form-group">
+                    <label>Nom:</label>
+                    <p>${task.name}</p>
+                </div>
+                <div class="form-group">
+                    <label>Description:</label>
+                    <p>${task.description || '-'}</p>
+                </div>
+                <div class="form-group">
+                    <label>Statut:</label>
+                    <p>${getStatusLabel(task.status)}</p>
+                </div>
+                <div class="form-group">
+                    <label>Date limite:</label>
+                    <p>${task.deadline ? new Date(task.deadline).toLocaleDateString() : '-'}</p>
+                </div>
+                <div class="form-group">
+                    <label>Temps estimé:</label>
+                    <p>${task.estimatedTime ? task.estimatedTime + 'h' : '-'}</p>
+                </div>
+                <div class="form-group">
+                    <label>Récurrence:</label>
+                    <p>${task.recurrence !== 'none' ? task.recurrence : 'Aucune'}</p>
+                </div>
+            `;
+
+            modalBody.innerHTML = html;
+            modal.classList.add('active');
+        }
+
+        // Obtenir le libellé du statut
+        function getStatusLabel(status) {
+            const labels = {
+                'todo': 'À faire',
+                'in-progress': 'En cours',
+                'completed': 'Terminé',
+                'to-bill': 'À facturer'
+            };
+            return labels[status] || status;
+        }
+
+        // Obtenir la classe CSS du statut
+        function getStatusClass(status) {
+            const classes = {
+                'todo': 'status-todo',
+                'in-progress': 'status-in-progress',
+                'completed': 'status-completed',
+                'to-bill': 'status-to-bill',
+                'overdue': 'status-todo'
+            };
+            return classes[status] || '';
+        }
+
+        // Gestion des onglets
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                
+                this.classList.add('active');
+                const tabId = this.getAttribute('data-tab');
+                document.getElementById(tabId).classList.add('active');
+            });
+        });
+
+        // Fermer la modal
+        document.querySelector('.close-modal').addEventListener('click', function() {
+            document.getElementById('detailsModal').classList.remove('active');
+        });
+
+        // Drag and drop
+        function dragStart(event, taskId) {
+            event.dataTransfer.setData('text/plain', taskId);
+        }
+
+        // Mettre à jour toutes les vues
+        function updateAllViews() {
+            renderTodoList();
+            renderPlanning();
+            renderToBill();
+        }
+
+        // Initialisation
+        loadData();
+        updateChantierSelect();
+        updateAllViews();
+    </script>
 </body>
 </html>
