@@ -115,7 +115,6 @@
             padding-bottom: 10px; 
         }
 
-        /* ===== CHIFFRE D'AFFAIRES ===== */
         .revenue-box {
             background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
             color: white;
@@ -269,7 +268,6 @@
         .day-timeline {
             position: relative;
             background: linear-gradient(to bottom, #fafafa 0%, #fff 100%);
-            border-radius: 0;
             padding: 0;
             border: none;
             min-height: 600px;
@@ -399,50 +397,6 @@
 
         .week-slot.lunch {
             background: #f5f5f5;
-        }
-
-        /* ===== TÂCHES MULTI-JOURS ===== */
-        .multi-day-container {
-            position: relative;
-            height: 40px;
-            margin: 5px 0;
-            display: flex;
-            align-items: center;
-            grid-column: auto;
-        }
-
-        .multi-day-task {
-            position: absolute;
-            padding: 8px 12px;
-            border-radius: 0;
-            font-size: 0.85em;
-            font-weight: bold;
-            color: white;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            height: 36px;
-            display: flex;
-            align-items: center;
-            cursor: move;
-            z-index: 20;
-            border-left: 4px solid rgba(0,0,0,0.2);
-            top: 0;
-            width: 100%;
-        }
-
-        .multi-day-task.a-faire { background: #2196F3; }
-        .multi-day-task.en-cours { background: #FFC107; color: black; }
-        .multi-day-task.en-retard { background: #F44336; }
-        .multi-day-task.subtask { background: #5E35B1; }
-
-        .multi-day-task-start {
-            border-radius: 5px 0 0 5px;
-        }
-
-        .multi-day-task-end {
-            border-radius: 0 5px 5px 0;
         }
 
         /* ===== VUE MOIS ===== */
@@ -723,145 +677,252 @@
                     <button class="view-btn" onclick="switchView('semaine')">📊 Semaine</button>
                     <button class="view-btn" onclick="switchView('mois')">📆 Mois</button>
                 </div>
-                <button class="btn-primary" onclick="openTaskModal()">+ Nouvelle Tâche</button>
+                <button class="btn-primary" onclick="openTaskModal()">➕ Nouvelle Tâche</button>
             </div>
         </header>
 
         <div class="main-content">
-            <!-- SIDEBAR -->
-            <div class="sidebar">
-                <div class="revenue-box" id="revenueBox">
-                    <div class="revenue-label">Chiffre d'affaires HT</div>
-                    <div class="revenue-amount" id="revenueAmount">0 €</div>
+            <aside class="sidebar">
+                <div class="revenue-box">
+                    <div class="revenue-label">Chiffre d'affaires HT prévisionnel</div>
+                    <div class="revenue-amount" id="revenueAmount">0.00 €</div>
                     <div class="revenue-period" id="revenuePeriod"></div>
                 </div>
-
+                
+                <h2>📋 Tâches</h2>
                 <div id="tasksList"></div>
+                
+                <h2>💰 À Facturer</h2>
                 <div id="billableList"></div>
-            </div>
+            </aside>
 
-            <!-- PLANNING -->
-            <div class="planning-container">
+            <main class="planning-container">
                 <div class="planning-header">
                     <div class="planning-nav">
-                        <button onclick="previousDay()">← Précédent</button>
-                        <button onclick="todayView()">Aujourd'hui</button>
-                        <button onclick="nextDay()">Suivant →</button>
+                        <button onclick="prevDate()">⬅️ Précédent</button>
+                        <button onclick="todayDate()">📍 Aujourd'hui</button>
+                        <button onclick="nextDate()">Suivant ➡️</button>
                     </div>
                     <div class="planning-date" id="planningDate"></div>
                 </div>
                 <div id="planningContent"></div>
-            </div>
+            </main>
         </div>
     </div>
 
-    <!-- MODAL TÂCHE -->
     <div id="taskModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
                 <h2 id="modalTitle">Nouvelle Tâche</h2>
-                <button class="close" onclick="closeTaskModal()">×</button>
+                <button class="close" onclick="closeTaskModal()">&times;</button>
             </div>
-
-            <div class="form-group">
-                <label>Nom de la tâche</label>
-                <input type="text" id="taskName" placeholder="Ex: Étude de structure">
-            </div>
-
-            <div class="form-row">
+            <form onsubmit="saveTask(event)">
                 <div class="form-group">
-                    <label>Date de début</label>
-                    <input type="datetime-local" id="taskStartDate" onchange="updateDatesFromStart()">
+                    <label>Nom de la tâche *</label>
+                    <input type="text" id="taskName" required>
                 </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Date de début *</label>
+                        <input type="datetime-local" id="taskStart" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Durée (heures) *</label>
+                        <input type="number" id="taskDuration" step="0.5" min="0.5" required>
+                    </div>
+                </div>
+
                 <div class="form-group">
-                    <label>Date de fin</label>
-                    <input type="datetime-local" id="taskEndDate" onchange="updateDatesFromEnd()">
+                    <label>Date de fin (calculée)</label>
+                    <input type="datetime-local" id="taskEnd" readonly>
                 </div>
-            </div>
 
-            <div class="form-group">
-                <label>Durée (heures)</label>
-                <input type="number" id="taskDuration" min="0.5" step="0.5" placeholder="Ex: 8" onchange="updateDatesFromDuration()">
-            </div>
-
-            <div class="form-group">
-                <label>Coût d'étude HT (€)</label>
-                <input type="number" id="taskCost" min="0" step="0.01" placeholder="Ex: 500">
-            </div>
-
-            <div class="form-group">
-                <label>Statut</label>
-                <select id="taskStatus">
-                    <option value="a-faire">🔵 À faire</option>
-                    <option value="en-cours">🟡 En cours</option>
-                    <option value="termine">🟢 Terminé</option>
-                </select>
-            </div>
-
-            <div class="form-group checkbox-label">
-                <input type="checkbox" id="taskAFacturer">
-                <label for="taskAFacturer">À facturer</label>
-            </div>
-
-            <div class="recurrence-group">
-                <h4>Récurrence</h4>
-                <div class="checkbox-label">
-                    <input type="checkbox" id="taskRecDaily" onchange="updateRecurrence()">
-                    <label for="taskRecDaily">Quotidienne</label>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Statut</label>
+                        <select id="taskStatus">
+                            <option value="a-faire">À faire</option>
+                            <option value="en-cours">En cours</option>
+                            <option value="termine">Terminé</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Coût d'étude HT (€)</label>
+                        <input type="number" id="taskCost" step="0.01" min="0" value="0">
+                    </div>
                 </div>
-                <div class="checkbox-label">
-                    <input type="checkbox" id="taskRecWeekly" onchange="updateRecurrence()">
-                    <label for="taskRecWeekly">Hebdomadaire</label>
-                </div>
-                <div class="checkbox-label">
-                    <input type="checkbox" id="taskRecMonthly" onchange="updateRecurrence()">
-                    <label for="taskRecMonthly">Mensuelle</label>
-                </div>
-            </div>
 
-            <div class="subtask-list">
-                <h4>Sous-tâches</h4>
-                <div id="subtasksList"></div>
-                <button class="btn-add-subtask" onclick="addSubtaskInput()">+ Ajouter une sous-tâche</button>
-            </div>
+                <div class="form-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="taskBillable"> À facturer
+                    </label>
+                </div>
 
-            <div class="button-group">
-                <button class="btn-cancel" onclick="closeTaskModal()">Annuler</button>
-                <button class="btn-delete" id="deleteBtn" onclick="deleteTask()" style="display:none;">Supprimer</button>
-                <button class="btn-submit" onclick="saveTask()">Enregistrer</button>
-            </div>
+                <div class="recurrence-group">
+                    <h4>Récurrence</h4>
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="recurDaily"> Quotidienne
+                    </label>
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="recurWeekly"> Hebdomadaire
+                    </label>
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="recurMonthly"> Mensuelle
+                    </label>
+                </div>
+
+                <div class="subtask-list">
+                    <h4>Sous-tâches</h4>
+                    <div id="subtasksList"></div>
+                    <button type="button" class="btn-add-subtask" onclick="addSubtask()">➕ Ajouter une sous-tâche</button>
+                </div>
+
+                <div class="button-group">
+                    <button type="button" class="btn-cancel" onclick="closeTaskModal()">Annuler</button>
+                    <button type="button" class="btn-delete" id="deleteBtn" style="display:none;" onclick="deleteTask()">Supprimer</button>
+                    <button type="submit" class="btn-submit">Enregistrer</button>
+                </div>
+            </form>
         </div>
     </div>
 
     <script>
-        // ===== CONSTANTES =====
-        const WORK_START = 8.5; // 8h30
-        const WORK_END = 18;    // 18h
+        const WORK_START = 8.5;
+        const WORK_END = 18;
         const LUNCH_START = 12;
         const LUNCH_END = 14;
 
-        // ===== VARIABLES GLOBALES =====
         let tasks = [];
         let currentDate = new Date();
         let currentView = 'jour';
-        let currentEditingTaskId = null;
+        let currentTaskId = null;
         let draggedTask = null;
         let dragOffsetY = 0;
 
-        // ===== STOCKAGE LOCAL =====
-        function saveTasks() {
-            localStorage.setItem('chantierTasks', JSON.stringify(tasks));
+        function getStorageKey() { return 'chantier-tasks'; }
+        function saveTasks() { localStorage.setItem(getStorageKey(), JSON.stringify(tasks)); }
+        function loadTasks() { tasks = JSON.parse(localStorage.getItem(getStorageKey()) || '[]'); }
+
+        function generateId() { return 'task-' + Date.now() + Math.random(); }
+
+        function switchView(view) {
+            currentView = view;
+            document.querySelectorAll('.view-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            renderPlanning();
         }
 
-        function loadTasks() {
-            const stored = localStorage.getItem('chantierTasks');
-            tasks = stored ? JSON.parse(stored) : [];
+        function prevDate() {
+            if (currentView === 'jour') currentDate.setDate(currentDate.getDate() - 1);
+            else if (currentView === 'semaine') currentDate.setDate(currentDate.getDate() - 7);
+            else currentDate.setMonth(currentDate.getMonth() - 1);
+            renderPlanning();
+        }
+
+        function nextDate() {
+            if (currentView === 'jour') currentDate.setDate(currentDate.getDate() + 1);
+            else if (currentView === 'semaine') currentDate.setDate(currentDate.getDate() + 7);
+            else currentDate.setMonth(currentDate.getMonth() + 1);
+            renderPlanning();
+        }
+
+        function todayDate() {
+            currentDate = new Date();
+            renderPlanning();
+        }
+
+        function openTaskModal(taskId = null) {
+            currentTaskId = taskId;
+            const modal = document.getElementById('taskModal');
             
-            // Vérifier les tâches en retard
-            updateTasksStatus();
+            if (taskId) {
+                const task = tasks.find(t => t.id === taskId);
+                document.getElementById('modalTitle').textContent = 'Éditer la tâche';
+                document.getElementById('taskName').value = task.name;
+                document.getElementById('taskStart').value = task.startDate;
+                document.getElementById('taskEnd').value = task.endDate;
+                document.getElementById('taskDuration').value = task.duration;
+                document.getElementById('taskStatus').value = task.status;
+                document.getElementById('taskCost').value = task.cost || 0;
+                document.getElementById('taskBillable').checked = task.aFacturer;
+                document.getElementById('recurDaily').checked = task.recurDaily;
+                document.getElementById('recurWeekly').checked = task.recurWeekly;
+                document.getElementById('recurMonthly').checked = task.recurMonthly;
+                document.getElementById('deleteBtn').style.display = 'block';
+                
+                renderSubtasks(task);
+            } else {
+                document.getElementById('modalTitle').textContent = 'Nouvelle tâche';
+                document.getElementById('taskStart').value = currentDate.toISOString().slice(0, 16);
+                document.getElementById('taskDuration').value = 1;
+                document.getElementById('taskStatus').value = 'a-faire';
+                document.getElementById('taskCost').value = 0;
+                document.getElementById('taskBillable').checked = false;
+                document.getElementById('taskEnd').value = '';
+                document.getElementById('recurDaily').checked = false;
+                document.getElementById('recurWeekly').checked = false;
+                document.getElementById('recurMonthly').checked = false;
+                document.getElementById('deleteBtn').style.display = 'none';
+                document.getElementById('subtasksList').innerHTML = '';
+            }
+
+            modal.classList.add('show');
+            
+            document.getElementById('taskDuration').addEventListener('input', calculateEndDate);
+            document.getElementById('taskStart').addEventListener('input', calculateEndDate);
         }
 
-        // ===== GESTION DES STATUTS =====
+        function closeTaskModal() {
+            document.getElementById('taskModal').classList.remove('show');
+            currentTaskId = null;
+        }
+
+        function calculateEndDate() {
+            const start = new Date(document.getElementById('taskStart').value);
+            const duration = parseFloat(document.getElementById('taskDuration').value);
+            const end = new Date(start.getTime() + duration * 60 * 60 * 1000);
+            document.getElementById('taskEnd').value = end.toISOString().slice(0, 16);
+        }
+
+        function renderSubtasks(task) {
+            const list = document.getElementById('subtasksList');
+            list.innerHTML = '';
+            
+            if (task.subtasks && task.subtasks.length > 0) {
+                task.subtasks.forEach((st, idx) => {
+                    const el = document.createElement('div');
+                    el.className = 'subtask-item';
+                    el.innerHTML = `
+                        <div>
+                            <div class="subtask-item-name">${st.name}</div>
+                            <div class="subtask-item-duration">⏱️ ${st.duration}h</div>
+                        </div>
+                        <button type="button" class="btn-subtask-delete" onclick="deleteSubtask(${idx})">✕</button>
+                    `;
+                    list.appendChild(el);
+                });
+            }
+        }
+
+        function addSubtask() {
+            const name = prompt('Nom de la sous-tâche:');
+            const duration = prompt('Durée (heures):');
+            
+            if (name && duration) {
+                if (!window.currentSubtasks) window.currentSubtasks = [];
+                window.currentSubtasks.push({ name, duration: parseFloat(duration) });
+                renderSubtasks({ subtasks: window.currentSubtasks });
+            }
+        }
+
+        function deleteSubtask(idx) {
+            if (window.currentSubtasks) {
+                window.currentSubtasks.splice(idx, 1);
+                renderSubtasks({ subtasks: window.currentSubtasks });
+            }
+        }
+
         function updateTasksStatus() {
             const now = new Date();
             tasks.forEach(task => {
@@ -873,261 +934,74 @@
             saveTasks();
         }
 
-        // ===== CALCUL DES DATES =====
-        function updateDatesFromStart() {
-            const startInput = document.getElementById('taskStartDate');
-            const endInput = document.getElementById('taskEndDate');
-            const durationInput = document.getElementById('taskDuration');
+        function saveTask(e) {
+            e.preventDefault();
 
-            if (startInput.value && durationInput.value) {
-                const start = new Date(startInput.value);
-                const duration = parseFloat(durationInput.value);
-                const end = new Date(start.getTime() + duration * 60 * 60 * 1000);
-                endInput.value = end.toISOString().slice(0, 16);
-            }
-        }
-
-        function updateDatesFromEnd() {
-            const startInput = document.getElementById('taskStartDate');
-            const endInput = document.getElementById('taskEndDate');
-            const durationInput = document.getElementById('taskDuration');
-
-            if (startInput.value && endInput.value) {
-                const start = new Date(startInput.value);
-                const end = new Date(endInput.value);
-                const durationMs = end - start;
-                const durationHours = durationMs / (1000 * 60 * 60);
-                durationInput.value = Math.round(durationHours * 2) / 2;
-            }
-        }
-
-        function updateDatesFromDuration() {
-            const startInput = document.getElementById('taskStartDate');
-            const endInput = document.getElementById('taskEndDate');
-            const durationInput = document.getElementById('taskDuration');
-
-            if (startInput.value && durationInput.value) {
-                const start = new Date(startInput.value);
-                const duration = parseFloat(durationInput.value);
-                const end = new Date(start.getTime() + duration * 60 * 60 * 1000);
-                endInput.value = end.toISOString().slice(0, 16);
-            }
-        }
-
-        // ===== MODAL TÂCHE =====
-        function openTaskModal(taskId = null) {
-            const modal = document.getElementById('taskModal');
-            const modalTitle = document.getElementById('modalTitle');
-            const deleteBtn = document.getElementById('deleteBtn');
-
-            document.getElementById('taskName').value = '';
-            document.getElementById('taskStartDate').value = '';
-            document.getElementById('taskEndDate').value = '';
-            document.getElementById('taskDuration').value = '';
-            document.getElementById('taskCost').value = '';
-            document.getElementById('taskStatus').value = 'a-faire';
-            document.getElementById('taskAFacturer').checked = false;
-            document.getElementById('taskRecDaily').checked = false;
-            document.getElementById('taskRecWeekly').checked = false;
-            document.getElementById('taskRecMonthly').checked = false;
-            document.getElementById('subtasksList').innerHTML = '';
-
-            currentEditingTaskId = null;
-
-            if (taskId) {
-                const task = tasks.find(t => t.id === taskId);
-                if (task) {
-                    currentEditingTaskId = taskId;
-                    modalTitle.textContent = 'Modifier la tâche';
-                    deleteBtn.style.display = 'inline-block';
-
-                    document.getElementById('taskName').value = task.name;
-                    document.getElementById('taskStartDate').value = task.startDate;
-                    document.getElementById('taskEndDate').value = task.endDate;
-                    document.getElementById('taskDuration').value = task.duration;
-                    document.getElementById('taskCost').value = task.cost || '';
-                    document.getElementById('taskStatus').value = task.status;
-                    document.getElementById('taskAFacturer').checked = task.aFacturer;
-
-                    if (task.recurrence) {
-                        if (task.recurrence.includes('daily')) document.getElementById('taskRecDaily').checked = true;
-                        if (task.recurrence.includes('weekly')) document.getElementById('taskRecWeekly').checked = true;
-                        if (task.recurrence.includes('monthly')) document.getElementById('taskRecMonthly').checked = true;
-                    }
-
-                    if (task.subtasks && task.subtasks.length > 0) {
-                        const subtasksList = document.getElementById('subtasksList');
-                        task.subtasks.forEach((st, idx) => {
-                            const el = document.createElement('div');
-                            el.className = 'subtask-item';
-                            el.innerHTML = `
-                                <div>
-                                    <div class="subtask-item-name">${st.name}</div>
-                                    <div class="subtask-item-duration">⏱️ ${st.duration}h</div>
-                                </div>
-                                <button class="btn-subtask-delete" onclick="removeSubtask(${idx})">Supprimer</button>
-                            `;
-                            subtasksList.appendChild(el);
-                        });
-                    }
-                }
-            } else {
-                modalTitle.textContent = 'Nouvelle Tâche';
-                deleteBtn.style.display = 'none';
-
-                const now = new Date();
-                const startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), WORK_START, 0);
-                document.getElementById('taskStartDate').value = startDate.toISOString().slice(0, 16);
-                document.getElementById('taskDuration').value = '1';
-                updateDatesFromStart();
-            }
-
-            modal.classList.add('show');
-        }
-
-        function closeTaskModal() {
-            document.getElementById('taskModal').classList.remove('show');
-            currentEditingTaskId = null;
-        }
-
-        function updateRecurrence() {
-            // Récurrence mise à jour à la sauvegarde
-        }
-
-        function addSubtaskInput() {
-            const subtaskName = prompt('Nom de la sous-tâche :');
-            if (!subtaskName) return;
-
-            const subtaskDuration = parseFloat(prompt('Durée (heures) :'));
-            if (!subtaskDuration || subtaskDuration <= 0) return;
-
-            const subtasksList = document.getElementById('subtasksList');
-            const el = document.createElement('div');
-            el.className = 'subtask-item';
-            const idx = subtasksList.children.length;
-            el.innerHTML = `
-                <div>
-                    <div class="subtask-item-name">${subtaskName}</div>
-                    <div class="subtask-item-duration">⏱️ ${subtaskDuration}h</div>
-                </div>
-                <button class="btn-subtask-delete" onclick="removeSubtask(${idx})">Supprimer</button>
-            `;
-            subtasksList.appendChild(el);
-        }
-
-        function removeSubtask(idx) {
-            const subtasksList = document.getElementById('subtasksList');
-            subtasksList.children[idx].remove();
-
-            // Renuméroter les boutons
-            Array.from(subtasksList.children).forEach((el, i) => {
-                el.querySelector('.btn-subtask-delete').onclick = () => removeSubtask(i);
-            });
-        }
-
-        function saveTask() {
             const name = document.getElementById('taskName').value;
-            const startDate = document.getElementById('taskStartDate').value;
-            const endDate = document.getElementById('taskEndDate').value;
+            const startDate = document.getElementById('taskStart').value;
             const duration = parseFloat(document.getElementById('taskDuration').value);
-            const cost = parseFloat(document.getElementById('taskCost').value) || 0;
             const status = document.getElementById('taskStatus').value;
-            const aFacturer = document.getElementById('taskAFacturer').checked;
+            const cost = parseFloat(document.getElementById('taskCost').value);
+            const aFacturer = document.getElementById('taskBillable').checked;
+            const recurDaily = document.getElementById('recurDaily').checked;
+            const recurWeekly = document.getElementById('recurWeekly').checked;
+            const recurMonthly = document.getElementById('recurMonthly').checked;
 
-            if (!name || !startDate || !duration) {
-                alert('Veuillez remplir les champs obligatoires');
-                return;
-            }
+            const start = new Date(startDate);
+            const end = new Date(start.getTime() + duration * 60 * 60 * 1000);
+            const endDate = end.toISOString().slice(0, 16);
 
-            let recurrence = [];
-            if (document.getElementById('taskRecDaily').checked) recurrence.push('daily');
-            if (document.getElementById('taskRecWeekly').checked) recurrence.push('weekly');
-            if (document.getElementById('taskRecMonthly').checked) recurrence.push('monthly');
-
-            const subtasks = [];
-            document.querySelectorAll('.subtask-item').forEach(el => {
-                const name = el.querySelector('.subtask-item-name').textContent;
-                const duration = parseFloat(el.querySelector('.subtask-item-duration').textContent.match(/[\d.]+/)[0]);
-                subtasks.push({ name, duration });
-            });
-
-            const taskData = {
-                name,
-                status,
-                aFacturer,
-                startDate,
-                endDate,
-                duration,
-                cost,
-                recurrence: recurrence.length > 0 ? recurrence : null,
-                subtasks
-            };
-
-            if (currentEditingTaskId) {
-                const task = tasks.find(t => t.id === currentEditingTaskId);
-                Object.assign(task, taskData);
+            if (currentTaskId) {
+                const task = tasks.find(t => t.id === currentTaskId);
+                task.name = name;
+                task.startDate = startDate;
+                task.endDate = endDate;
+                task.duration = duration;
+                task.status = status;
+                task.cost = cost;
+                task.aFacturer = aFacturer;
+                task.recurDaily = recurDaily;
+                task.recurWeekly = recurWeekly;
+                task.recurMonthly = recurMonthly;
+                task.subtasks = window.currentSubtasks || [];
             } else {
-                taskData.id = Date.now();
-                tasks.push(taskData);
+                const task = {
+                    id: generateId(),
+                    name,
+                    startDate,
+                    endDate,
+                    duration,
+                    status,
+                    cost,
+                    aFacturer,
+                    recurDaily,
+                    recurWeekly,
+                    recurMonthly,
+                    subtasks: window.currentSubtasks || []
+                };
+                tasks.push(task);
             }
 
+            window.currentSubtasks = [];
             saveTasks();
-            updateTasksStatus();
-            closeTaskModal();
             renderSidebar();
             renderPlanning();
+            closeTaskModal();
         }
 
         function deleteTask() {
             if (confirm('Supprimer cette tâche ?')) {
-                tasks = tasks.filter(t => t.id !== currentEditingTaskId);
+                tasks = tasks.filter(t => t.id !== currentTaskId);
                 saveTasks();
-                closeTaskModal();
                 renderSidebar();
                 renderPlanning();
+                closeTaskModal();
             }
         }
 
-        // ===== NAVIGATION =====
-        function switchView(view) {
-            currentView = view;
-            document.querySelectorAll('.view-btn').forEach(btn => btn.classList.remove('active'));
-            event.target.classList.add('active');
-            renderPlanning();
-        }
-
-        function previousDay() {
-            if (currentView === 'jour') {
-                currentDate.setDate(currentDate.getDate() - 1);
-            } else if (currentView === 'semaine') {
-                currentDate.setDate(currentDate.getDate() - 7);
-            } else {
-                currentDate.setMonth(currentDate.getMonth() - 1);
-            }
-            renderPlanning();
-        }
-
-        function nextDay() {
-            if (currentView === 'jour') {
-                currentDate.setDate(currentDate.getDate() + 1);
-            } else if (currentView === 'semaine') {
-                currentDate.setDate(currentDate.getDate() + 7);
-            } else {
-                currentDate.setMonth(currentDate.getMonth() + 1);
-            }
-            renderPlanning();
-        }
-
-        function todayView() {
-            currentDate = new Date();
-            renderPlanning();
-        }
-
-        // ===== CHIFFRE D'AFFAIRES =====
         function displayRevenue() {
             const currentMonth = currentDate.getMonth();
             const currentYear = currentDate.getFullYear();
-
             const monthTasks = tasks.filter(t => {
                 const taskDate = new Date(t.startDate);
                 return taskDate.getMonth() === currentMonth && taskDate.getFullYear() === currentYear;
@@ -1141,7 +1015,6 @@
             document.getElementById('revenuePeriod').textContent = monthName.charAt(0).toUpperCase() + monthName.slice(1);
         }
 
-        // ===== AFFICHAGE SIDEBAR =====
         function renderSidebar() {
             const tasksList = document.getElementById('tasksList');
             const billableList = document.getElementById('billableList');
@@ -1184,7 +1057,6 @@
                         `;
                         list.appendChild(taskEl);
 
-                        // Sous-tâches
                         if (task.subtasks && task.subtasks.length > 0) {
                             task.subtasks.forEach(st => {
                                 const subEl = document.createElement('div');
@@ -1204,7 +1076,6 @@
                 }
             });
 
-            // Liste à facturer
             const billableTasks = tasks.filter(t => t.aFacturer);
             if (billableTasks.length > 0) {
                 const section = document.createElement('div');
@@ -1239,7 +1110,6 @@
             displayRevenue();
         }
 
-        // ===== AFFICHAGE PLANNING =====
         function renderPlanning() {
             updateTasksStatus();
             const content = document.getElementById('planningContent');
@@ -1274,9 +1144,7 @@
             }
         }
 
-        // ===== VUE JOUR =====
         function renderDayView(container) {
-            const html = '<div class="day-view">';
             let hoursHtml = '<div class="day-hours">';
             let timelineHtml = '<div class="day-timeline">';
 
@@ -1290,9 +1158,9 @@
             hoursHtml += '</div>';
             timelineHtml += '</div>';
 
-            container.innerHTML = html + hoursHtml + timelineHtml + '</div>';
+            const html = '<div class="day-view">' + hoursHtml + timelineHtml + '</div>';
+            container.innerHTML = html;
 
-            // Ajouter les tâches
             const dayTasks = tasks.filter(t => {
                 const taskDate = new Date(t.startDate).toDateString();
                 const currentDateStr = currentDate.toDateString();
@@ -1318,7 +1186,6 @@
             });
         }
 
-        // ===== VUE SEMAINE =====
         function renderWeekView(container) {
             const monday = new Date(currentDate);
             monday.setDate(currentDate.getDate() - currentDate.getDay() + 1);
@@ -1353,45 +1220,9 @@
             const html = '<div class="week-view">' + headerHtml + bodyHtml + '</div>';
             container.innerHTML = html;
 
-            // Ajouter les tâches
             const weekView = container.querySelector('.week-view');
             const columns = weekView.querySelectorAll('.week-column');
 
-            // Tâches multi-jours
-            const multiDayTasks = tasks.filter(t => {
-                const start = new Date(t.startDate);
-                const end = new Date(t.endDate);
-                const daysDiff = (end - start) / (1000 * 60 * 60 * 24);
-                return daysDiff >= 1 && !t.aFacturer && t.status !== 'termine';
-            });
-
-            multiDayTasks.forEach(task => {
-                const start = new Date(task.startDate);
-                const end = new Date(task.endDate);
-                const startDay = Math.max(0, Math.floor((start - monday) / (1000 * 60 * 60 * 24)));
-                const endDay = Math.min(4, Math.floor((end - monday) / (1000 * 60 * 60 * 24)));
-
-                if (startDay <= 4 && endDay >= 0) {
-                    const container = document.createElement('div');
-                    container.className = 'multi-day-container';
-                    container.style.gridColumn = `${startDay + 2} / span ${endDay - startDay + 1}`;
-
-                    const taskEl = document.createElement('div');
-                    taskEl.className = `multi-day-task ${task.status}`;
-                    if (startDay === 0) taskEl.classList.add('multi-day-task-start');
-                    if (endDay === 4) taskEl.classList.add('multi-day-task-end');
-                    taskEl.textContent = task.name;
-                    taskEl.onclick = (e) => {
-                        e.stopPropagation();
-                        openTaskModal(task.id);
-                    };
-
-                    container.appendChild(taskEl);
-                    weekView.appendChild(container);
-                }
-            });
-
-            // Tâches simples
             const singleDayTasks = tasks.filter(t => {
                 const daysDiff = (new Date(t.endDate) - new Date(t.startDate)) / (1000 * 60 * 60 * 24);
                 return daysDiff < 1 && !t.aFacturer && t.status !== 'termine';
@@ -1418,7 +1249,6 @@
             });
         }
 
-        // ===== VUE MOIS =====
         function renderMonthView(container) {
             const year = currentDate.getFullYear();
             const month = currentDate.getMonth();
@@ -1429,13 +1259,11 @@
 
             let html = '<div class="month-view">';
 
-            // En-têtes jours
             const dayNames = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
             dayNames.forEach(day => {
                 html += `<div class="month-day-header">${day}</div>`;
             });
 
-            // Jours du mois
             for (let i = 0; i < 42; i++) {
                 const d = new Date(startDate);
                 d.setDate(startDate.getDate() + i);
@@ -1455,7 +1283,6 @@
             html += '</div>';
             container.innerHTML = html;
 
-            // Ajouter les tâches
             const monthDays = container.querySelectorAll('.month-day');
             monthDays.forEach((dayEl, idx) => {
                 const d = new Date(startDate);
@@ -1478,7 +1305,6 @@
             });
         }
 
-        // ===== DRAG & DROP =====
         function makeTaskDraggable(el, task) {
             el.addEventListener('mousedown', (e) => {
                 draggedTask = task;
@@ -1518,7 +1344,6 @@
                 e.preventDefault();
             });
 
-            // Redimensionnement par le bord droit
             const resizeHandle = document.createElement('div');
             resizeHandle.style.position = 'absolute';
             resizeHandle.style.right = '0';
@@ -1565,10 +1390,15 @@
             alert('⚠️ Synchronisation Outlook\n\nPour intégrer Outlook :\n1. Créer une app dans Azure AD\n2. Configurer les permissions Graph API\n3. Configurer OAuth 2.0\n\nPour l\'instant, testez avec des tâches locales !');
         }
 
-        // ===== INIT =====
         document.addEventListener('DOMContentLoaded', () => {
             loadTasks();
             renderSidebar();
             renderPlanning();
 
-            document.getElementById('taskModal').addEventListener('click', (e
+            document.getElementById('taskModal').addEventListener('click', (e) => {
+                if (e.target.id === 'taskModal') closeTaskModal();
+            });
+        });
+    </script>
+</body>
+</html>
