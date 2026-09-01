@@ -29,11 +29,32 @@
             border-radius: 12px;
             margin-bottom: 30px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
         header h1 {
             font-size: 2.5em;
-            margin-bottom: 10px;
+            margin: 0;
+        }
+
+        .btn-new-task {
+            background: white;
+            color: #667eea;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .btn-new-task:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
         }
 
         .main-layout {
@@ -74,110 +95,94 @@
             border: 2px solid #e0e0e0;
             border-radius: 8px;
             padding: 15px;
-            min-height: 300px;
+            min-height: 200px;
             background: #fafafa;
         }
 
+        .status-column h3 {
+            margin-bottom: 10px;
+            font-size: 1.1em;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
         .status-column.a-faire {
-            border-top-color: #2196F3;
+            border-top: 4px solid #2196F3;
             background: #e3f2fd;
         }
 
+        .status-column.a-faire h3 {
+            color: #1976D2;
+        }
+
         .status-column.en-cours {
-            border-top-color: #FFC107;
-            background: #fffde7;
+            border-top: 4px solid #FFC107;
+            background: #fff8e1;
+        }
+
+        .status-column.en-cours h3 {
+            color: #F57F17;
         }
 
         .status-column.en-retard {
-            border-top-color: #f44336;
+            border-top: 4px solid #F44336;
             background: #ffebee;
         }
 
+        .status-column.en-retard h3 {
+            color: #D32F2F;
+        }
+
         .status-column.termine {
-            border-top-color: #4CAF50;
+            border-top: 4px solid #4CAF50;
             background: #e8f5e9;
         }
 
+        .status-column.termine h3 {
+            color: #388E3C;
+        }
+
         .status-column.a-facturer {
-            border-top-color: #FF9800;
-            background: #fff3e0;
+            border-top: 4px solid #9C27B0;
+            background: #f3e5f5;
         }
 
-        .column-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-            padding-bottom: 10px;
-            border-bottom: 2px solid rgba(0, 0, 0, 0.1);
+        .status-column.a-facturer h3 {
+            color: #7B1FA2;
         }
 
-        .column-header h3 {
-            font-size: 0.95em;
-            margin: 0;
-        }
-
-        .column-count {
+        .task-item {
             background: white;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-weight: bold;
-            font-size: 0.9em;
-        }
-
-        .tasks-list {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .task-card {
-            background: white;
-            border-left: 4px solid;
             padding: 12px;
+            margin: 8px 0;
             border-radius: 6px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            cursor: move;
+            border-left: 4px solid #667eea;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            transition: all 0.2s;
         }
 
-        .task-card:hover {
-            transform: translateX(5px);
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        .task-item:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            transform: translateY(-2px);
         }
 
-        .task-card.a-faire {
-            border-left-color: #2196F3;
+        .task-item.dragging {
+            opacity: 0.5;
         }
 
-        .task-card.en-cours {
-            border-left-color: #FFC107;
-        }
-
-        .task-card.en-retard {
-            border-left-color: #f44336;
-        }
-
-        .task-card.termine {
-            border-left-color: #4CAF50;
-        }
-
-        .task-card.a-facturer {
-            border-left-color: #FF9800;
-        }
-
-        .task-title {
+        .task-name {
             font-weight: bold;
-            margin-bottom: 5px;
             color: #333;
+            margin-bottom: 5px;
         }
 
-        .task-info {
-            display: flex;
-            gap: 10px;
+        .task-details {
             font-size: 0.85em;
             color: #666;
-            flex-wrap: wrap;
+            display: flex;
+            justify-content: space-between;
         }
 
         /* ========== PLANNING SECTION ========== */
@@ -186,8 +191,6 @@
             border-radius: 12px;
             padding: 25px;
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-            max-height: 80vh;
-            overflow-y: auto;
         }
 
         .planning-header {
@@ -202,34 +205,30 @@
             font-size: 1.5em;
         }
 
-        .planning-controls {
+        .nav-buttons {
             display: flex;
             gap: 10px;
-            align-items: center;
         }
 
-        .nav-btn {
+        button {
             background: #667eea;
             color: white;
             border: none;
-            padding: 8px 16px;
+            padding: 10px 15px;
             border-radius: 6px;
             cursor: pointer;
+            transition: all 0.3s;
             font-size: 0.9em;
         }
 
-        .nav-btn:hover {
+        button:hover {
             background: #764ba2;
+            transform: translateY(-2px);
         }
 
         .nav-mode-btn {
             background: #e0e0e0;
             color: #333;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 0.9em;
         }
 
         .nav-mode-btn.active {
@@ -237,13 +236,6 @@
             color: white;
         }
 
-        #planning-date {
-            font-weight: bold;
-            color: #667eea;
-            min-width: 200px;
-        }
-
-        /* CALENDAR VIEW */
         .calendar-view {
             display: none;
         }
@@ -252,244 +244,139 @@
             display: block;
         }
 
-        /* MONTH VIEW */
-        .month-grid {
+        .day-view, .week-view {
             display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            gap: 8px;
-        }
-
-        .month-day {
-            background: #f9f9f9;
-            border: 1px solid #e0e0e0;
-            border-radius: 6px;
-            padding: 8px;
-            min-height: 100px;
-            overflow-y: auto;
-        }
-
-        .month-day.other-month {
-            opacity: 0.5;
-        }
-
-        .month-day.today {
-            background: #e3f2fd;
-            border: 2px solid #667eea;
-        }
-
-        .day-number {
-            font-weight: bold;
-            color: #333;
-            margin-bottom: 4px;
-            font-size: 0.9em;
-        }
-
-        .day-tasks {
-            display: flex;
-            flex-direction: column;
-            gap: 3px;
-        }
-
-        .day-task {
-            background: white;
-            border-left: 3px solid;
-            padding: 3px 6px;
-            border-radius: 3px;
-            font-size: 0.75em;
-            cursor: pointer;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        /* WEEK VIEW */
-        .week-grid {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            gap: 8px;
-            margin-bottom: 20px;
-        }
-
-        .week-day {
-            background: #f9f9f9;
-            border: 1px solid #e0e0e0;
-            border-radius: 6px;
-            padding: 12px;
-            min-height: 300px;
-            overflow-y: auto;
-        }
-
-        .week-day.today {
-            background: #e3f2fd;
-            border: 2px solid #667eea;
-        }
-
-        .week-day-header {
-            font-weight: bold;
-            text-align: center;
-            margin-bottom: 10px;
-            padding-bottom: 8px;
-            border-bottom: 2px solid #667eea;
-        }
-
-        /* DAY VIEW */
-        .day-view-container {
-            background: #f9f9f9;
-            border-radius: 6px;
-            padding: 15px;
-        }
-
-        .day-view-header {
-            font-weight: bold;
-            color: #667eea;
-            margin-bottom: 15px;
-            font-size: 1.1em;
-        }
-
-        .day-view-tasks {
-            display: flex;
-            flex-direction: column;
             gap: 10px;
         }
 
-        /* PLANNING CANVAS - Drag & Drop */
-        .planning-canvas {
-            background: white;
+        .day-header {
+            font-weight: bold;
+            color: #667eea;
+            margin-top: 15px;
+            margin-bottom: 10px;
+        }
+
+        .timeline {
+            position: relative;
+            height: 100px;
+            background: linear-gradient(to right, #f9f9f9 0%, #ffffff 100%);
             border: 1px solid #e0e0e0;
             border-radius: 6px;
-            padding: 20px;
-            position: relative;
-            min-height: 400px;
-            margin-top: 20px;
-        }
-
-        .planning-timeline {
-            display: flex;
-            gap: 20px;
-            position: relative;
-        }
-
-        .timeline-hours {
-            width: 80px;
-            flex-shrink: 0;
-        }
-
-        .hour-slot {
-            height: 60px;
-            border-bottom: 1px solid #e0e0e0;
-            font-size: 0.8em;
-            color: #999;
-            padding-right: 10px;
-            text-align: right;
-        }
-
-        .timeline-tasks {
-            flex: 1;
-            position: relative;
-            background: linear-gradient(to bottom, #fafafa 1px, transparent 1px);
-            background-size: 100% 60px;
-            min-height: 1440px;
-        }
-
-        .draggable-task {
-            position: absolute;
-            left: 0;
-            right: 0;
-            background: white;
-            border: 2px solid;
-            border-radius: 6px;
-            padding: 8px;
-            cursor: move;
-            user-select: none;
+            margin: 10px 0;
             overflow: hidden;
-            transition: box-shadow 0.2s;
         }
 
-        .draggable-task:hover {
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-            z-index: 100;
-        }
-
-        .draggable-task.dragging {
-            opacity: 0.7;
-            z-index: 1000;
-        }
-
-        .draggable-task.a-faire {
-            border-color: #2196F3;
-            background: #e3f2fd;
-        }
-
-        .draggable-task.en-cours {
-            border-color: #FFC107;
-            background: #fffde7;
-        }
-
-        .draggable-task.en-retard {
-            border-color: #f44336;
-            background: #ffebee;
-        }
-
-        .draggable-task.termine {
-            border-color: #4CAF50;
-            background: #e8f5e9;
-        }
-
-        .task-label {
-            font-weight: bold;
+        .task-bar {
+            position: absolute;
+            height: 40px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            padding: 0 8px;
+            color: white;
             font-size: 0.85em;
-            margin-bottom: 3px;
-            color: #333;
+            font-weight: bold;
+            cursor: move;
+            top: 30px;
+            user-select: none;
         }
 
-        .task-duration {
-            font-size: 0.75em;
-            color: #666;
+        .task-bar.a-faire {
+            background: #2196F3;
+            border: 2px solid #1976D2;
+        }
+
+        .task-bar.en-cours {
+            background: #FFC107;
+            color: #333;
+            border: 2px solid #F57F17;
+        }
+
+        .task-bar.en-retard {
+            background: #F44336;
+            border: 2px solid #D32F2F;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        .task-bar.termine {
+            background: #4CAF50;
+            border: 2px solid #388E3C;
+            opacity: 0.6;
+        }
+
+        .task-bar.a-facturer {
+            display: none;
         }
 
         .resize-handle {
             position: absolute;
-            width: 100%;
-            height: 8px;
+            right: -5px;
+            top: 0;
             bottom: 0;
-            left: 0;
-            cursor: ns-resize;
-            background: rgba(0, 0, 0, 0.1);
-            border-radius: 0 0 6px 6px;
+            width: 10px;
+            cursor: ew-resize;
+            background: rgba(0, 0, 0, 0.2);
         }
 
-        /* ========== MODALS ========== */
+        /* ========== MODAL ========== */
         .modal {
             display: none;
             position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.5);
             z-index: 1000;
-            justify-content: center;
-            align-items: center;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 8px;
         }
 
-        .modal.show {
+        .modal.active {
             display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .modal-content {
             background: white;
-            border-radius: 12px;
             padding: 30px;
-            max-width: 600px;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
             max-height: 90vh;
             overflow-y: auto;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
         }
 
         .modal-header {
-            font-size: 1.5em;
-            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             margin-bottom: 20px;
+        }
+
+        .modal-header h3 {
+            font-size: 1.3em;
+            color: #333;
+        }
+
+        .close-btn {
+            background: none;
+            color: #999;
+            font-size: 1.5em;
+            cursor: pointer;
+            border: none;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+        }
+
+        .close-btn:hover {
             color: #333;
         }
 
@@ -500,171 +387,132 @@
         .form-group label {
             display: block;
             margin-bottom: 5px;
-            font-weight: bold;
             color: #333;
+            font-weight: bold;
         }
 
         .form-group input,
-        .form-group textarea,
-        .form-group select {
+        .form-group select,
+        .form-group textarea {
             width: 100%;
             padding: 10px;
             border: 1px solid #ddd;
             border-radius: 6px;
+            font-size: 0.95em;
             font-family: inherit;
-            font-size: 1em;
         }
 
         .form-group textarea {
             resize: vertical;
-            min-height: 80px;
+            min-height: 100px;
         }
 
-        .linked-params {
-            background: #f0f4ff;
-            padding: 15px;
-            border-radius: 6px;
-            margin: 15px 0;
-            border-left: 4px solid #667eea;
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 10px;
         }
 
-        .linked-params h4 {
-            color: #667eea;
-            margin-bottom: 10px;
+        .form-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
         }
 
-        .linked-params p {
-            font-size: 0.9em;
-            color: #555;
-            margin-bottom: 8px;
+        .form-buttons button {
+            flex: 1;
+            padding: 12px;
+            font-size: 1em;
+        }
+
+        .btn-cancel {
+            background: #ccc;
+        }
+
+        .btn-cancel:hover {
+            background: #aaa;
+        }
+
+        .btn-delete {
+            background: #F44336;
+        }
+
+        .btn-delete:hover {
+            background: #D32F2F;
         }
 
         .subtasks-section {
             margin-top: 20px;
             padding-top: 20px;
-            border-top: 2px solid #e0e0e0;
+            border-top: 1px solid #ddd;
         }
 
         .subtasks-section h4 {
-            margin-bottom: 15px;
+            margin-bottom: 10px;
             color: #333;
         }
 
         .subtask-item {
             background: #f9f9f9;
-            padding: 12px;
+            padding: 10px;
+            margin: 8px 0;
             border-radius: 6px;
-            margin-bottom: 10px;
             border-left: 3px solid #667eea;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
-        .subtask-item-name {
-            font-weight: bold;
-            margin-bottom: 5px;
-        }
-
-        .subtask-item-info {
+        .btn-small {
+            padding: 5px 10px;
             font-size: 0.85em;
-            color: #666;
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
         }
 
-        .btn-group {
-            display: flex;
+        .month-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
             gap: 10px;
-            margin-top: 20px;
         }
 
-        .btn {
-            flex: 1;
-            padding: 12px;
-            border: none;
+        .day-cell {
+            border: 1px solid #e0e0e0;
             border-radius: 6px;
-            font-size: 1em;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s ease;
+            padding: 10px;
+            min-height: 120px;
+            background: white;
         }
 
-        .btn-primary {
-            background: #667eea;
-            color: white;
-        }
-
-        .btn-primary:hover {
-            background: #764ba2;
-        }
-
-        .btn-secondary {
-            background: #e0e0e0;
-            color: #333;
-        }
-
-        .btn-secondary:hover {
-            background: #d0d0d0;
-        }
-
-        .btn-danger {
-            background: #f44336;
-            color: white;
-        }
-
-        .btn-danger:hover {
-            background: #d32f2f;
-        }
-
-        .btn-add-subtask {
-            background: #4CAF50;
-            color: white;
-            padding: 8px 16px;
-            font-size: 0.9em;
-        }
-
-        .btn-add-subtask:hover {
-            background: #45a049;
-        }
-
-        .add-form {
+        .day-cell.other-month {
             background: #f9f9f9;
-            padding: 15px;
-            border-radius: 6px;
-            margin-bottom: 15px;
+            color: #ccc;
         }
 
-        .close-btn {
-            float: right;
-            font-size: 1.5em;
-            cursor: pointer;
-            color: #999;
+        .day-cell-header {
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 8px;
         }
 
-        .close-btn:hover {
-            color: #333;
+        .day-cell-tasks {
+            font-size: 0.85em;
         }
 
-        .billing-modal-content {
-            text-align: center;
+        .day-cell-task {
+            background: #e3f2fd;
+            padding: 4px;
+            margin: 4px 0;
+            border-radius: 3px;
+            border-left: 2px solid #2196F3;
         }
 
-        .billing-modal-content p {
-            margin-bottom: 20px;
-            font-size: 1.1em;
+        .day-cell-task.en-cours {
+            background: #fff8e1;
+            border-left-color: #FFC107;
         }
 
-        @media (max-width: 768px) {
-            .main-layout {
-                grid-template-columns: 1fr;
-            }
-
-            .month-grid {
-                grid-template-columns: repeat(7, 1fr);
-            }
-
-            .week-grid {
-                grid-template-columns: 1fr;
-            }
+        .day-cell-task.en-retard {
+            background: #ffebee;
+            border-left-color: #F44336;
         }
     </style>
 </head>
@@ -672,7 +520,7 @@
     <div class="container">
         <header>
             <h1>📋 Chantier</h1>
-            <p>Gestion de tâches et planning avec drag & drop</p>
+            <button class="btn-new-task" onclick="openTaskModal()">+ Nouvelle Tâche</button>
         </header>
 
         <div class="main-layout">
@@ -681,39 +529,24 @@
                 <h2>📝 To Do List</h2>
                 <div class="status-columns">
                     <div class="status-column a-faire">
-                        <div class="column-header">
-                            <h3>🔵 À faire</h3>
-                            <span class="column-count" id="count-a-faire">0</span>
-                        </div>
-                        <div class="tasks-list" id="tasks-a-faire"></div>
+                        <h3>🔵 À Faire</h3>
+                        <div id="column-a-faire"></div>
                     </div>
                     <div class="status-column en-cours">
-                        <div class="column-header">
-                            <h3>🟡 En cours</h3>
-                            <span class="column-count" id="count-en-cours">0</span>
-                        </div>
-                        <div class="tasks-list" id="tasks-en-cours"></div>
+                        <h3>🟡 En Cours</h3>
+                        <div id="column-en-cours"></div>
                     </div>
                     <div class="status-column en-retard">
-                        <div class="column-header">
-                            <h3>🔴 En retard</h3>
-                            <span class="column-count" id="count-en-retard">0</span>
-                        </div>
-                        <div class="tasks-list" id="tasks-en-retard"></div>
+                        <h3>🔴 En Retard</h3>
+                        <div id="column-en-retard"></div>
                     </div>
                     <div class="status-column termine">
-                        <div class="column-header">
-                            <h3>🟢 Terminé</h3>
-                            <span class="column-count" id="count-termine">0</span>
-                        </div>
-                        <div class="tasks-list" id="tasks-termine"></div>
+                        <h3>🟢 Terminé</h3>
+                        <div id="column-termine"></div>
                     </div>
                     <div class="status-column a-facturer">
-                        <div class="column-header">
-                            <h3>🟠 À facturer</h3>
-                            <span class="column-count" id="count-a-facturer">0</span>
-                        </div>
-                        <div class="tasks-list" id="tasks-a-facturer"></div>
+                        <h3>💰 À Facturer</h3>
+                        <div id="column-a-facturer"></div>
                     </div>
                 </div>
             </div>
@@ -722,75 +555,41 @@
             <div class="planning-section">
                 <div class="planning-header">
                     <h2>📅 Planning</h2>
-                    <div class="planning-controls">
-                        <button class="nav-btn" onclick="previousDate()">← Précédent</button>
-                        <span id="planning-date"></span>
-                        <button class="nav-btn" onclick="nextDate()">Suivant →</button>
-                        <button class="nav-mode-btn active" data-mode="day" onclick="switchMode('day')">Jour</button>
-                        <button class="nav-mode-btn" data-mode="week" onclick="switchMode('week')">Semaine</button>
-                        <button class="nav-mode-btn" data-mode="month" onclick="switchMode('month')">Mois</button>
+                    <div class="nav-buttons">
+                        <button class="nav-mode-btn active" onclick="switchMode('day')">Jour</button>
+                        <button class="nav-mode-btn" onclick="switchMode('week')">Semaine</button>
+                        <button class="nav-mode-btn" onclick="switchMode('month')">Mois</button>
+                        <button onclick="previousDate()">← Précédent</button>
+                        <button onclick="nextDate()">Suivant →</button>
                     </div>
                 </div>
 
-                <!-- DAY VIEW -->
                 <div id="day-view" class="calendar-view active">
-                    <div class="day-view-container">
-                        <div class="day-view-header" id="day-view-date"></div>
-                        <div class="planning-timeline">
-                            <div class="timeline-hours">
-                                <div class="hour-slot" style="height: 20px;"></div>
-                                <div class="hour-slot">00:00</div>
-                                <div class="hour-slot">01:00</div>
-                                <div class="hour-slot">02:00</div>
-                                <div class="hour-slot">03:00</div>
-                                <div class="hour-slot">04:00</div>
-                                <div class="hour-slot">05:00</div>
-                                <div class="hour-slot">06:00</div>
-                                <div class="hour-slot">07:00</div>
-                                <div class="hour-slot">08:00</div>
-                                <div class="hour-slot">09:00</div>
-                                <div class="hour-slot">10:00</div>
-                                <div class="hour-slot">11:00</div>
-                                <div class="hour-slot">12:00</div>
-                                <div class="hour-slot">13:00</div>
-                                <div class="hour-slot">14:00</div>
-                                <div class="hour-slot">15:00</div>
-                                <div class="hour-slot">16:00</div>
-                                <div class="hour-slot">17:00</div>
-                                <div class="hour-slot">18:00</div>
-                                <div class="hour-slot">19:00</div>
-                                <div class="hour-slot">20:00</div>
-                                <div class="hour-slot">21:00</div>
-                                <div class="hour-slot">22:00</div>
-                                <div class="hour-slot">23:00</div>
-                            </div>
-                            <div class="timeline-tasks" id="day-tasks-container"></div>
-                        </div>
-                    </div>
+                    <div id="day-content"></div>
                 </div>
 
-                <!-- WEEK VIEW -->
                 <div id="week-view" class="calendar-view">
-                    <div class="week-grid" id="week-grid"></div>
+                    <div id="week-content"></div>
                 </div>
 
-                <!-- MONTH VIEW -->
                 <div id="month-view" class="calendar-view">
-                    <div class="month-grid" id="month-grid"></div>
+                    <div id="month-content"></div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- TASK MODAL -->
+    <!-- MODAL TÂCHE -->
     <div id="taskModal" class="modal">
         <div class="modal-content">
-            <span class="close-btn" onclick="closeTaskModal()">&times;</span>
-            <div class="modal-header" id="modalTitle">Nouvelle Tâche</div>
+            <div class="modal-header">
+                <h3 id="modalTitle">Nouvelle Tâche</h3>
+                <button class="close-btn" onclick="closeTaskModal()">×</button>
+            </div>
 
             <form id="taskForm">
                 <div class="form-group">
-                    <label>Titre</label>
+                    <label>Nom de la Tâche *</label>
                     <input type="text" id="taskName" required>
                 </div>
 
@@ -800,267 +599,158 @@
                 </div>
 
                 <div class="form-group">
-                    <label>Statut</label>
-                    <select id="taskStatus">
-                        <option value="a-faire">🔵 À faire</option>
-                        <option value="en-cours">🟡 En cours</option>
-                        <option value="en-retard">🔴 En retard</option>
+                    <label>Statut *</label>
+                    <select id="taskStatus" required>
+                        <option value="a-faire">🔵 À Faire</option>
+                        <option value="en-cours">🟡 En Cours</option>
+                        <option value="en-retard">🔴 En Retard</option>
                         <option value="termine">🟢 Terminé</option>
-                        <option value="a-facturer">🟠 À facturer</option>
+                        <option value="a-facturer">💰 À Facturer</option>
                     </select>
                 </div>
 
-                <div class="linked-params">
-                    <h4>⏱️ Paramètres liés (2 sur 3 requis)</h4>
-                    <p>Renseignez 2 des 3 paramètres, le 3ème se calcule automatiquement</p>
+                <div class="form-group">
+                    <label>Tâche Principale (optionnel)</label>
+                    <select id="taskParent"></select>
+                </div>
 
+                <div class="form-group">
+                    <label>Date de Début *</label>
+                    <input type="datetime-local" id="taskStartDate" required>
+                </div>
+
+                <div class="form-row">
                     <div class="form-group">
-                        <label>Date & Heure de début</label>
-                        <input type="datetime-local" id="taskStartDateTime" onchange="calculateMissingParam('start')">
+                        <label>Heure de Fin</label>
+                        <input type="datetime-local" id="taskEndDate">
                     </div>
-
                     <div class="form-group">
-                        <label>Date & Heure d'échéance</label>
-                        <input type="datetime-local" id="taskEndDateTime" onchange="calculateMissingParam('end')">
-                    </div>
-
-                    <div class="form-group">
-                        <label>Durée (en heures)</label>
-                        <input type="number" id="taskDuration" step="0.5" min="0" onchange="calculateMissingParam('duration')">
+                        <label>Durée (heures)</label>
+                        <input type="number" id="taskDuration" min="0" step="0.5">
                     </div>
                 </div>
 
-                <div class="subtasks-section">
-                    <h4>📌 Sous-tâches</h4>
-                    <div id="subtasksList"></div>
-                    <button type="button" class="btn btn-add-subtask" onclick="openAddSubtaskForm()">+ Ajouter une sous-tâche</button>
-                    <div id="addSubtaskForm" style="display: none; margin-top: 15px;" class="add-form">
-                        <div class="form-group">
-                            <label>Nom de la sous-tâche</label>
-                            <input type="text" id="subtaskName" placeholder="Entrez le nom de la sous-tâche">
-                        </div>
-                        <div class="form-group">
-                            <label>Statut</label>
-                            <select id="subtaskStatus">
-                                <option value="a-faire">🔵 À faire</option>
-                                <option value="en-cours">🟡 En cours</option>
-                                <option value="en-retard">🔴 En retard</option>
-                                <option value="termine">🟢 Terminé</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label>Date & Heure de début</label>
-                            <input type="datetime-local" id="subtaskStartDateTime">
-                        </div>
-                        <div class="form-group">
-                            <label>Date & Heure d'échéance</label>
-                            <input type="datetime-local" id="subtaskEndDateTime">
-                        </div>
-                        <div class="form-group">
-                            <label>Durée (en heures)</label>
-                            <input type="number" id="subtaskDuration" step="0.5" min="0">
-                        </div>
-                        <div class="btn-group">
-                            <button type="button" class="btn btn-primary" onclick="addSubtask()">Ajouter</button>
-                            <button type="button" class="btn btn-secondary" onclick="closeAddSubtaskForm()">Annuler</button>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="btn-group">
-                    <button type="submit" class="btn btn-primary">Enregistrer</button>
-                    <button type="button" class="btn btn-danger" id="deleteTaskBtn" style="display: none;" onclick="deleteTask()">Supprimer</button>
-                    <button type="button" class="btn btn-secondary" onclick="closeTaskModal()">Annuler</button>
+                <div class="form-buttons">
+                    <button type="button" class="btn-cancel" onclick="closeTaskModal()">Annuler</button>
+                    <button type="button" class="btn-delete" id="deleteBtn" style="display:none;" onclick="deleteTask()">Supprimer</button>
+                    <button type="submit">Enregistrer</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- BILLING MODAL -->
-    <div id="billingModal" class="modal">
-        <div class="modal-content billing-modal-content">
-            <span class="close-btn" onclick="closeBillingModal()">&times;</span>
-            <div class="modal-header">Facturer cette tâche ?</div>
-            <p id="billingTaskName"></p>
-            <div class="btn-group">
-                <button class="btn btn-primary" onclick="confirmBilling(true)">Oui, facturer</button>
-                <button class="btn btn-secondary" onclick="confirmBilling(false)">Marquer comme terminée</button>
-            </div>
-        </div>
-    </div>
-
     <script>
+        // ========== STATE ==========
         let tasks = [];
-        let currentTaskId = null;
+        let currentEditId = null;
         let currentMode = 'day';
         let currentDate = new Date();
-        let pendingBillingTaskId = null;
-        let draggedElement = null;
-        let dragStartY = 0;
-        let dragStartHeight = 0;
+        let draggedTask = null;
+        let draggedFrom = null;
 
-        // ========== STORAGE ==========
+        // ========== LOCAL STORAGE ==========
         function saveData() {
-            localStorage.setItem('chantierTasks', JSON.stringify(tasks));
+            localStorage.setItem('chantier-tasks', JSON.stringify(tasks));
         }
 
         function loadData() {
-            const stored = localStorage.getItem('chantierTasks');
-            tasks = stored ? JSON.parse(stored) : [];
+            const saved = localStorage.getItem('chantier-tasks');
+            tasks = saved ? JSON.parse(saved) : [];
         }
 
-        // ========== MODAL MANAGEMENT ==========
+        // ========== MODAL FUNCTIONS ==========
         function openTaskModal(taskId = null) {
-            currentTaskId = taskId;
+            const modal = document.getElementById('taskModal');
             const form = document.getElementById('taskForm');
+            const modalTitle = document.getElementById('modalTitle');
+            const deleteBtn = document.getElementById('deleteBtn');
 
             if (taskId) {
+                currentEditId = taskId;
                 const task = tasks.find(t => t.id === taskId);
-                if (task) {
-                    document.getElementById('modalTitle').textContent = 'Modifier la tâche';
-                    document.getElementById('taskName').value = task.name;
-                    document.getElementById('taskDescription').value = task.description;
-                    document.getElementById('taskStatus').value = task.status;
-                    document.getElementById('taskStartDateTime').value = task.startDateTime || '';
-                    document.getElementById('taskEndDateTime').value = task.endDateTime || '';
-                    document.getElementById('taskDuration').value = task.duration || '';
-                    document.getElementById('deleteTaskBtn').style.display = 'block';
-                    renderSubtasks(task.subtasks);
-                }
+                modalTitle.textContent = 'Modifier Tâche';
+                document.getElementById('taskName').value = task.name;
+                document.getElementById('taskDescription').value = task.description || '';
+                document.getElementById('taskStatus').value = task.status;
+                document.getElementById('taskParent').value = task.parentId || '';
+                document.getElementById('taskStartDate').value = task.startDate;
+                document.getElementById('taskEndDate').value = task.endDate || '';
+                document.getElementById('taskDuration').value = task.duration || '';
+                deleteBtn.style.display = 'block';
             } else {
-                document.getElementById('modalTitle').textContent = 'Nouvelle Tâche';
+                currentEditId = null;
                 form.reset();
-                document.getElementById('deleteTaskBtn').style.display = 'none';
-                document.getElementById('subtasksList').innerHTML = '';
+                modalTitle.textContent = 'Nouvelle Tâche';
+                deleteBtn.style.display = 'none';
+                document.getElementById('taskStartDate').value = new Date().toISOString().slice(0, 16);
             }
 
-            document.getElementById('taskModal').classList.add('show');
+            updateParentSelect();
+            modal.classList.add('active');
         }
 
         function closeTaskModal() {
-            document.getElementById('taskModal').classList.remove('show');
-            currentTaskId = null;
+            document.getElementById('taskModal').classList.remove('active');
+            currentEditId = null;
         }
 
-        function closeBillingModal() {
-            document.getElementById('billingModal').classList.remove('show');
+        function updateParentSelect() {
+            const select = document.getElementById('taskParent');
+            select.innerHTML = '<option value="">Aucune (Tâche principale)</option>';
+            tasks.forEach(task => {
+                if (!task.parentId) {
+                    select.innerHTML += `<option value="${task.id}">${task.name}</option>`;
+                }
+            });
         }
 
-        // ========== CALCULATE LINKED PARAMETERS ==========
-        function calculateMissingParam(changedParam) {
-            const start = document.getElementById('taskStartDateTime').value;
-            const end = document.getElementById('taskEndDateTime').value;
-            const duration = parseFloat(document.getElementById('taskDuration').value) || 0;
-
-            if (changedParam === 'start' && start && duration) {
-                const startDate = new Date(start);
-                const endDate = new Date(startDate.getTime() + duration * 60 * 60 * 1000);
-                document.getElementById('taskEndDateTime').value = endDate.toISOString().slice(0, 16);
-            } else if (changedParam === 'end' && end && duration) {
-                const endDate = new Date(end);
-                const startDate = new Date(endDate.getTime() - duration * 60 * 60 * 1000);
-                document.getElementById('taskStartDateTime').value = startDate.toISOString().slice(0, 16);
-            } else if (changedParam === 'duration' && start && end) {
-                const startDate = new Date(start);
-                const endDate = new Date(end);
-                const hours = (endDate - startDate) / (1000 * 60 * 60);
-                document.getElementById('taskDuration').value = Math.round(hours * 10) / 10;
-            }
-        }
-
-        // ========== TASK MANAGEMENT ==========
-        function saveTask(e) {
+        // ========== FORM HANDLING ==========
+        document.getElementById('taskForm').addEventListener('submit', function(e) {
             e.preventDefault();
 
-            const taskData = {
-                id: currentTaskId || Date.now(),
+            const startDate = document.getElementById('taskStartDate').value;
+            const endDate = document.getElementById('taskEndDate').value;
+            const duration = parseFloat(document.getElementById('taskDuration').value) || null;
+
+            if (duration && !endDate) {
+                const start = new Date(startDate);
+                const end = new Date(start.getTime() + duration * 60 * 60 * 1000);
+                document.getElementById('taskEndDate').value = end.toISOString().slice(0, 16);
+            }
+
+            const task = {
+                id: currentEditId || Date.now().toString(),
                 name: document.getElementById('taskName').value,
                 description: document.getElementById('taskDescription').value,
                 status: document.getElementById('taskStatus').value,
-                startDateTime: document.getElementById('taskStartDateTime').value || null,
-                endDateTime: document.getElementById('taskEndDateTime').value || null,
-                duration: parseFloat(document.getElementById('taskDuration').value) || 0,
-                subtasks: currentTaskId ? (tasks.find(t => t.id === currentTaskId)?.subtasks || []) : []
+                parentId: document.getElementById('taskParent').value || null,
+                startDate: startDate,
+                endDate: document.getElementById('taskEndDate').value || null,
+                duration: duration,
             };
 
-            const index = tasks.findIndex(t => t.id === taskData.id);
-            if (index >= 0) {
-                tasks[index] = taskData;
+            if (currentEditId) {
+                const index = tasks.findIndex(t => t.id === currentEditId);
+                tasks[index] = task;
             } else {
-                tasks.push(taskData);
+                tasks.push(task);
             }
 
             saveData();
-            closeTaskModal();
             updateAllViews();
-        }
+            closeTaskModal();
+        });
 
         function deleteTask() {
             if (confirm('Êtes-vous sûr de vouloir supprimer cette tâche ?')) {
-                tasks = tasks.filter(t => t.id !== currentTaskId);
+                tasks = tasks.filter(t => t.id !== currentEditId);
                 saveData();
-                closeTaskModal();
                 updateAllViews();
+                closeTaskModal();
             }
         }
 
-        document.getElementById('taskForm')?.addEventListener('submit', saveTask);
-
-        // ========== SUBTASKS ==========
-        function renderSubtasks(subtasks) {
-            const container = document.getElementById('subtasksList');
-            container.innerHTML = (subtasks || []).map((st, idx) => `
-                <div class="subtask-item">
-                    <div class="subtask-item-name">${st.name}</div>
-                    <div class="subtask-item-info">
-                        <span>${st.status}</span>
-                        <span>⏱️ ${st.duration}h</span>
-                        ${st.startDateTime ? `<span>📅 ${new Date(st.startDateTime).toLocaleString('fr-FR')}</span>` : ''}
-                    </div>
-                    <button type="button" class="btn btn-danger" style="margin-top: 8px; padding: 4px 8px; font-size: 0.85em;" onclick="removeSubtask(${idx})">Supprimer</button>
-                </div>
-            `).join('');
-        }
-
-        function openAddSubtaskForm() {
-            document.getElementById('addSubtaskForm').style.display = 'block';
-        }
-
-        function closeAddSubtaskForm() {
-            document.getElementById('addSubtaskForm').style.display = 'none';
-        }
-
-        function addSubtask() {
-            const task = tasks.find(t => t.id === currentTaskId);
-            if (!task) return;
-
-            const subtask = {
-                id: Date.now(),
-                name: document.getElementById('subtaskName').value,
-                status: document.getElementById('subtaskStatus').value,
-                startDateTime: document.getElementById('subtaskStartDateTime').value || null,
-                endDateTime: document.getElementById('subtaskEndDateTime').value || null,
-                duration: parseFloat(document.getElementById('subtaskDuration').value) || 0
-            };
-
-            task.subtasks = task.subtasks || [];
-            task.subtasks.push(subtask);
-            saveData();
-            renderSubtasks(task.subtasks);
-            closeAddSubtaskForm();
-            document.getElementById('addSubtaskForm').reset();
-        }
-
-        function removeSubtask(index) {
-            const task = tasks.find(t => t.id === currentTaskId);
-            if (task) {
-                task.subtasks.splice(index, 1);
-                saveData();
-                renderSubtasks(task.subtasks);
-            }
-        }
-
-        // ========== UPDATE ALL VIEWS ==========
+        // ========== VIEW UPDATES ==========
         function updateAllViews() {
             updateTodoList();
             renderCalendar();
@@ -1068,307 +758,201 @@
 
         function updateTodoList() {
             const statuses = ['a-faire', 'en-cours', 'en-retard', 'termine', 'a-facturer'];
-
             statuses.forEach(status => {
-                const container = document.getElementById(`tasks-${status}`);
-                const count = document.getElementById(`count-${status}`);
-
-                const items = [];
-                tasks.forEach(task => {
-                    if (task.status === status) {
-                        items.push({
-                            type: 'task',
-                            taskId: task.id,
-                            name: task.name,
-                            duration: task.duration,
-                            startDateTime: task.startDateTime,
-                            status: task.status
-                        });
-                    }
-                    (task.subtasks || []).forEach(st => {
-                        if (st.status === status) {
-                            items.push({
-                                type: 'subtask',
-                                taskId: task.id,
-                                taskName: task.name,
-                                subtaskId: st.id,
-                                name: st.name,
-                                duration: st.duration,
-                                startDateTime: st.startDateTime,
-                                status: st.status
-                            });
-                        }
-                    });
-                });
-
-                container.innerHTML = items.map(item => `
-                    <div class="task-card ${item.status}" onclick="openTaskModal(${item.taskId})">
-                        ${item.type === 'subtask' ? `<div style="font-size: 0.85em; color: #667eea; margin-bottom: 4px;"><strong>${item.taskName}</strong></div>` : ''}
-                        <div class="task-title">${item.name}</div>
-                        <div class="task-info">
-                            <span>⏱️ ${item.duration}h</span>
-                            ${item.startDateTime ? `<span>📅 ${new Date(item.startDateTime).toLocaleString('fr-FR')}</span>` : ''}
+                const column = document.getElementById(`column-${status}`);
+                const tasksInStatus = tasks.filter(t => t.status === status);
+                
+                column.innerHTML = tasksInStatus.map(task => `
+                    <div class="task-item" draggable="true" ondragstart="startDrag(event, '${task.id}')" ondrop="drop(event, '${status}')" ondragover="allowDrop(event)" onclick="openTaskModal('${task.id}')">
+                        <div class="task-name">${task.name}</div>
+                        <div class="task-details">
+                            <span>${task.startDate.slice(0, 10)}</span>
+                            <span>${task.duration ? task.duration + 'h' : ''}</span>
                         </div>
                     </div>
                 `).join('');
-
-                count.textContent = items.length;
             });
         }
 
-        // ========== PLANNING CALENDAR ==========
-        function renderCalendar() {
-            if (currentMode === 'day') renderDayView();
-            else if (currentMode === 'week') renderWeekView();
-            else if (currentMode === 'month') renderMonthView();
-        }
-
-        function renderDayView() {
-            const dateStr = currentDate.toISOString().split('T')[0];
-            const dayTasks = [];
-
-            tasks.forEach(task => {
-                if (task.startDateTime && task.startDateTime.split('T')[0] === dateStr) {
-                    dayTasks.push({ type: 'task', ...task });
-                }
-                (task.subtasks || []).forEach(st => {
-                    if (st.startDateTime && st.startDateTime.split('T')[0] === dateStr) {
-                        dayTasks.push({ type: 'subtask', parentId: task.id, parentName: task.name, ...st });
-                    }
-                });
-            });
-
-            document.getElementById('day-view-date').textContent =
-                currentDate.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
-
-            const container = document.getElementById('day-tasks-container');
-            container.innerHTML = dayTasks.map(item => {
-                const start = new Date(item.startDateTime);
-                const durationMins = item.duration * 60;
-                const topPercent = (start.getHours() * 60 + start.getMinutes()) / 1440 * 100;
-                const heightPercent = durationMins / 1440 * 100;
-
-                return `
-                    <div class="draggable-task ${item.status}" 
-                         style="top: ${topPercent}%; height: ${heightPercent}%;" 
-                         draggable="true"
-                         ondragstart="startDrag(event, ${item.id || item.subtaskId}, '${item.type}')"
-                         ondragend="endDrag(event)"
-                         ondrop="drop(event, ${item.type === 'subtask' ? item.parentId : item.id})"
-                         ondragover="allowDrop(event)">
-                        <div class="task-label">${item.type === 'subtask' ? item.parentName + ' - ' : ''}${item.name}</div>
-                        <div class="task-duration">⏱️ ${item.duration}h</div>
-                        <div class="resize-handle" onmousedown="startResize(event, ${item.id || item.subtaskId}, '${item.type}')"></div>
-                    </div>
-                `;
-            }).join('');
-        }
-
-        function renderWeekView() {
-            const week = [];
-            const startOfWeek = new Date(currentDate);
-            startOfWeek.setDate(currentDate.getDate() - currentDate.getDay());
-
-            for (let i = 0; i < 7; i++) {
-                week.push(new Date(startOfWeek));
-                startOfWeek.setDate(startOfWeek.getDate() + 1);
-            }
-
-            const grid = document.getElementById('week-grid');
-            grid.innerHTML = week.map((day, idx) => {
-                const dateStr = day.toISOString().split('T')[0];
-                const dayTasks = [];
-
-                tasks.forEach(task => {
-                    if (task.startDateTime && task.startDateTime.split('T')[0] === dateStr) {
-                        dayTasks.push(task.name);
-                    }
-                    (task.subtasks || []).forEach(st => {
-                        if (st.startDateTime && st.startDateTime.split('T')[0] === dateStr) {
-                            dayTasks.push(st.name);
-                        }
-                    });
-                });
-
-                const isToday = dateStr === new Date().toISOString().split('T')[0];
-
-                return `
-                    <div class="week-day ${isToday ? 'today' : ''}">
-                        <div class="week-day-header">
-                            ${day.toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric' })}
-                        </div>
-                        <div class="day-tasks">
-                            ${dayTasks.map(name => `<div class="day-task">${name}</div>`).join('')}
-                        </div>
-                    </div>
-                `;
-            }).join('');
-
-            document.getElementById('planning-date').textContent =
-                `${week[0].toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })} - ${week[6].toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })}`;
-        }
-
-        function renderMonthView() {
-            const year = currentDate.getFullYear();
-            const month = currentDate.getMonth();
-            const firstDay = new Date(year, month, 1);
-            const lastDay = new Date(year, month + 1, 0);
-            const daysInMonth = lastDay.getDate();
-            const startingDayOfWeek = firstDay.getDay();
-
-            const grid = document.getElementById('month-grid');
-            let html = '';
-
-            const dayNames = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
-            dayNames.forEach(day => {
-                html += `<div class="month-day" style="background: #e0e0e0; font-weight: bold; text-align: center; padding: 10px;"><strong>${day}</strong></div>`;
-            });
-
-            for (let i = 0; i < startingDayOfWeek; i++) {
-                html += '<div class="month-day other-month"></div>';
-            }
-
-            for (let day = 1; day <= daysInMonth; day++) {
-                const date = new Date(year, month, day);
-                const dateStr = date.toISOString().split('T')[0];
-                const isToday = dateStr === new Date().toISOString().split('T')[0];
-
-                const dayTasks = [];
-                tasks.forEach(task => {
-                    if (task.startDateTime && task.startDateTime.split('T')[0] === dateStr) {
-                        dayTasks.push(task);
-                    }
-                    (task.subtasks || []).forEach(st => {
-                        if (st.startDateTime && st.startDateTime.split('T')[0] === dateStr) {
-                            dayTasks.push(st);
-                        }
-                    });
-                });
-
-                html += `
-                    <div class="month-day ${isToday ? 'today' : ''}">
-                        <div class="day-number">${day}</div>
-                        <div class="day-tasks">
-                            ${dayTasks.map(task => `
-                                <div class="day-task ${task.status}" style="border-left-color: ${task.status === 'a-faire' ? '#2196F3' : task.status === 'en-cours' ? '#FFC107' : task.status === 'en-retard' ? '#f44336' : '#4CAF50'};">
-                                    ${task.name}
-                                </div>
-                            `).join('')}
-                        </div>
-                    </div>
-                `;
-            }
-
-            grid.innerHTML = html;
-
-            document.getElementById('planning-date').textContent =
-                currentDate.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
-        }
-
-        // ========== DRAG & DROP FUNCTIONS ==========
-        function startDrag(e, itemId, type) {
-            draggedElement = { itemId, type };
-            e.target.closest('.draggable-task').classList.add('dragging');
-        }
-
-        function endDrag(e) {
-            e.target.closest('.draggable-task')?.classList.remove('dragging');
+        function startDrag(e, taskId) {
+            draggedTask = taskId;
+            draggedFrom = e.target.closest('.task-item').parentElement.id.replace('column-', '');
+            e.target.closest('.task-item').classList.add('dragging');
         }
 
         function allowDrop(e) {
             e.preventDefault();
         }
 
-        function drop(e, taskId) {
+        function drop(e, status) {
             e.preventDefault();
-            if (!draggedElement) return;
-
-            const container = document.getElementById('day-tasks-container');
-            const dropY = e.clientY - container.getBoundingClientRect().top;
-            const containerHeight = container.offsetHeight;
-            const newTopPercent = (dropY / containerHeight) * 100;
-
-            const task = tasks.find(t => t.id === taskId);
-            if (!task) return;
-
-            if (draggedElement.type === 'task') {
-                const item = task;
-                if (item) {
-                    const start = new Date(item.startDateTime);
-                    const minuteOffset = (newTopPercent / 100) * 1440;
-                    start.setHours(0, minuteOffset);
-                    item.startDateTime = start.toISOString();
-
-                    if (item.duration) {
-                        const end = new Date(start.getTime() + item.duration * 60 * 60 * 1000);
-                        item.endDateTime = end.toISOString();
-                    }
-                }
-            } else {
-                const subtask = task.subtasks.find(st => st.id === draggedElement.itemId);
-                if (subtask) {
-                    const start = new Date(subtask.startDateTime);
-                    const minuteOffset = (newTopPercent / 100) * 1440;
-                    start.setHours(0, minuteOffset);
-                    subtask.startDateTime = start.toISOString();
-
-                    if (subtask.duration) {
-                        const end = new Date(start.getTime() + subtask.duration * 60 * 60 * 1000);
-                        subtask.endDateTime = end.toISOString();
-                    }
+            if (draggedTask) {
+                const task = tasks.find(t => t.id === draggedTask);
+                if (task) {
+                    task.status = status;
+                    saveData();
+                    updateAllViews();
                 }
             }
-
-            saveData();
-            updateAllViews();
         }
 
-        // ========== RESIZE FUNCTIONS ==========
-        function startResize(e, itemId, type) {
-            e.preventDefault();
-            dragStartY = e.clientY;
-            const container = document.getElementById('day-tasks-container');
-            const task = e.target.closest('.draggable-task');
-            dragStartHeight = task.offsetHeight;
+        // ========== CALENDAR VIEWS ==========
+        function renderCalendar() {
+            if (currentMode === 'day') {
+                renderDayView();
+            } else if (currentMode === 'week') {
+                renderWeekView();
+            } else if (currentMode === 'month') {
+                renderMonthView();
+            }
+        }
 
-            const moveHandler = (moveEvent) => {
-                const delta = moveEvent.clientY - dragStartY;
-                const newHeight = dragStartHeight + delta;
-                task.style.height = (newHeight / container.offsetHeight * 100) + '%';
+        function renderDayView() {
+            const dayContent = document.getElementById('day-content');
+            const date = new Date(currentDate);
+            const dateStr = date.toLocaleDateString('fr-FR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+            
+            const dayTasks = getTodaysTasks(date);
+            
+            let html = `<h3>${dateStr}</h3>`;
+            for (let hour = 8; hour < 18; hour++) {
+                const hourStr = `${hour.toString().padStart(2, '0')}:00`;
+                html += `<div style="margin-top: 10px; font-size: 0.9em; color: #999;">${hourStr}</div>`;
+                html += `<div class="timeline" id="timeline-${hour}"></div>`;
+            }
+
+            dayContent.innerHTML = html;
+            renderTasksOnTimeline(dayTasks);
+        }
+
+        function renderWeekView() {
+            const weekContent = document.getElementById('week-content');
+            const startDate = new Date(currentDate);
+            startDate.setDate(currentDate.getDate() - currentDate.getDay() + 1);
+
+            let html = '<div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 10px;">';
+            for (let i = 0; i < 7; i++) {
+                const date = new Date(startDate);
+                date.setDate(date.getDate() + i);
+                const dateStr = date.toLocaleDateString('fr-FR', { weekday: 'short', month: 'short', day: 'numeric' });
+                html += `<div><h4>${dateStr}</h4><div class="timeline" id="timeline-week-${i}"></div></div>`;
+            }
+            html += '</div>';
+
+            weekContent.innerHTML = html;
+
+            for (let i = 0; i < 7; i++) {
+                const date = new Date(startDate);
+                date.setDate(date.getDate() + i);
+                const dayTasks = getTodaysTasks(date);
+                renderTasksOnTimeline(dayTasks, `timeline-week-${i}`);
+            }
+        }
+
+        function renderMonthView() {
+            const monthContent = document.getElementById('month-content');
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth();
+
+            const firstDay = new Date(year, month, 1);
+            const lastDay = new Date(year, month + 1, 0);
+            const prevLastDay = new Date(year, month, 0).getDate();
+            const startDate = firstDay.getDay() - 1;
+
+            let html = '<div class="month-grid">';
+            const days = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
+            days.forEach(day => {
+                html += `<div style="font-weight: bold; text-align: center; padding: 10px; background: #f0f0f0;">${day}</div>`;
+            });
+
+            for (let i = startDate; i > 0; i--) {
+                html += `<div class="day-cell other-month">${prevLastDay - i + 1}</div>`;
+            }
+
+            for (let day = 1; day <= lastDay.getDate(); day++) {
+                const date = new Date(year, month, day);
+                const dayTasks = getTodaysTasks(date);
+                html += `<div class="day-cell"><div class="day-cell-header">${day}</div><div class="day-cell-tasks">`;
+                dayTasks.forEach(task => {
+                    html += `<div class="day-cell-task ${task.status}" title="${task.name}">${task.name.slice(0, 15)}</div>`;
+                });
+                html += `</div></div>`;
+            }
+
+            for (let day = 1; day <= 42 - lastDay.getDate() - startDate; day++) {
+                html += `<div class="day-cell other-month">${day}</div>`;
+            }
+
+            html += '</div>';
+            monthContent.innerHTML = html;
+        }
+
+        function getTodaysTasks(date) {
+            return tasks.filter(task => {
+                const taskDate = new Date(task.startDate);
+                return taskDate.toDateString() === date.toDateString() && ['a-faire', 'en-cours', 'en-retard'].includes(task.status);
+            });
+        }
+
+        function renderTasksOnTimeline(dayTasks, timelineId = null) {
+            dayTasks.forEach(task => {
+                const startHour = new Date(task.startDate).getHours();
+                const targetId = timelineId || `timeline-${startHour}`;
+                const timeline = document.getElementById(targetId);
+
+                if (timeline) {
+                    const taskBar = document.createElement('div');
+                    taskBar.className = `task-bar ${task.status}`;
+                    taskBar.textContent = task.name;
+                    taskBar.draggable = true;
+                    taskBar.style.left = '0%';
+                    taskBar.style.width = '100%';
+
+                    const resizeHandle = document.createElement('div');
+                    resizeHandle.className = 'resize-handle';
+                    resizeHandle.onmousedown = (e) => startResize(e, task);
+                    taskBar.appendChild(resizeHandle);
+
+                    taskBar.ondragstart = (e) => startTaskBarDrag(e, task);
+                    taskBar.ondragend = (e) => endTaskBarDrag(e, task);
+
+                    timeline.appendChild(taskBar);
+                }
+            });
+        }
+
+        function startTaskBarDrag(e, task) {
+            e.dataTransfer.effectAllowed = 'move';
+            draggedTask = task.id;
+        }
+
+        function endTaskBarDrag(e, task) {
+            // Logique de drop si nécessaire
+        }
+
+        function startResize(e, task) {
+            e.preventDefault();
+            const startX = e.clientX;
+            const startDuration = task.duration || 1;
+
+            const moveHandler = (e) => {
+                const diff = e.clientX - startX;
+                const hourWidth = 100; // pixels par heure
+                task.duration = Math.max(0.5, startDuration + (diff / hourWidth));
+                
+                if (task.startDate && task.duration) {
+                    const start = new Date(task.startDate);
+                    const end = new Date(start.getTime() + task.duration * 60 * 60 * 1000);
+                    task.endDate = end.toISOString().slice(0, 16);
+                }
+
+                saveData();
+                renderCalendar();
             };
 
             const upHandler = () => {
                 document.removeEventListener('mousemove', moveHandler);
                 document.removeEventListener('mouseup', upHandler);
-
-                const newDurationMins = (task.offsetHeight / container.offsetHeight) * 1440;
-                const newDurationHours = newDurationMins / 60;
-
-                const parentTask = tasks.find(t => t.id === (type === 'subtask' ? tasks.find(ta => ta.subtasks.find(st => st.id === itemId))?.id : itemId));
-                if (type === 'task' && parentTask) {
-                    parentTask.duration = Math.round(newDurationHours * 10) / 10;
-                    if (parentTask.startDateTime) {
-                        const start = new Date(parentTask.startDateTime);
-                        const end = new Date(start.getTime() + parentTask.duration * 60 * 60 * 1000);
-                        parentTask.endDateTime = end.toISOString();
-                    }
-                } else if (type === 'subtask') {
-                    const parent = tasks.find(t => t.subtasks.find(st => st.id === itemId));
-                    if (parent) {
-                        const subtask = parent.subtasks.find(st => st.id === itemId);
-                        if (subtask) {
-                            subtask.duration = Math.round(newDurationHours * 10) / 10;
-                            if (subtask.startDateTime) {
-                                const start = new Date(subtask.startDateTime);
-                                const end = new Date(start.getTime() + subtask.duration * 60 * 60 * 1000);
-                                subtask.endDateTime = end.toISOString();
-                            }
-                        }
-                    }
-                }
-
-                saveData();
-                updateAllViews();
             };
 
             document.addEventListener('mousemove', moveHandler);
